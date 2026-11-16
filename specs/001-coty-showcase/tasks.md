@@ -24,14 +24,16 @@
 
 ## 階段 2：設計系統與靜態版面
 
-- [ ] T020 `src/styles/global.css` 的 Tailwind `@theme`：字級（clamp 流體字級）、間距、網格；中性色與 `--coty`、`--coty-ink` 已在階段 1 建好
-- [ ] T021 [P] 字型：選定拉丁與中文字型，寫 `scripts/subset-fonts.ts` 依建置後 HTML 用字產生子集
-- [ ] T022 `layouts/Base.astro`：ClientRouter、persist canvas、頁首導覽、頁尾非官方聲明
-- [ ] T023 [P] 元件：`Swatch`（實體色票造型）、`ColorValue`（含複製）、`Palette`、`YearNav`（2D 年份刻度列）
-- [ ] T024 先完成所有頁面的靜態版（不含 WebGL），內容齊全、鍵盤可操作，作為 reduced-motion 與無 WebGL 的基準版面
-- [ ] T025 [P] Playwright：每頁一個 reduced-motion 截圖基準
+- [x] T020 `src/styles/global.css` 的 Tailwind `@theme`：字級（clamp 流體字級）、間距、網格；中性色與 `--coty`、`--coty-ink` 已在階段 1 建好
+- [x] T021 [P] 字型：Fraunces、Inter、思源宋體、思源黑體，用 Fontsource 可變字型套件；中文字型已切成 unicode-range 片段，瀏覽器只下載用到的字，不需要自寫子集化腳本
+- [x] T022 `layouts/Base.astro`：ClientRouter、persist canvas、頁首導覽、頁尾非官方聲明
+- [x] T023 [P] 元件：`Swatch`（實體色票造型）、`ColorValue`（含複製）、`Palette`、`YearNav`（2D 年份刻度列）
+- [x] T024 先完成所有頁面的靜態版（不含 WebGL），內容齊全、鍵盤可操作，作為 reduced-motion 與無 WebGL 的基準版面
+- [x] T025 [P] Playwright：每頁一個 reduced-motion 截圖基準
 
 ## 階段 3：動態核心
+
+3D 產品展示是網站的核心，所以 T031 到 T034 完成後，先做階段 4 的 T047、T048、T046、T049、T050，再回來做 T035 之後的轉場與 Hero。
 
 - [ ] T030 `src/app/ticker.ts`、`scroll.ts`：GSAP ticker 驅動 Lenis 與 ScrollTrigger
 - [ ] T031 `src/app/motion.ts`：reduced-motion 偵測（含執行中切換）、WebGL 可用性偵測
@@ -49,14 +51,14 @@
 - [ ] T042 首頁捲動敘事段落（US-01-3）
 - [ ] T043 ArchiveScene：樣條曲線色卡時間軸、慣性、聚焦效果、雙色卡（US-02）
 - [ ] T044 時間軸到年度頁的共享元素轉場（US-02-5）
-- [ ] T045 年度頁：色值、故事、配色、相鄰年份比較（US-03）
-- [ ] T046 年度頁：設計發想段落與產品預覽縮圖（US-04）
+- [x] T045 年度頁：色值、故事、配色、相鄰年份比較（US-03）
+- [ ] T046 年度頁：設計發想段落以 3D 產品模型展示，每個概念一個可旋轉的模型，捲動進場、畫面外暫停 render（US-04）
 - [ ] T047 [P] 準備 6 個產品模型：取得或製作、拆分材質區、Meshopt 壓縮、KTX2 貼圖、低面數版本、授權記錄
 - [ ] T048 LabScene：換色、六種表面處理、三種燈光、軌道控制（US-05-1 到 5-4）
 - [ ] T049 產品實驗室：網址參數同步與 PNG 匯出（US-05-5、5-6）
 - [ ] T050 [P] 產品實驗室的無 WebGL 靜態圖（US-05-7）
 - [ ] T051 SpaceScene 與對應 HTML 表格（US-06，P2）
-- [ ] T052 [P] 404 頁、about 頁
+- [x] T052 [P] 404 頁、about 頁
 
 ## 階段 5：內容
 
