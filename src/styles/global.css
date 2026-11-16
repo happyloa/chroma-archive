@@ -2,15 +2,66 @@
 
 /*
  * 設計 token（憲章第 1 條）：介面只用中性色，彩度留給年度色。
- * --coty 由 Base layout 依頁面寫在 <html> 上，元件用 bg-coty、text-coty-ink 等 utility 引用。
+ * --coty、--coty-ink 由 Base layout 依頁面寫在 <html> 上，元件用 bg-coty、text-coty-ink 引用。
  */
 @theme {
   --color-ink: #0e0e0e;
   --color-paper: #f4f2ee;
+  /* 次要文字：在 paper 上對比約 6.4:1 */
+  --color-smoke: #5c5954;
+  /* 分隔線與淡底 */
+  --color-mist: #e3e0da;
+  /* 實體色票的白色標籤紙 */
+  --color-chip: #fdfcfa;
   --color-coty: var(--coty);
   --color-coty-ink: var(--coty-ink);
 
-  --font-sans: system-ui, 'Noto Sans TC', sans-serif;
+  --font-display: 'Fraunces Variable', 'Noto Serif TC Variable', ui-serif, serif;
+  --font-serif-tc: 'Noto Serif TC Variable', ui-serif, serif;
+  --font-sans: 'Inter Variable', 'Noto Sans TC Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+
+  /* 流體字級：手機到 1920 寬螢幕連續縮放 */
+  --text-mega: clamp(5.5rem, 24vw, 26rem);
+  --text-mega--line-height: 0.78;
+  --text-mega--letter-spacing: -0.04em;
+  --text-display: clamp(3rem, 9vw, 9.5rem);
+  --text-display--line-height: 0.9;
+  --text-display--letter-spacing: -0.03em;
+  --text-headline: clamp(2rem, 4.6vw, 4.75rem);
+  --text-headline--line-height: 1;
+  --text-headline--letter-spacing: -0.02em;
+  --text-title: clamp(1.375rem, 2.2vw, 2.125rem);
+  --text-title--line-height: 1.2;
+  --text-lead: clamp(1.0625rem, 1.35vw, 1.3125rem);
+  --text-lead--line-height: 1.75;
+
+  /* 版面外距與欄距 */
+  --spacing-gutter: max(1rem, 4vw);
+  --spacing-col: max(0.75rem, 1.5vw);
+  --spacing-section: clamp(5rem, 14vw, 14rem);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 12 欄網格，手機 4 欄 */
+@utility page-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--spacing-col);
+  padding-inline: var(--spacing-gutter);
+  @media (width >= 48rem) {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+/* 小標：全大寫、字距拉開 */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 @layer base {
@@ -18,10 +69,32 @@
     --coty: #f0eee9;
     --coty-ink: #0e0e0e;
     color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   html,
   body {
     @apply bg-paper font-sans text-ink;
+  }
+
+  body {
+    line-height: 1.7;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  ::selection {
+    background: var(--coty);
+    color: var(--coty-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  code,
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
