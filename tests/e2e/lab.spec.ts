@@ -29,7 +29,7 @@ test('情境場景、鏡頭與自轉寫進網址並還原', async ({ page }) => 
   await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
   await page.getByText('客廳', { exact: true }).click();
   await page.getByText('俯視', { exact: true }).click();
-  await page.getByText('自動旋轉').click();
+  await page.getByText('自動旋轉', { exact: true }).click();
   await expect(page).toHaveURL(/s=living/);
   await expect(page).toHaveURL(/cam=top/);
   await expect(page).toHaveURL(/spin=0/);
@@ -102,6 +102,19 @@ test('拒絕不支援的檔案類型', async ({ page }) => {
   });
   await expect(page.locator('#lab-upload-status')).toContainText('不支援 .fbx');
   await expect(page.locator('#lab-custom-option')).toBeHidden();
+});
+
+test('沒有 GPU 加速時停用相片級渲染並說明', async ({ page }) => {
+  // 測試用的無頭瀏覽器是軟體算繪（SwiftShader），畫質檔位為低
+  await page.goto('/years/2025/lab/?p=vase&spin=0&q=photo');
+  await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
+  test.skip(
+    (await page.locator('#stage').getAttribute('data-tier')) !== 'low',
+    '這台機器有 GPU 加速，不適用',
+  );
+  await expect(page.locator('input[name="q"]')).toBeDisabled();
+  await expect(page.locator('input[name="q"]')).not.toBeChecked();
+  await expect(page.locator('#lab-photo-note')).toContainText('沒有可用的 GPU 加速');
 });
 
 test('匯出 2048 × 2048 PNG', async ({ page, browserName }) => {

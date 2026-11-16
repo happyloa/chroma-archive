@@ -1,4 +1,5 @@
 import type { ViewReadyDetail } from '../stage/types';
+import type { PhotoProgress } from '../stage/views/PhotoRenderer';
 import type {
   PickDetail,
   ProductChangedDetail,
@@ -26,6 +27,7 @@ function readState(form: HTMLFormElement): ProductState {
     room: (checked(form, 's')?.value ?? 'studio') as ProductState['room'],
     camera: (checked(form, 'cam')?.value ?? 'hero') as ProductState['camera'],
     spin: !!checked(form, 'spin'),
+    quality: checked(form, 'q') ? 'photo' : 'realtime',
   };
 }
 
@@ -40,6 +42,8 @@ function applyParams(form: HTMLFormElement): void {
     );
     if (input) input.checked = true;
   }
+  const photo = form.querySelector<HTMLInputElement>('input[name="q"]');
+  if (photo && params.get('q') === 'photo') photo.checked = true;
   const spin = form.querySelector<HTMLInputElement>('input[name="spin"]');
   if (spin) {
     if (params.get('spin') === '0') spin.checked = false;
@@ -58,6 +62,7 @@ function writeParams(form: HTMLFormElement): void {
     if (v && !(name === 'p' && v === 'custom')) params.set(name, v);
   }
   if (!checked(form, 'spin')) params.set('spin', '0');
+  if (checked(form, 'q')) params.set('q', 'photo');
   // 保留 Astro router 放在 history.state 的資料
   history.replaceState(history.state, '', `${location.pathname}?${params}`);
 }
@@ -104,6 +109,15 @@ export function initLab(): void {
 
   viewport.addEventListener('stage:view-ready', (event) => {
     view = (event as CustomEvent<ViewReadyDetail>).detail.view as ProductView;
+    // 沒有 GPU 加速（軟體算繪）時跑不動路徑追蹤，停用開關並說明
+    const photo = form.querySelector<HTMLInputElement>('input[name="q"]');
+    if (photo && !view.supportsPhoto) {
+      photo.checked = false;
+      photo.disabled = true;
+      photo.closest('label')?.classList.add('opacity-40', 'cursor-not-allowed');
+      const note = document.getElementById('lab-photo-note');
+      if (note) note.textContent = '這台裝置沒有可用的 GPU 加速，無法使用相片級渲染。';
+    }
     // 網址帶進來的設定直接套用，不播進場動畫
     view.set(readState(form), false);
     exportButton.disabled = false;
@@ -118,6 +132,19 @@ export function initLab(): void {
     fieldset.classList.toggle('opacity-50', !hasAccent);
     const note = fieldset.querySelector<HTMLElement>('[data-accent-note]');
     if (note) note.hidden = hasAccent;
+  });
+
+  // 相片級渲染的進度
+  const photoStatus = document.getElementById('lab-photo-status');
+  viewport.addEventListener('photo:progress', (event) => {
+    if (!photoStatus) return;
+    const { samples, building } = (event as CustomEvent<PhotoProgress>).detail;
+    const on = !!checked(form, 'q');
+    photoStatus.hidden = !on;
+    photoStatus.classList.toggle('hidden', !on);
+    if (!on) return;
+    const text = building ? '相片級渲染準備中…' : `相片級渲染・${samples} 次取樣`;
+    if (photoStatus.textContent !== text) photoStatus.textContent = text;
   });
 
   viewport.addEventListener('product:pick', (event) => {
@@ -167,7 +194,9 @@ export function initLab(): void {
     const original = exportButton.textContent;
     exportButton.textContent = '產生中…';
     try {
-      const blob = await view.exportPNG(2048, `${label} · chroma-archive`);
+      const blob = await view.exportPNG(2048, `${label} · chroma-archive`, (ratio) => {
+        exportButton.textContent = `渲染中 ${Math.round(ratio * 100)}%`;
+      });
       const state = readState(form);
       download(
         blob,

@@ -130,6 +130,11 @@ const accentChoices = [
         >
           拖曳旋轉・滾輪縮放・點產品零件選擇要換色的部位
         </p>
+        <p
+          id="lab-photo-status"
+          class="pointer-events-none absolute top-4 right-4 hidden rounded-full bg-night/70 px-3 py-1 text-xs text-day tabular-nums backdrop-blur"
+          aria-live="polite"
+        ></p>
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -150,7 +155,21 @@ const accentChoices = [
           ></span>
           自動旋轉
         </label>
+        <label
+          class="inline-flex cursor-pointer items-center gap-2 text-sm"
+          title="停止操作後以路徑追蹤逐步算出照片級畫面，需要桌機等級的顯示卡"
+        >
+          <input type="checkbox" name="q" value="photo" class="peer sr-only" />
+          <span
+            class="relative h-5 w-9 rounded-full bg-ink/20 transition-colors peer-checked:bg-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-paper after:transition-transform peer-checked:after:translate-x-4"
+            aria-hidden="true"
+          ></span>
+          相片級渲染
+        </label>
       </div>
+      <p class="text-xs text-smoke" id="lab-photo-note">
+        相片級渲染會在你停止操作後，用路徑追蹤逐步算出有真實光影的畫面，需要桌機等級的顯示卡；開啟時自動旋轉會暫停。
+      </p>
     </div>
 
     <div class="col-span-4 space-y-8 md:col-span-4">

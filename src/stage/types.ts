@@ -19,6 +19,8 @@ export interface StageView {
   update(time: number, delta: number): void;
   /** 每次 render 前呼叫，用來設定 tone mapping 曝光這類 renderer 層級的參數 */
   beforeRender?(renderer: WebGLRenderer): void;
+  /** 自訂算繪（例如路徑追蹤）；沒有時 Stage 直接 render(scene, camera) */
+  render?(renderer: WebGLRenderer, viewHeight: number): void;
   /**
    * 視窗背景色；null 表示透明。由 Stage 在視窗範圍內清除，不用 scene.background，
    * 因為 three.js 算陰影時會關閉 scissor，scene.background 會蓋滿整個 canvas。

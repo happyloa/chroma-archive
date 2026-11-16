@@ -25,7 +25,16 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { LIGHT_LOOK, backgroundFor, getEnvironment, type LightPreset } from '../environment';
+import {
+  HDRI_INTENSITY,
+  LIGHT_LOOK,
+  backgroundFor,
+  getEnvironment,
+  hdriFor,
+  loadHDRI,
+  type LightPreset,
+} from '../environment';
+import { PhotoRenderer, type PhotoProgress } from './PhotoRenderer';
 import {
   loadProduct,
   applyFinish,
@@ -39,6 +48,7 @@ import { REAL_HEIGHT, createRoom, setRoomLight, type Room, type RoomId } from '.
 import type { StageContext, StageView } from '../types';
 import { disposeGeometries, releaseOriginalMaterials } from '../upload';
 
+export type Quality = 'realtime' | 'photo';
 export type ProductChoice = ProductId | 'custom';
 export type CameraPreset = 'hero' | 'front' | 'side' | 'top' | 'detail';
 export type PartSlot = 'primary' | 'accent';
@@ -53,6 +63,8 @@ export interface ProductState {
   room: RoomId;
   camera: CameraPreset;
   spin: boolean;
+  /** 即時算繪或相片級渲染（路徑追蹤） */
+  quality: Quality;
 }
 
 export interface ProductChangedDetail {
@@ -73,6 +85,7 @@ const DEFAULT_STATE: ProductState = {
   room: 'studio',
   camera: 'hero',
   spin: true,
+  quality: 'realtime',
 };
 
 /** 各鏡頭預設的方向與距離倍率 */
@@ -132,11 +145,21 @@ export class ProductView implements StageView {
   private readonly raycaster = new Raycaster();
   private readonly pointer = new Vector2();
   clearColor: Color | null = null;
+  private readonly photo: PhotoRenderer;
+  /** 目前燈光對應的 HDRI 載入工作 */
+  private hdriTask: Promise<void> = Promise.resolve();
+  /** 目前產品模型的載入工作 */
+  private productReady: Promise<void> = Promise.resolve();
   private model: ProductModel | null = null;
   /** 使用者上傳的模型，切到其他產品時保留，換新檔或視窗釋放時才釋放 */
   private custom: ProductModel | null = null;
   private productToken = 0;
   private disposed = false;
+  /** 軟體算繪（低畫質檔位）跑不動路徑追蹤 */
+  get supportsPhoto(): boolean {
+    return this.ctx.tier !== 'low';
+  }
+
   /** 目前的產品有沒有輔色零件 */
   hasAccent = true;
   private room: Room | null = null;
@@ -167,6 +190,7 @@ export class ProductView implements StageView {
       room: (d.room as RoomId) ?? DEFAULT_STATE.room,
       camera: DEFAULT_STATE.camera,
       spin: !ctx.reducedMotion,
+      quality: 'realtime',
     };
 
     this.primaryMat = createFinishMaterial(this.state.finish, this.state.primary);
@@ -180,11 +204,21 @@ export class ProductView implements StageView {
     this.shadow.position.y = 0.002;
     this.shadow.renderOrder = -1;
 
-    this.key.shadow.mapSize.set(1024, 1024);
+    // 柔和陰影（Stage 使用 VSM 陰影）
+    const shadowSize = ctx.tier === 'high' ? 2048 : 1024;
+    this.key.shadow.mapSize.set(shadowSize, shadowSize);
+    this.key.shadow.radius = 8;
+    this.key.shadow.blurSamples = 16;
     this.key.shadow.bias = -0.0005;
     this.key.shadow.normalBias = 0.02;
     this.placement.add(this.turntable, this.shadow);
     this.scene.add(this.placement, this.key, this.key.target);
+
+    this.photo = new PhotoRenderer(ctx.renderer, this.scene, this.camera, (p) =>
+      el.dispatchEvent(
+        new CustomEvent<PhotoProgress>('photo:progress', { detail: p, bubbles: true }),
+      ),
+    );
 
     this.controls = new OrbitControls(this.camera, el);
     this.controls.enableDamping = true;
@@ -197,6 +231,8 @@ export class ProductView implements StageView {
       gsap.killTweensOf(this.camera.position);
       gsap.killTweensOf(this.controls.target);
     });
+    // 鏡頭一動，相片級渲染就重新累積
+    this.controls.addEventListener('change', () => this.photo.updateCamera());
     this.controls.addEventListener('end', () => {
       this.interacting = false;
       this.idleSince = performance.now();
@@ -215,7 +251,7 @@ export class ProductView implements StageView {
 
     this.setRoom(this.state.room);
     this.setLight(this.state.light);
-    void this.setProduct(this.state.product, false);
+    this.productReady = this.setProduct(this.state.product, false);
     window.addEventListener('themechange', this.onThemeChange);
   }
 
@@ -225,8 +261,10 @@ export class ProductView implements StageView {
 
   /** 更新狀態；animate 為 false 或減少動態效果時直接套用 */
   set(next: Partial<ProductState>, animate = true): void {
-    const motion = animate && !this.reducedMotion;
     const prev = this.state;
+    // 相片級渲染時不播過渡動畫：每個中間畫面都會讓路徑追蹤重新累積
+    const photo = (next.quality ?? prev.quality) === 'photo';
+    const motion = animate && !this.reducedMotion && !photo;
     this.state = { ...prev, ...next };
     let reframe = false;
 
@@ -238,7 +276,7 @@ export class ProductView implements StageView {
     if (next.camera && next.camera !== prev.camera) reframe = true;
     if (next.product && next.product !== prev.product) {
       // 載入完成後才取景（見 setProduct）
-      void this.setProduct(next.product, motion);
+      this.productReady = this.setProduct(next.product, motion);
     } else if (reframe) {
       this.placeModel();
       this.frame(motion);
@@ -252,7 +290,26 @@ export class ProductView implements StageView {
         this.state.accent,
         motion,
       );
+      this.photo.updateMaterials();
     }
+
+    if (next.quality === 'photo' && !this.supportsPhoto) this.state.quality = 'realtime';
+    if (next.quality && this.state.quality !== prev.quality) {
+      if (this.state.quality === 'photo') void this.rebuildPhoto();
+      else this.photo.disable();
+      this.placeModel();
+    }
+  }
+
+  /** 開啟或重建相片級渲染：等 HDRI 與家具都載入後才建立場景 */
+  private async rebuildPhoto(): Promise<void> {
+    if (this.state.quality !== 'photo' || this.disposed) return;
+    await Promise.all([this.hdriTask, this.room?.ready, this.productReady]);
+    if (this.state.quality !== 'photo' || this.disposed) return;
+    const studio = this.state.room === 'studio';
+    const bg = new Color(backgroundFor(this.state.light));
+    if (this.photo.enabled) await this.photo.rebuild(studio, bg);
+    else await this.photo.enable(studio, bg);
   }
 
   /** 換色與換表面時漸變顏色與粗糙度等參數 */
@@ -290,6 +347,7 @@ export class ProductView implements StageView {
     if (token !== this.productToken || this.disposed) return;
     this.mountModel(model, id, animate);
     this.frame(animate);
+    if (this.photo.enabled) void this.rebuildPhoto();
     this.el.dispatchEvent(
       new CustomEvent<ProductChangedDetail>('product:changed', {
         detail: { product: id, hasAccent: model.accent.length > 0 },
@@ -371,7 +429,8 @@ export class ProductView implements StageView {
       this.placement.position.set(0, 0, 0);
       this.placement.rotation.set(0, 0, 0);
       this.placement.scale.setScalar(1);
-      this.shadow.visible = true;
+      // 相片級渲染有真實的落地陰影，不需要假陰影
+      this.shadow.visible = this.state.quality !== 'photo';
       return;
     }
     // 上傳的模型尺寸未知，放在單椅的位置，高度當作 0.6 公尺
@@ -381,7 +440,7 @@ export class ProductView implements StageView {
     this.placement.rotation.set(0, p.rotationY, 0);
     this.placement.scale.setScalar((id === 'custom' ? 0.6 : REAL_HEIGHT[id]) / nativeHeight);
     // 場景裡用真的陰影
-    this.shadow.visible = !this.ctx.settings.shadows;
+    this.shadow.visible = !this.ctx.settings.shadows && this.state.quality !== 'photo';
   }
 
   private setRoom(id: RoomId): void {
@@ -396,14 +455,28 @@ export class ProductView implements StageView {
     }
     this.state.room = id;
     this.setLight(this.state.light);
+    if (this.photo.enabled) void this.rebuildPhoto();
   }
 
   private setLight(preset: LightPreset): void {
     const look = LIGHT_LOOK[preset];
     const inRoom = this.state.room !== 'studio';
+    // 先用程式產生的燈箱，實拍 HDRI 載入後替換
     this.scene.environment = getEnvironment(this.ctx.renderer, preset);
     this.scene.environmentIntensity = look.envIntensity * (inRoom ? 0.8 : 1);
+    const hdri = hdriFor(preset, inRoom);
+    this.hdriTask = loadHDRI(hdri).then(
+      (texture) => {
+        if (this.disposed || hdriFor(this.state.light, this.state.room !== 'studio') !== hdri)
+          return;
+        this.scene.environment = texture;
+        this.scene.environmentIntensity = HDRI_INTENSITY[hdri];
+        this.photo.updateEnvironment();
+      },
+      (e) => console.warn('HDRI 載入失敗，沿用程式產生的環境光', e),
+    );
     this.clearColor = this.transparent ? null : new Color(backgroundFor(preset));
+    this.photo.setCycColor(new Color(backgroundFor(preset)));
     this.exposure = look.exposure;
     this.state.light = preset;
 
@@ -420,6 +493,7 @@ export class ProductView implements StageView {
     }
     this.shadow.material.opacity = preset === 'night' ? 0.9 : 0.7;
     this.updateBulb();
+    this.photo.updateEnvironment();
   }
 
   private updateBulb(): void {
@@ -592,10 +666,16 @@ export class ProductView implements StageView {
     renderer.toneMappingExposure = this.exposure;
   }
 
+  /** Stage 設好 viewport、scissor 後呼叫；相片級渲染就緒時改畫路徑追蹤的結果 */
+  render(renderer: WebGLRenderer, viewHeight: number): void {
+    if (!this.photo.render(viewHeight)) renderer.render(this.scene, this.camera);
+  }
+
   update(_time: number, delta: number): void {
     // 開啟自轉時，沒在拖曳、放手超過 2 秒後慢慢轉；減少動態效果時不轉
     if (
       this.state.spin &&
+      this.state.quality !== 'photo' &&
       !this.reducedMotion &&
       !this.interacting &&
       performance.now() - this.idleSince > 2000
@@ -613,18 +693,32 @@ export class ProductView implements StageView {
   }
 
   /** 以離屏 render target 輸出正方形 PNG（FR-12），不受視窗大小影響 */
-  async exportPNG(size: number, watermark: string): Promise<Blob> {
-    const r = this.ctx.renderer;
-    const linear = new WebGLRenderTarget(size, size, { type: HalfFloatType, samples: 4 });
-    const output = new WebGLRenderTarget(size, size);
+  async exportPNG(
+    size: number,
+    watermark: string,
+    onProgress?: (ratio: number) => void,
+  ): Promise<Blob> {
     const camera = this.camera.clone();
     camera.aspect = 1;
     camera.updateProjectionMatrix();
+    const background = this.clearColor ?? new Color(backgroundFor(this.state.light));
+    const pixels =
+      this.state.quality === 'photo' && this.photo.enabled
+        ? await this.photo.exportPixels(size, 128, camera, background, onProgress ?? (() => {}))
+        : this.rasterPixels(size, camera, background);
+    return this.encodePNG(pixels, size, watermark);
+  }
+
+  /** 一般算繪的離屏輸出 */
+  private rasterPixels(size: number, camera: PerspectiveCamera, background: Color): Uint8Array {
+    const r = this.ctx.renderer;
+    const linear = new WebGLRenderTarget(size, size, { type: HalfFloatType, samples: 4 });
+    const output = new WebGLRenderTarget(size, size);
     const pass = new OutputPass();
 
     // 匯出時沒有 Stage 幫忙清背景，改用 scene.background
     const prevBackground = this.scene.background;
-    this.scene.background = this.clearColor ?? new Color(backgroundFor(this.state.light));
+    this.scene.background = background;
     const prevTarget = r.getRenderTarget();
     const prevExposure = r.toneMappingExposure;
     r.toneMappingExposure = this.exposure;
@@ -644,7 +738,11 @@ export class ProductView implements StageView {
     linear.dispose();
     output.dispose();
     pass.dispose();
+    return pixels;
+  }
 
+  /** 像素轉 PNG 並加上浮水印 */
+  private encodePNG(pixels: Uint8Array, size: number, watermark: string): Promise<Blob> {
     // WebGL 的像素由下往上排列，畫進 2D canvas 時上下翻轉
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = size;
@@ -669,6 +767,7 @@ export class ProductView implements StageView {
 
   dispose(): void {
     this.disposed = true;
+    this.photo.dispose();
     window.removeEventListener('themechange', this.onThemeChange);
     this.el.removeEventListener('pointermove', this.onPointerMove);
     this.el.removeEventListener('pointerleave', this.onPointerLeave);

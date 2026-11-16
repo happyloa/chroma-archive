@@ -1,4 +1,10 @@
-import { NeutralToneMapping, NoToneMapping, SRGBColorSpace, WebGLRenderer } from 'three';
+import {
+  NeutralToneMapping,
+  NoToneMapping,
+  SRGBColorSpace,
+  VSMShadowMap,
+  WebGLRenderer,
+} from 'three';
 import { onTick } from '../app/ticker';
 import { FpsGuard, TIERS, detectTier, lowerTier, type Tier } from './quality';
 import type { StageContext, StageView, ViewFactory, ViewKind, ViewReadyDetail } from './types';
@@ -52,6 +58,8 @@ export class Stage {
     this.renderer.setClearColor(0x000000, 0);
     // 每個視窗的背景由下面的 render 自己清除（見 StageView.clearColor）
     this.renderer.autoClear = false;
+    // 柔和陰影
+    this.renderer.shadowMap.type = VSMShadowMap;
     this.tier = detectTier(this.renderer);
     this.applyTier();
 
@@ -182,7 +190,8 @@ export class Stage {
           r.clearDepth();
         }
         view.beforeRender?.(r);
-        r.render(view.scene, view.camera);
+        if (view.render) view.render(r, rect.height);
+        else r.render(view.scene, view.camera);
       }
       r.setScissorTest(false);
       this.fps.sample(delta);
