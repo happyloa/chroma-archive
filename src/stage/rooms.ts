@@ -51,15 +51,17 @@ export interface Room {
 // —— 材質 ——
 
 const textureLoader = new TextureLoader();
+/** 低畫質檔位：只用底色貼圖，不用法線與 ARM 貼圖 */
+let lite = false;
 const textureCache = new Map<string, Texture>();
 function tex(url: string, repeat: Vector2, srgb = false): Texture {
-  const key = `${url}@${repeat.x}x${repeat.y}`;
+  const key = `${url}@${repeat.x}x${repeat.y}${lite ? '-lite' : ''}`;
   let t = textureCache.get(key);
   if (!t) {
     t = textureLoader.load(url);
     t.wrapS = t.wrapT = RepeatWrapping;
     t.repeat.copy(repeat);
-    t.anisotropy = 8;
+    t.anisotropy = lite ? 1 : 8;
     if (srgb) t.colorSpace = SRGBColorSpace;
     textureCache.set(key, t);
   }
@@ -69,6 +71,13 @@ function tex(url: string, repeat: Vector2, srgb = false): Texture {
 /** PBR 貼圖材質：diff（底色）、nor（法線）、arm（AO、粗糙度、金屬度） */
 function pbr(id: string, repeat: Vector2, tint = 0xffffff): MeshStandardMaterial {
   const base = `/textures/${id}`;
+  if (lite)
+    return new MeshStandardMaterial({
+      color: tint,
+      map: tex(`${base}/diff.webp`, repeat, true),
+      roughness: 0.9,
+      metalness: 0,
+    });
   const arm = tex(`${base}/arm.webp`, repeat);
   return new MeshStandardMaterial({
     color: tint,
@@ -83,6 +92,7 @@ function pbr(id: string, repeat: Vector2, tint = 0xffffff): MeshStandardMaterial
 
 const mats = new Map<string, MeshStandardMaterial>();
 function shared(key: string, make: () => MeshStandardMaterial): MeshStandardMaterial {
+  if (lite) key += '-lite';
   let m = mats.get(key);
   if (!m) {
     m = make();
@@ -329,6 +339,7 @@ function office(): Room {
   };
 }
 
-export function createRoom(id: Exclude<RoomId, 'studio'>): Room {
+export function createRoom(id: Exclude<RoomId, 'studio'>, opts: { lite?: boolean } = {}): Room {
+  lite = !!opts.lite;
   return { living, bedroom, office }[id]();
 }

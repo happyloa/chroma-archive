@@ -477,7 +477,7 @@ export class ProductView implements StageView {
       this.room = null;
     }
     if (id !== 'studio') {
-      this.room = createRoom(id);
+      this.room = createRoom(id, { lite: this.ctx.tier === 'low' });
       this.scene.add(this.room.group);
     }
     this.state.room = id;

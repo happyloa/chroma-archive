@@ -11,6 +11,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   // 3D 視窗在軟體算繪（無 GPU）下初始化較慢，平行跑多個瀏覽器時需要較長的等待
   expect: { timeout: 15_000 },
+  // CI 沒有 GPU，情境場景在軟體算繪下每秒只有十幾格，整個測試的時限也放寬
+  timeout: process.env.CI ? 60_000 : 30_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: `http://localhost:${PORT}`,
