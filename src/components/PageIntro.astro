@@ -13,10 +13,7 @@ const { eyebrow, title, lead } = Astro.props;
   <h1 class="col-span-4 font-display text-display font-light md:col-span-10" data-split>
     {title}
   </h1>
-  {lead && (
-    <p class="col-span-4 max-w-[38em] text-lead text-smoke md:col-span-7" data-reveal-up>
-      {lead}
-    </p>
-  )}
+  {/* 首屏的說明一開始就顯示，不做淡入：它常是 LCP 元素，等 JS 才出現會拖慢 LCP */}
+  {lead && <p class="col-span-4 max-w-[38em] text-lead text-smoke md:col-span-7">{lead}</p>}
   <slot />
 </section>

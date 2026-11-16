@@ -140,9 +140,10 @@ test('換頁離開實驗室時釋放 3D 視窗', async ({ page }) => {
   expect(await page.evaluate(() => window.__chroma!().views)).toBe(1);
   await page.getByRole('link', { name: '2025 Mocha Mousse' }).click();
   await expect(page).toHaveURL(/\/years\/2025\/$/);
-  // 實驗室的視窗釋放後，只剩年度頁自己的視窗（主視覺加 3 個設計發想）
-  const yearViews = await page.locator('main [data-view]').count();
-  expect(yearViews).toBe(4);
-  await expect.poll(() => page.evaluate(() => window.__chroma!().views)).toBe(yearViews);
+  // 實驗室的視窗釋放後，只剩年度頁已經建立的視窗（設計發想在頁面下方，捲近才建立）
+  await expect(page.locator('main [data-view="hero"]')).toHaveAttribute('data-stage-ready', '');
+  const ready = await page.locator('main [data-stage-ready]').count();
+  expect(ready).toBeGreaterThanOrEqual(1);
+  await expect.poll(() => page.evaluate(() => window.__chroma!().views)).toBe(ready);
   await expect(page.locator('#lab-viewport')).toHaveCount(0);
 });

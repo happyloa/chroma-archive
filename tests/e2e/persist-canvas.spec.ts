@@ -6,10 +6,10 @@ const readDebug = (page: Page) => page.evaluate(() => window.__chroma!()) as Pro
 
 /** 等這一頁的 3D 視窗都建立好、而且又畫了幾格，GPU 資源數字才穩定 */
 async function settle(page: Page): Promise<Debug> {
-  const views = page.locator('main [data-view]');
-  await expect(views.first()).toHaveAttribute('data-stage-ready', '');
-  const count = await views.count();
-  await expect.poll(async () => (await readDebug(page)).views).toBe(count);
+  // 視窗捲近畫面才建立（Stage.mount），所以比對已經建立好的數量
+  await expect(page.locator('main [data-view]').first()).toHaveAttribute('data-stage-ready', '');
+  const ready = page.locator('main [data-stage-ready]');
+  await expect.poll(async () => (await readDebug(page)).views).toBe(await ready.count());
   const frames = (await readDebug(page)).frames;
   await expect.poll(async () => (await readDebug(page)).frames).toBeGreaterThan(frames + 10);
   return readDebug(page);

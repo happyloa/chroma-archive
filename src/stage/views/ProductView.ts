@@ -383,6 +383,11 @@ export class ProductView implements StageView {
     // 載入期間又換了產品，或視窗已經釋放
     if (token !== this.productToken || this.disposed) return;
     this.mountModel(model, id, animate);
+    // 模型先隱藏，平行編譯完材質的 shader 才顯示，避免第一格同步編譯卡住
+    model.root.visible = false;
+    await this.ctx.renderer.compileAsync(this.scene, this.camera).catch(() => undefined);
+    if (token !== this.productToken || this.disposed) return;
+    model.root.visible = true;
     this.frame(animate);
     if (this.photo.enabled) void this.rebuildPhoto();
     this.el.dispatchEvent(

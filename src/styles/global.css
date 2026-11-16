@@ -141,7 +141,7 @@
 .webgl-only {
   display: none;
 }
-:root[data-webgl='on'][data-motion='full'] .webgl-only {
+:root[data-webgl='on'][data-motion='full']:not([data-lite='on']) .webgl-only {
   display: block;
 }
 
@@ -207,7 +207,8 @@
 
 /* 減少動態效果時主視覺不跑 shader，改成靜態漸層（US-01-4） */
 :root[data-motion='reduce'] [data-view='hero'],
-:root[data-webgl='off'] [data-view='hero'] {
+:root[data-webgl='off'] [data-view='hero'],
+:root[data-lite='on'] [data-view='hero'] {
   background-image: radial-gradient(
     120% 90% at 18% 12%,
     color-mix(in oklab, var(--coty) 72%, white) 0%,
@@ -216,7 +217,8 @@
   );
 }
 :root[data-motion='reduce'] [data-view='hero'][data-color2]:not([data-mode='cloud']),
-:root[data-webgl='off'] [data-view='hero'][data-color2]:not([data-mode='cloud']) {
+:root[data-webgl='off'] [data-view='hero'][data-color2]:not([data-mode='cloud']),
+:root[data-lite='on'] [data-view='hero'][data-color2]:not([data-mode='cloud']) {
   background-image: linear-gradient(
     120deg,
     var(--coty) 0%,
@@ -225,7 +227,8 @@
   );
 }
 :root[data-motion='reduce'] [data-view='hero'][data-mode='cloud'],
-:root[data-webgl='off'] [data-view='hero'][data-mode='cloud'] {
+:root[data-webgl='off'] [data-view='hero'][data-mode='cloud'],
+:root[data-lite='on'] [data-view='hero'][data-mode='cloud'] {
   background-image: radial-gradient(
     55% 45% at 70% 38%,
     color-mix(in oklab, var(--coty) 38%, transparent),

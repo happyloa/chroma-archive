@@ -354,3 +354,24 @@ test('視窗縮放後 canvas 跟著更新尺寸', async ({ page }) => {
     .poll(() => page.evaluate(() => (document.getElementById('stage') as HTMLCanvasElement).height))
     .toBe(700 * (await page.evaluate(() => Math.min(window.devicePixelRatio, 2))));
 });
+
+test.describe('沒有 GPU 加速的裝置', () => {
+  test.use({ fullGraphics: false });
+
+  test('軟體算繪時裝飾性 3D 改用靜態內容，產品實驗室照常是 3D', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', '只確定無頭 Chromium 是軟體算繪');
+    await page.goto('/years/2025/');
+    test.skip(
+      (await page.evaluate(() => document.documentElement.dataset.lite)) !== 'on',
+      '這台機器的無頭 Chromium 有 GPU 加速',
+    );
+    const hero = page.locator('section[data-view="hero"]');
+    await expect(hero).toHaveCSS('background-image', /radial-gradient/);
+    await page.waitForTimeout(1500);
+    expect(await views(page)).toBe(0);
+    await page.goto('/archive/');
+    await expect(page.locator('[data-view="timeline"]')).toBeHidden();
+    await page.goto('/years/2025/lab/');
+    await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
+  });
+});

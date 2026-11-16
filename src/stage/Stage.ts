@@ -32,6 +32,8 @@ export class Stage {
   private readonly visible = new Set<HTMLElement>();
   private readonly seen = new WeakSet<HTMLElement>();
   private observer: IntersectionObserver | null = null;
+  /** 還沒建立的視窗，捲近時才建立 */
+  private lazy: IntersectionObserver | null = null;
   private running = true;
   private reducedMotion = false;
   private mountToken = 0;
@@ -124,27 +126,44 @@ export class Stage {
       { rootMargin: '10% 0px' },
     );
 
+    // 離畫面一個視窗高度以內才建立；更遠的（例如年度頁下方的設計發想）捲近時才建立，進站時不必一次付出成本
+    this.lazy = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          this.lazy?.unobserve(e.target);
+          void this.create(e.target as HTMLElement, token);
+        }
+      },
+      { rootMargin: '100% 0px' },
+    );
+    // 只在完整動態效果時建立的視窗（主視覺、設計發想、時間軸、色彩空間），減少動態效果時保留靜態替代內容；
+    // 沒有 GPU 加速的裝置（<html data-lite>，進站時判定）也一樣
+    const lite = document.documentElement.dataset.lite === 'on';
     for (const el of els) {
-      // 只在完整動態效果時建立的視窗（主視覺、設計發想、時間軸、色彩空間），減少動態效果時保留靜態替代內容
-      if (this.reducedMotion && el.hasAttribute('data-motion-only')) continue;
-      const kind = el.dataset.view as ViewKind;
-      const load = REGISTRY[kind];
-      if (!load) continue;
-      const factory = await load();
-      // 載入期間使用者已經換頁，就不再建立
-      if (token !== this.mountToken) return;
-      const view = await factory(el, this.context);
-      if (token !== this.mountToken) {
-        view.dispose();
-        return;
-      }
-      this.views.set(el, view);
-      this.observer.observe(el);
-      el.dataset.stageReady = '';
-      el.dispatchEvent(
-        new CustomEvent<ViewReadyDetail>('stage:view-ready', { detail: { view }, bubbles: true }),
-      );
+      if ((this.reducedMotion || lite) && el.hasAttribute('data-motion-only')) continue;
+      if (!REGISTRY[el.dataset.view as ViewKind]) continue;
+      this.lazy.observe(el);
     }
+  }
+
+  private async create(el: HTMLElement, token: number): Promise<void> {
+    const factory = await REGISTRY[el.dataset.view as ViewKind]();
+    // 載入期間使用者已經換頁，就不再建立
+    if (token !== this.mountToken) return;
+    const view = await factory(el, this.context);
+    // 先平行編譯 shader 再開始繪製，第一格才不會同步等編譯（行動裝置上會卡住主執行緒）
+    await this.renderer.compileAsync(view.scene, view.camera).catch(() => undefined);
+    if (token !== this.mountToken) {
+      view.dispose();
+      return;
+    }
+    this.views.set(el, view);
+    this.observer?.observe(el);
+    el.dataset.stageReady = '';
+    el.dispatchEvent(
+      new CustomEvent<ViewReadyDetail>('stage:view-ready', { detail: { view }, bubbles: true }),
+    );
   }
 
   /** 換頁前呼叫：釋放這一頁的 3D 視窗 */
@@ -152,6 +171,8 @@ export class Stage {
     this.mountToken += 1;
     this.observer?.disconnect();
     this.observer = null;
+    this.lazy?.disconnect();
+    this.lazy = null;
     for (const view of this.views.values()) view.dispose();
     this.views.clear();
     this.visible.clear();

@@ -77,9 +77,7 @@ const { summary } = localizedContent(latest, lang);
       </h1>
 
       <div class="col-span-4 flex flex-wrap items-end justify-between gap-6 md:col-span-12">
-        <p class="max-w-[34ch] text-lead" data-reveal-up>
-          {summary}
-        </p>
+        <p class="max-w-[34ch] text-lead">{summary}</p>
         <a
           href={localePath(lang, `/years/${latest.year}/`)}
           class="eyebrow inline-flex items-center gap-3 border-b border-current pb-1"
@@ -127,7 +125,10 @@ const { summary } = localizedContent(latest, lang);
         {t('home.enterArchive')} <span aria-hidden="true">→</span>
       </a>
     </div>
-    <ol class="flex h-[42vh] min-h-64 px-gutter" aria-label={t('home.spectrumLabel')}>
+    <ol
+      class="grid h-[42vh] min-h-64 grid-cols-9 px-gutter md:flex"
+      aria-label={t('home.spectrumLabel')}
+    >
       {years.map((y) => (
         <li class="group relative flex-1 transition-[flex-grow] duration-500 ease-out-expo hover:flex-[4] focus-within:flex-[4]">
           <a

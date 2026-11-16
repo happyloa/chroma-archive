@@ -33,7 +33,15 @@ async function applyPage(): Promise<void> {
   if (!(canvas instanceof HTMLCanvasElement) || !main) return;
 
   // three.js 延遲載入，不算進首頁初始 JS 預算（憲章第 3 條）
-  StageClass ??= (await import('../stage/Stage')).Stage;
+  if (!StageClass) {
+    // 第一次載入：等瀏覽器閒置（最多 1.2 秒）才載入 three.js、建立 3D，首屏文字先畫出來
+    await new Promise<void>((resolve) =>
+      'requestIdleCallback' in window
+        ? requestIdleCallback(() => resolve(), { timeout: 1200 })
+        : setTimeout(resolve, 300),
+    );
+    StageClass = (await import('../stage/Stage')).Stage;
+  }
   stage = StageClass.get(canvas);
   stage.setReducedMotion(prefersReducedMotion());
   await stage.mount(main);
