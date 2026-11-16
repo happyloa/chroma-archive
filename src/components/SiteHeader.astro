@@ -26,19 +26,20 @@ const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
 {/* 疊在第一個區塊上方，隨頁面捲走；文字色依該區塊背景決定 */}
 <header
   class:list={[
-    'absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-6 px-gutter py-4',
+    'absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-4 px-gutter py-4 sm:gap-6',
     toneClass,
   ]}
 >
   <a
     href={localePath(lang, '/')}
-    class="eyebrow tracking-[0.22em]"
+    class="eyebrow tracking-[0.12em] whitespace-nowrap sm:tracking-[0.22em]"
     aria-current={base === '/' ? 'page' : undefined}
   >
     Chroma Archive
   </a>
   <nav aria-label={t('nav.main')}>
-    <ul class="flex items-center gap-4 text-sm sm:gap-8">
+    {/* 手機上空間不夠時整個項目換行，不在字中間折行 */}
+    <ul class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-sm whitespace-nowrap sm:gap-x-8">
       {links.map((l) => (
         <li>
           <a

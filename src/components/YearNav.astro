@@ -12,7 +12,11 @@ const lang = getLang(Astro.currentLocale);
 const t = useT(lang);
 ---
 
-<nav aria-label={t('nav.years')} class="overflow-x-auto px-gutter [scrollbar-width:thin]">
+{/*
+  relative：讓連結裡 sr-only 的年份全名（position: absolute）以這個捲動容器定位，
+  否則它們會跑出容器的裁切範圍，在手機上把整頁撐寬
+*/}
+<nav aria-label={t('nav.years')} class="relative overflow-x-auto px-gutter [scrollbar-width:thin]">
   <ol class="flex min-w-max gap-px">
     {years.map((y) => (
       <li>
