@@ -24,6 +24,22 @@ test('切換選項時網址參數同步，重新整理後還原', async ({ page 
   await expect(page.locator('input[name="c1"]:checked')).toHaveValue('2019-0');
 });
 
+test('情境場景、鏡頭與自轉寫進網址並還原', async ({ page }) => {
+  await page.goto('/years/2025/lab/');
+  await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
+  await page.getByText('客廳', { exact: true }).click();
+  await page.getByText('俯視', { exact: true }).click();
+  await page.getByText('自動旋轉').click();
+  await expect(page).toHaveURL(/s=living/);
+  await expect(page).toHaveURL(/cam=top/);
+  await expect(page).toHaveURL(/spin=0/);
+
+  await page.reload();
+  await expect(page.locator('input[name="s"]:checked')).toHaveValue('living');
+  await expect(page.locator('input[name="cam"]:checked')).toHaveValue('top');
+  await expect(page.locator('input[name="spin"]')).not.toBeChecked();
+});
+
 test('匯出 2048 × 2048 PNG', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', '下載事件只在 Chromium 驗證');
   await page.goto('/years/2025/lab/?p=vase&f=satin');
