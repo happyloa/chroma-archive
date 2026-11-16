@@ -43,44 +43,30 @@ const CmfSchema = z.object({
   primary: z.string(), // 引用格式："2025-0"（年份-色序）或 "#RRGGBB"
   accent: z.string().optional(),
   material: z.string(), // 例如 "再生 PET 針織布"
-  finish: z.enum([
-    "matte",
-    "satin",
-    "gloss",
-    "metallic",
-    "velvet",
-    "translucent",
-  ]),
+  finish: z.enum(['matte', 'satin', 'gloss', 'metallic', 'velvet', 'translucent']),
 });
 
 const ConceptSchema = z.object({
   id: z.string(), // 頁面內唯一，例如 "lounge-chair"
   title: z.string(), // 產品概念名稱
   category: z.enum([
-    "furniture",
-    "audio",
-    "lighting",
-    "homeware",
-    "footwear",
-    "wearable",
-    "packaging",
-    "mobility",
-    "other",
+    'furniture',
+    'audio',
+    'lighting',
+    'homeware',
+    'footwear',
+    'wearable',
+    'packaging',
+    'mobility',
+    'other',
   ]),
   pitch: z.string().max(80), // 一句話描述
   audience: z.string(), // 目標使用者
   cmf: CmfSchema,
   labPreset: z.object({
     // 帶入產品實驗室的設定
-    product: z.enum([
-      "chair",
-      "headphones",
-      "vase",
-      "speaker",
-      "lamp",
-      "sneaker",
-    ]),
-    light: z.enum(["studio", "daylight", "night"]).default("studio"),
+    product: z.enum(['chair', 'headphones', 'vase', 'speaker', 'lamp', 'sneaker']),
+    light: z.enum(['studio', 'daylight', 'night']).default('studio'),
   }),
 });
 
@@ -98,7 +84,7 @@ const YearContentSchema = z.object({
     good: z.array(MaterialNoteSchema).length(3),
     avoid: z.array(MaterialNoteSchema).length(3),
   }),
-  status: z.enum(["draft", "reviewed"]).default("draft"),
+  status: z.enum(['draft', 'reviewed']).default('draft'),
 });
 ```
 
@@ -118,8 +104,8 @@ concepts:
     pitch: 圓弧椅背包覆全身的閱讀單椅，布面像奶泡一樣柔軟。
     audience: 小坪數住宅的獨居上班族
     cmf:
-      primary: "2025-0"
-      accent: "#E8DCCB"
+      primary: '2025-0'
+      accent: '#E8DCCB'
       material: 羊毛混紡圈圈紗
       finish: velvet
     labPreset: { product: chair, light: daylight }
@@ -153,13 +139,10 @@ interface DerivedColor {
   hsl: [number, number, number];
   oklch: { l: number; c: number; h: number };
   lab: { l: number; a: number; b: number };
-  ink: "#0E0E0E" | "#F4F2EE"; // 上面可讀的文字色
+  ink: '#0E0E0E' | '#F4F2EE'; // 上面可讀的文字色
   needsPlate: boolean; // 黑白對比都不足時為 true
   isLight: boolean; // OKLCH L > 0.85，觸發淺色年份規則
-  palettes: Record<
-    "complementary" | "analogous" | "triadic" | "split" | "mono",
-    string[]
-  >;
+  palettes: Record<'complementary' | 'analogous' | 'triadic' | 'split' | 'mono', string[]>;
 }
 
 interface YearEntry {
