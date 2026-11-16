@@ -1,25 +1,29 @@
 ---
 import type { YearEntry } from '../lib/data';
+import { getLang, localePath, useT } from '../i18n/ui';
 
 interface Props {
   years: YearEntry[];
   current?: number;
-  /** 連結目標，預設是年度頁 */
-  hrefFor?: (year: number) => string;
 }
 
-const { years, current, hrefFor = (y: number) => `/years/${y}/` } = Astro.props;
+const { years, current } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
 ---
 
-<nav aria-label="年份" class="overflow-x-auto px-gutter [scrollbar-width:thin]">
+<nav aria-label={t('nav.years')} class="overflow-x-auto px-gutter [scrollbar-width:thin]">
   <ol class="flex min-w-max gap-px">
     {years.map((y) => (
       <li>
         <a
-          href={hrefFor(y.year)}
+          href={localePath(lang, `/years/${y.year}/`)}
           class="group flex w-10 flex-col items-center gap-2 py-2 text-[0.6875rem] tabular-nums text-smoke hover:text-ink aria-[current=page]:text-ink md:w-12"
           aria-current={y.year === current ? 'page' : undefined}
-          aria-label={`${y.year} 年 ${y.colors.map((c) => c.name).join(' & ')}`}
+          aria-label={t('year.swatchLabel', {
+            year: y.year,
+            names: y.colors.map((c) => c.name).join(' & '),
+          })}
         >
           <span
             class="flex h-8 w-full overflow-hidden transition-[height] duration-300 group-hover:h-12 group-aria-[current=page]:h-12"

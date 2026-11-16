@@ -1,18 +1,14 @@
 ---
-import type { GetStaticPaths } from 'astro';
 import { getEntry, render } from 'astro:content';
-import Base from '../../../layouts/Base.astro';
-import ColorValues from '../../../components/ColorValues.astro';
-import Palette from '../../../components/Palette.astro';
-import YearNav from '../../../components/YearNav.astro';
-import Swatch from '../../../components/Swatch.astro';
-import { getYears, type YearEntry } from '../../../lib/data';
-import type { PaletteKind } from '../../../lib/color';
-
-export const getStaticPaths = (async () => {
-  const years = await getYears();
-  return years.map((entry) => ({ params: { year: String(entry.year) }, props: { entry, years } }));
-}) satisfies GetStaticPaths;
+import Base from '../layouts/Base.astro';
+import ColorValues from '../components/ColorValues.astro';
+import Palette from '../components/Palette.astro';
+import YearNav from '../components/YearNav.astro';
+import Swatch from '../components/Swatch.astro';
+import type { YearEntry } from '../lib/data';
+import type { PaletteKind } from '../lib/color';
+import { formatDate, getLang, localePath, useT, type UiKey } from '../i18n/ui';
+import { colorNames, localizedContent } from '../i18n/content';
 
 interface Props {
   entry: YearEntry;
@@ -20,33 +16,33 @@ interface Props {
 }
 
 const { entry, years } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
+const zh = lang === 'zh-tw';
 const { year, colors, content } = entry;
 const [main] = colors;
-const doc = await getEntry('years', String(year));
+const { summary, keywords } = localizedContent(entry, lang);
+// 色彩故事目前只有中文
+const doc = zh ? await getEntry('years', String(year)) : undefined;
 const { Content } = doc ? await render(doc) : { Content: null };
 const reviewed = content.status === 'reviewed';
-const names = colors.map((c) => c.name).join(' & ');
-const namesZh = colors.map((c) => c.nameZh).join('、');
+const { names, namesZh } = colorNames(entry);
 const paletteKinds: PaletteKind[] = ['complementary', 'analogous', 'triadic', 'split', 'mono'];
 const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
-const finishZh: Record<string, string> = {
-  matte: '霧面',
-  satin: '緞面',
-  gloss: '亮面',
-  metallic: '金屬',
-  velvet: '絨布',
-  translucent: '半透明',
-};
 ---
 
 <Base
   title={`${year} ${names}`}
-  description={`Pantone ${year} 年度色 ${names}（${namesZh}）：${content.summary}`}
+  description={t('year.description', {
+    year,
+    names: zh ? `${names}（${namesZh}）` : names,
+    summary,
+  })}
   scene="year"
   color={main!.hex}
   headerTone={main!.isLight ? 'ink' : 'coty'}
 >
-  <!-- 色塊 Hero -->
+  {/* 色塊 Hero */}
   <section
     class:list={['pt-28 pb-gutter', main!.isLight ? 'bg-night text-day' : 'bg-coty text-coty-ink']}
     aria-labelledby="year-title"
@@ -56,14 +52,16 @@ const finishZh: Record<string, string> = {
         Color of the Year
         {entry.announced && (
           <span class="mt-1 block opacity-70">
-            <time datetime={entry.announced}>{entry.announced.replaceAll('-', '.')}</time> 公布
+            <time datetime={entry.announced}>
+              {t('year.announced', { date: formatDate(lang, entry.announced) })}
+            </time>
           </span>
         )}
       </p>
       <p class="eyebrow col-span-2 text-right md:col-span-6">
         Pantone {colors.map((c) => c.code).join(' / ')}
       </p>
-      <!-- 背景已經是年度色，所以用實體色票卡片呈現顏色本身 -->
+      {/* 背景已經是年度色，所以用實體色票卡片呈現顏色本身 */}
       <div
         class="col-span-3 md:col-span-4 md:col-start-9 md:row-span-2 md:row-start-2 md:self-center"
         aria-hidden="true"
@@ -73,20 +71,20 @@ const finishZh: Record<string, string> = {
       <h1 id="year-title" class="col-span-4 self-end md:col-span-6 md:row-start-2">
         <span class="block font-display text-mega font-light tabular-nums">{year}</span>
         <span class="mt-6 block font-display text-headline italic">{names}</span>
-        <span class="mt-2 block font-serif-tc text-title">{namesZh}</span>
+        {zh && <span class="mt-2 block font-serif-tc text-title">{namesZh}</span>}
       </h1>
       <p class="col-span-4 max-w-[30ch] self-end text-lead md:col-span-5 md:row-start-3">
-        {content.summary}
+        {summary}
       </p>
     </div>
   </section>
 
   <YearNav years={years} current={year} />
 
-  <!-- 色值 -->
+  {/* 色值 */}
   <section class="page-grid mt-section gap-y-10" aria-labelledby="values-title">
     <h2 id="values-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
-      色值
+      {t('year.values')}
     </h2>
     <div class="col-span-4 grid gap-12 md:col-span-9 md:grid-cols-2">
       {colors.map((c) => (
@@ -106,14 +104,14 @@ const finishZh: Record<string, string> = {
     </div>
   </section>
 
-  <!-- 色彩故事 -->
+  {/* 色彩故事 */}
   <section class="page-grid mt-section gap-y-8" aria-labelledby="story-title">
     <h2 id="story-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
-      色彩故事
+      {t('year.story')}
     </h2>
     <div class="col-span-4 md:col-span-7 md:col-start-5">
-      <ul class="mb-8 flex flex-wrap gap-2" aria-label="情緒關鍵字">
-        {content.keywords.map((k) => (
+      <ul class="mb-8 flex flex-wrap gap-2" aria-label={t('year.keywords')}>
+        {keywords.map((k) => (
           <li class="rounded-full border border-ink/15 px-3 py-1 text-sm">{k}</li>
         ))}
       </ul>
@@ -122,18 +120,18 @@ const finishZh: Record<string, string> = {
           <Content />
         </div>
       ) : (
-        <p class="font-serif-tc text-lead leading-[1.9]">
-          {content.summary}
-          <span class="mt-4 block font-sans text-sm text-smoke">完整的色彩故事還在撰寫中。</span>
+        <p class:list={['text-lead leading-[1.9]', zh ? 'font-serif-tc' : 'font-display']}>
+          {summary}
+          <span class="mt-4 block font-sans text-sm text-smoke">{t('year.storyPending')}</span>
         </p>
       )}
     </div>
   </section>
 
-  <!-- 配色 -->
+  {/* 配色 */}
   <section class="page-grid mt-section gap-y-10" aria-labelledby="palette-title">
     <h2 id="palette-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
-      配色
+      {t('year.palettes')}
     </h2>
     <div class="col-span-4 space-y-16 md:col-span-9">
       {colors.map((c) => (
@@ -149,10 +147,10 @@ const finishZh: Record<string, string> = {
     </div>
   </section>
 
-  <!-- 設計發想 -->
+  {/* 設計發想 */}
   <section class="page-grid mt-section gap-y-10" aria-labelledby="ideas-title">
     <h2 id="ideas-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
-      設計發想
+      {t('year.ideas')}
     </h2>
     <div class="col-span-4 md:col-span-9">
       {reviewed ? (
@@ -164,18 +162,21 @@ const finishZh: Record<string, string> = {
                 <h3 class="font-serif-tc text-title">{concept.title}</h3>
                 <p>{concept.pitch}</p>
                 <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-                  <dt class="text-smoke">使用者</dt>
+                  <dt class="text-smoke">{t('year.audience')}</dt>
                   <dd>{concept.audience}</dd>
-                  <dt class="text-smoke">材質</dt>
+                  <dt class="text-smoke">{t('year.material')}</dt>
                   <dd>{concept.cmf.material}</dd>
-                  <dt class="text-smoke">表面</dt>
-                  <dd>{finishZh[concept.cmf.finish]}</dd>
+                  <dt class="text-smoke">{t('year.finish')}</dt>
+                  <dd>{t(`finish.${concept.cmf.finish}` as UiKey)}</dd>
                 </dl>
                 <a
-                  href={`/years/${year}/lab/?p=${concept.labPreset.product}&f=${concept.cmf.finish}&c1=${encodeURIComponent(concept.cmf.primary)}${concept.cmf.accent ? `&c2=${encodeURIComponent(concept.cmf.accent)}` : ''}&l=${concept.labPreset.light}`}
+                  href={localePath(
+                    lang,
+                    `/years/${year}/lab/?p=${concept.labPreset.product}&f=${concept.cmf.finish}&c1=${encodeURIComponent(concept.cmf.primary)}${concept.cmf.accent ? `&c2=${encodeURIComponent(concept.cmf.accent)}` : ''}&l=${concept.labPreset.light}`,
+                  )}
                   class="eyebrow mt-auto self-start border-b border-current pb-1"
                 >
-                  在實驗室試色 <span aria-hidden="true">→</span>
+                  {t('year.tryInLab')} <span aria-hidden="true">→</span>
                 </a>
               </li>
             ))}
@@ -185,7 +186,7 @@ const finishZh: Record<string, string> = {
               {(['good', 'avoid'] as const).map((k) => (
                 <div>
                   <h3 class="mb-4 font-serif-tc text-lg">
-                    {k === 'good' ? '適合的材質' : '避免的材質'}
+                    {k === 'good' ? t('year.goodMaterials') : t('year.avoidMaterials')}
                   </h3>
                   <ul class="divide-y divide-ink/10 border-y border-ink/10">
                     {content.materials![k].map((m) => (
@@ -201,27 +202,24 @@ const finishZh: Record<string, string> = {
           )}
         </div>
       ) : (
-        <p class="max-w-[36em] text-lead text-smoke">
-          這個顏色的產品概念與材質建議還在整理中。可以先到產品實驗室，把 {names} 套到 3D
-          產品上試試看。
-        </p>
+        <p class="max-w-[36em] text-lead text-smoke">{t('year.ideasPending', { names })}</p>
       )}
       <a
-        href={`/years/${year}/lab/`}
+        href={localePath(lang, `/years/${year}/lab/`)}
         class="mt-12 inline-flex items-center gap-4 bg-ink px-6 py-4 text-paper transition-colors hover:bg-coty hover:text-coty-ink"
       >
-        <span class="eyebrow">產品實驗室</span>
+        <span class="eyebrow">{t('year.lab')}</span>
         <span aria-hidden="true">→</span>
       </a>
     </div>
   </section>
 
-  <!-- 相鄰年份 -->
-  <nav class="page-grid mt-section gap-y-6" aria-label="相鄰年份">
+  {/* 相鄰年份 */}
+  <nav class="page-grid mt-section gap-y-6" aria-label={t('nav.adjacent')}>
     {[entry.prev, entry.next].map((n, i) =>
       n ? (
         <a
-          href={`/years/${n.year}/`}
+          href={localePath(lang, `/years/${n.year}/`)}
           rel={i === 0 ? 'prev' : 'next'}
           data-testid={i === 0 ? 'prev-year' : 'next-year'}
           class:list={[
@@ -229,16 +227,14 @@ const finishZh: Record<string, string> = {
             i === 1 && 'items-end text-right',
           ]}
         >
-          <span class="eyebrow text-smoke">{i === 0 ? '← 前一年' : '下一年 →'}</span>
+          <span class="eyebrow text-smoke">{i === 0 ? t('year.prev') : t('year.next')}</span>
           <span class="font-display text-headline tabular-nums">{n.year}</span>
           <span
             class="h-3 w-full transition-[height] duration-500 ease-out-expo group-hover:h-16"
             style={`background:${n.hex}`}
             aria-hidden="true"
           />
-          <span class="text-xs text-smoke">
-            與 {year} 年色差 ΔE {n.deltaE}
-          </span>
+          <span class="text-xs text-smoke">{t('year.deltaE', { year, value: n.deltaE })}</span>
         </a>
       ) : (
         <span class="col-span-2 md:col-span-6" />

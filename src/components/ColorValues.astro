@@ -1,12 +1,14 @@
 ---
 import type { YearColor } from '../lib/data';
 import CopyButton from './CopyButton.astro';
+import { getLang, useT } from '../i18n/ui';
 
 interface Props {
   color: YearColor;
 }
 
 const { color: c } = Astro.props;
+const t = useT(getLang(Astro.currentLocale));
 const rows = [
   { label: 'HEX', value: c.hex },
   { label: 'RGB', value: `rgb(${c.rgb.join(' ')})` },
@@ -27,4 +29,4 @@ const rows = [
     </div>
   ))}
 </dl>
-<p class="mt-3 text-xs text-smoke">螢幕近似色，非官方色彩標準。</p>
+<p class="mt-3 text-xs text-smoke">{t('year.valuesNote')}</p>

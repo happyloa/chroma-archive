@@ -2,128 +2,114 @@
 import Base from '../layouts/Base.astro';
 import PageIntro from '../components/PageIntro.astro';
 import { getYears } from '../lib/data';
+import { getLang, useT, type UiKey } from '../i18n/ui';
 
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
+const zh = lang === 'zh-tw';
 const years = await getYears();
+const from = years[0]!.year;
+const to = years.at(-1)!.year;
 
 const CC0 = { name: 'CC0', url: 'https://creativecommons.org/publicdomain/zero/1.0/' };
 const CCBY = { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' };
 const MODEL_CREDITS = [
   {
-    part: '單椅',
+    part: 'chair',
     name: 'Modern Arm Chair 01',
     url: 'https://polyhaven.com/a/modern_arm_chair_01',
-    author: 'Kuutti Siitonen，Poly Haven',
+    author: ['Kuutti Siitonen', 'Poly Haven'],
     license: CC0,
   },
   {
-    part: '陶瓷花瓶',
+    part: 'vase',
     name: 'Ceramic Vase 03',
     url: 'https://polyhaven.com/a/ceramic_vase_03',
-    author: 'James Ray Cock，Poly Haven',
+    author: ['James Ray Cock', 'Poly Haven'],
     license: CC0,
   },
   {
-    part: '運動鞋',
+    part: 'sneaker',
     name: 'MaterialsVariantsShoe',
     url: 'https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/MaterialsVariantsShoe',
-    author: 'Shopify',
+    author: ['Shopify'],
     license: CCBY,
   },
   {
-    part: '桌燈',
+    part: 'lamp',
     name: 'IridescenceLamp',
     url: 'https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/IridescenceLamp',
-    author: 'Eric Chadwick，Wayfair LLC',
+    author: ['Eric Chadwick', 'Wayfair LLC'],
     license: CCBY,
   },
 ];
 const link = (href: string, text: string) =>
   `<a class="underline" href="${href}" rel="noopener noreferrer" target="_blank">${text}</a>`;
-// 中文與連結之間不能有換行產生的空白，所以組成一段 HTML（內容全是上面的固定字串）
+// 中文與連結之間不能有換行產生的空白，所以組成一段 HTML（內容全是上面與字典裡的固定字串）
+const sep = zh ? '，' : ', ';
 const creditHtml = (m: (typeof MODEL_CREDITS)[number]) =>
-  `${m.part}：${link(m.url, m.name)}，${m.author}，${link(m.license.url, m.license.name)}`;
+  `${t(`product.${m.part}` as UiKey)}${zh ? '：' : ': '}${link(m.url, m.name)}${sep}${m.author.join(sep)}${sep}${link(m.license.url, m.license.name)}`;
+const scenesHtml = t('about.scenes', { link: link('https://polyhaven.com', 'Poly Haven') });
+const heading = zh ? 'font-serif-tc text-title' : 'font-display text-title';
 ---
 
-<Base title="關於" description="關於 Chroma Archive、資料來源與非官方聲明。">
-  <PageIntro eyebrow="About" title="關於本站" />
+<Base title={t('about.metaTitle')} description={t('about.description')}>
+  <PageIntro eyebrow="About" title={t('about.title')} />
 
   <div class="page-grid gap-y-16">
     <section class="col-span-4 space-y-4 md:col-span-7 md:col-start-5" aria-labelledby="about-what">
-      <h2 id="about-what" class="font-serif-tc text-title">
-        這是什麼
+      <h2 id="about-what" class={heading}>
+        {t('about.whatTitle')}
       </h2>
-      <p class="text-lead">
-        Chroma Archive 收錄 Pantone 從 {years[0]!.year} 到 {years.at(-1)!.year}
-        年的年度代表色。每個顏色有色值、配色組合和產品設計參考，產品實驗室可以把顏色套到 3D
-        模型上，換材質和燈光看效果。
-      </p>
+      <p class="text-lead">{t('about.what', { from, to })}</p>
     </section>
 
     <section
       class="col-span-4 space-y-4 md:col-span-7 md:col-start-5"
       aria-labelledby="about-values"
     >
-      <h2 id="about-values" class="font-serif-tc text-title">
-        關於色值
+      <h2 id="about-values" class={heading}>
+        {t('about.valuesTitle')}
       </h2>
-      <p>
-        頁面上的 HEX、RGB、OKLCH 等數值都是螢幕近似值，不是 Pantone
-        的官方色彩標準。螢幕、印刷與實體材料呈現的顏色都會不同，正式打樣請以 Pantone 實體色票為準。
-      </p>
-      <p>
-        配色組合在 OKLCH 色彩空間計算：互補色相差 180°，類似色左右各 30°，三角每 120°
-        一色。超出螢幕色域的顏色會降低彩度拉回。
-      </p>
+      <p>{t('about.values1')}</p>
+      <p>{t('about.values2')}</p>
     </section>
 
     <section
       class="col-span-4 space-y-4 md:col-span-7 md:col-start-5"
       aria-labelledby="about-legal"
     >
-      <h2 id="about-legal" class="font-serif-tc text-title">
-        非官方聲明
+      <h2 id="about-legal" class={heading}>
+        {t('about.legalTitle')}
       </h2>
-      <p>
-        本站為個人作品，與 Pantone LLC 沒有任何關係，也未獲其授權或贊助。PANTONE® 及 Pantone Color
-        of the Year 為 Pantone LLC 的商標。各年度色的介紹文字由本站自行撰寫。
-      </p>
+      <p>{t('about.legal')}</p>
     </section>
 
     <section
       class="col-span-4 space-y-4 md:col-span-7 md:col-start-5"
       aria-labelledby="about-credits"
     >
-      <h2 id="about-credits" class="font-serif-tc text-title">
-        使用的工具
+      <h2 id="about-credits" class={heading}>
+        {t('about.toolsTitle')}
       </h2>
-      <p>
-        以 Astro、three.js、GSAP、Lenis、Tailwind CSS 製作，色彩計算使用 culori。字型為
-        Fraunces、Inter、思源宋體與思源黑體，皆採 SIL Open Font License。網站部署在 Cloudflare。
-      </p>
+      <p>{t('about.tools')}</p>
     </section>
 
     <section
       class="col-span-4 space-y-4 md:col-span-7 md:col-start-5"
       aria-labelledby="about-models"
     >
-      <h2 id="about-models" class="font-serif-tc text-title">
-        3D 模型來源
+      <h2 id="about-models" class={heading}>
+        {t('about.modelsTitle')}
       </h2>
-      <p>產品實驗室的部分模型來自公開素材，經過重新上色與壓縮：</p>
+      <p>{t('about.modelsLead')}</p>
       <ul class="space-y-2 text-sm">
         {MODEL_CREDITS.map((m) => (
           <li set:html={creditHtml(m)} />
         ))}
       </ul>
-      <p class="text-sm text-smoke">耳罩式耳機與智慧音箱由本站以程式產生。</p>
-      <p class="text-sm">
-        情境場景的環境光（HDRI）、地板與牆面貼圖、家具模型來自
-        <a class="underline" href="https://polyhaven.com" rel="noopener noreferrer" target="_blank">
-          Poly Haven
-        </a>
-        ，授權為 CC0，完整清單見原始碼中的 public/models/LICENSES.md。相片級渲染使用
-        three-gpu-pathtracer。
-      </p>
+      <p class="text-sm text-smoke">{t('about.modelsProcedural')}</p>
+      <p class="text-sm" set:html={scenesHtml} />
     </section>
   </div>
 </Base>

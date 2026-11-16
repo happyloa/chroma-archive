@@ -1,4 +1,6 @@
 ---
+import { getLang, useT } from '../i18n/ui';
+
 interface Props {
   /** 要複製的文字 */
   value: string;
@@ -8,6 +10,7 @@ interface Props {
 }
 
 const { value, label, class: className } = Astro.props;
+const t = useT(getLang(Astro.currentLocale));
 ---
 
 <button
@@ -18,7 +21,7 @@ const { value, label, class: className } = Astro.props;
     'eyebrow cursor-pointer rounded-full border border-current/25 px-2.5 py-1 text-[0.625rem] opacity-70 transition hover:opacity-100 focus-visible:opacity-100 data-[copied]:opacity-100',
     className,
   ]}
-  aria-label={`複製 ${label}`}
+  aria-label={t('copy.label', { label })}
 >
-  <span data-copy-text>複製</span>
+  <span data-copy-text>{t('copy.button')}</span>
 </button>

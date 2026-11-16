@@ -9,6 +9,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { buildPalettes, pickInk } from '../lib/color';
 import { getLatestYear } from '../lib/data';
+import { HTML_LANG, OG_LOCALE, getLang, localePath, stripLocale, useT } from '../i18n/ui';
 
 interface Props {
   title: string;
@@ -23,22 +24,33 @@ interface Props {
 
 const {
   title,
-  description = 'Pantone 歷年年度代表色與產品設計發想。',
+  description: descriptionProp,
   scene = 'none',
   color: colorProp,
   headerTone = 'paper',
 } = Astro.props;
+
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
+const description = descriptionProp ?? t('site.description');
+const basePath = stripLocale(Astro.url.pathname);
+const alternates = [
+  { hreflang: 'zh-Hant-TW', href: new URL(localePath('zh-tw', basePath), Astro.site) },
+  { hreflang: 'en', href: new URL(localePath('en', basePath), Astro.site) },
+  { hreflang: 'x-default', href: new URL(basePath, Astro.site) },
+];
 
 // 沒指定顏色的頁面（關於、色彩空間等）用最新年度色
 const color = colorProp ?? (await getLatestYear()).colors[0]!.hex;
 const { ink } = pickInk(color);
 // 捲軸：滑塊是這一頁的年度色，軌道是它的互補色（首頁等總覽頁用最新年度色）
 const scrollTrack = buildPalettes(color).complementary[1];
-const fullTitle = title === 'Chroma Archive' ? title : `${title}｜Chroma Archive`;
+const separator = lang === 'en' ? ' | ' : '｜';
+const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chroma Archive`;
 ---
 
 <html
-  lang="zh-Hant-TW"
+  lang={HTML_LANG[lang]}
   style={`--coty: ${color}; --coty-ink: ${ink}; --scroll-thumb: ${color}; --scroll-track: ${scrollTrack}`}
 >
   <head>
@@ -48,9 +60,15 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}｜Chroma Archiv
     <meta name="theme-color" content={color} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    {alternates.map((a) => (
+      <link rel="alternate" hreflang={a.hreflang} href={a.href} />
+    ))}
+    <meta property="og:locale" content={OG_LOCALE[lang]} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
-    <!-- 首次繪製前套用深淺色，避免閃爍；換頁後 <html> 屬性會被換掉，所以在 after-swap 再套一次 -->
+    {/* 首次繪製前套用深淺色，避免閃爍；換頁後 <html> 屬性會被換掉，所以在 after-swap 再套一次 */}
     <script is:inline>
       (() => {
         const apply = () => {
@@ -79,7 +97,7 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}｜Chroma Archiv
       href="#content"
       class="sr-only z-50 bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
     >
-      跳到主要內容
+      {t('a11y.skip')}
     </a>
     <canvas
       id="stage"

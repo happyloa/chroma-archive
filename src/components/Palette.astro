@@ -1,6 +1,7 @@
 ---
 import type { PaletteKind } from '../lib/color';
 import { pickInk } from '../lib/color';
+import { getLang, useT } from '../i18n/ui';
 import CopyButton from './CopyButton.astro';
 
 interface Props {
@@ -10,26 +11,31 @@ interface Props {
   slug: string;
 }
 
-const LABELS: Record<PaletteKind, { zh: string; en: string; note: string }> = {
-  complementary: { zh: '互補', en: 'Complementary', note: '色相相差 180°，對比最強' },
-  analogous: { zh: '類似', en: 'Analogous', note: '色相左右各 30°，和諧柔順' },
-  triadic: { zh: '三角', en: 'Triadic', note: '色相每 120° 一色，活潑平衡' },
-  split: { zh: '分裂互補', en: 'Split complementary', note: '互補色左右各 30°，對比較溫和' },
-  mono: { zh: '單色', en: 'Monochrome', note: '同色相，明度由深到淺' },
+const EN_NAMES: Record<PaletteKind, string> = {
+  complementary: 'Complementary',
+  analogous: 'Analogous',
+  triadic: 'Triadic',
+  split: 'Split complementary',
+  mono: 'Monochrome',
 };
 
 const { kind, colors, slug } = Astro.props;
-const label = LABELS[kind];
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
+const name = t(`palette.${kind}`);
+const note = t(`palette.${kind}.note`);
 const cssVars = colors.map((hex, i) => `--${slug}-${kind}-${i + 1}: ${hex};`).join('\n');
 ---
 
 <figure class="space-y-3">
   <figcaption class="flex items-baseline justify-between gap-4">
     <span>
-      <span class="font-serif-tc text-lg">{label.zh}</span>
-      <span class="eyebrow ml-2 text-smoke">{label.en}</span>
+      <span class:list={[lang === 'zh-tw' ? 'font-serif-tc text-lg' : 'font-display text-lg']}>
+        {name}
+      </span>
+      {lang === 'zh-tw' && <span class="eyebrow ml-2 text-smoke">{EN_NAMES[kind]}</span>}
     </span>
-    <CopyButton value={cssVars} label={`${label.zh}配色 CSS 變數`} />
+    <CopyButton value={cssVars} label={t('palette.cssVars', { name })} />
   </figcaption>
   <ul class="flex h-28 overflow-hidden md:h-36">
     {colors.map((hex) => (
@@ -41,5 +47,5 @@ const cssVars = colors.map((hex, i) => `--${slug}-${kind}-${i + 1}: ${hex};`).jo
       </li>
     ))}
   </ul>
-  <p class="text-xs text-smoke">{label.note}</p>
+  <p class="text-xs text-smoke">{note}</p>
 </figure>

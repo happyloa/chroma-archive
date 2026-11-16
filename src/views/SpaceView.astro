@@ -2,46 +2,45 @@
 import Base from '../layouts/Base.astro';
 import PageIntro from '../components/PageIntro.astro';
 import { getYears } from '../lib/data';
+import { getLang, localePath, useT } from '../i18n/ui';
 
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
 const years = await getYears();
 const rows = years.flatMap((y) => y.colors.map((c) => ({ year: y.year, ...c })));
 ---
 
 <Base
-  title="色彩空間"
-  description="所有 Pantone 年度色在 OKLCH 色彩空間中的位置。"
+  title={t('space.metaTitle')}
+  description={t('space.description')}
   scene="space"
   color={years.at(-1)!.colors[0]!.hex}
 >
-  <PageIntro
-    eyebrow="OKLCH Color Space"
-    title="色彩空間"
-    lead="OKLCH 用明度（L）、彩度（C）、色相（H）描述顏色，數值的差距接近人眼感受到的差距。下表列出每個年度色的座標。"
-  />
+  <PageIntro eyebrow="OKLCH Color Space" title={t('space.title')} lead={t('space.lead')} />
 
-  <section class="page-grid" aria-label="年度色 OKLCH 數值">
+  <section class="page-grid" aria-label={t('space.tableLabel')}>
     <div class="col-span-4 overflow-x-auto md:col-span-12">
       <table class="w-full min-w-[40rem] text-left text-sm tabular-nums">
-        <caption class="sr-only">歷年年度色的 OKLCH 數值</caption>
+        <caption class="sr-only">{t('space.caption')}</caption>
         <thead class="eyebrow text-smoke">
           <tr class="border-b border-ink/15">
             <th scope="col" class="py-3 pr-4 font-medium">
-              年份
+              {t('space.year')}
             </th>
             <th scope="col" class="py-3 pr-4 font-medium">
-              顏色
+              {t('space.color')}
             </th>
             <th scope="col" class="py-3 pr-4 font-medium">
               HEX
             </th>
             <th scope="col" class="py-3 pr-4 text-right font-medium">
-              L 明度
+              {t('space.l')}
             </th>
             <th scope="col" class="py-3 pr-4 text-right font-medium">
-              C 彩度
+              {t('space.c')}
             </th>
             <th scope="col" class="py-3 text-right font-medium">
-              H 色相
+              {t('space.h')}
             </th>
           </tr>
         </thead>
@@ -49,7 +48,7 @@ const rows = years.flatMap((y) => y.colors.map((c) => ({ year: y.year, ...c })))
           {rows.map((r) => (
             <tr>
               <td class="py-3 pr-4">
-                <a href={`/years/${r.year}/`} class="hover:underline">
+                <a href={localePath(lang, `/years/${r.year}/`)} class="hover:underline">
                   {r.year}
                 </a>
               </td>
@@ -61,7 +60,7 @@ const rows = years.flatMap((y) => y.colors.map((c) => ({ year: y.year, ...c })))
                     aria-hidden="true"
                   />
                   {r.name}
-                  <span class="text-smoke">{r.nameZh}</span>
+                  {lang === 'zh-tw' && <span class="text-smoke">{r.nameZh}</span>}
                 </span>
               </th>
               <td class="py-3 pr-4 font-mono">{r.hex}</td>

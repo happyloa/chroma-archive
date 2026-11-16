@@ -1,3 +1,4 @@
+import { ct, listSeparator } from '../i18n/client';
 import { Group, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 
 /**
@@ -17,10 +18,13 @@ function extensionOf(name: string): string {
 export async function parseModelFile(file: File): Promise<Group> {
   const ext = extensionOf(file.name);
   if (!(ACCEPTED_EXTENSIONS as readonly string[]).includes(ext)) {
-    throw new UploadError(`不支援 ${ext || '這種'} 檔案，請使用 ${ACCEPTED_EXTENSIONS.join('、')}`);
+    const formats = ACCEPTED_EXTENSIONS.join(listSeparator());
+    throw new UploadError(
+      ext ? ct('unsupportedType', { ext, formats }) : ct('unsupportedTypeUnknown', { formats }),
+    );
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    throw new UploadError(`檔案超過 ${MAX_UPLOAD_BYTES / 1024 / 1024} MB 上限`);
+    throw new UploadError(ct('tooLarge', { size: MAX_UPLOAD_BYTES / 1024 / 1024 }));
   }
 
   let root: Object3D;
@@ -36,11 +40,8 @@ export async function parseModelFile(file: File): Promise<Group> {
       root = gltf.scene;
     } catch (e) {
       const message = String((e as Error)?.message ?? e);
-      if (/draco/i.test(message))
-        throw new UploadError('不支援 Draco 壓縮的模型，請改用未壓縮或 Meshopt 壓縮的檔案');
-      throw new UploadError(
-        '無法讀取這個 glTF 檔。.gltf 必須把貼圖與 bin 內嵌在檔案裡，建議改用 .glb',
-      );
+      if (/draco/i.test(message)) throw new UploadError(ct('draco'));
+      throw new UploadError(ct('gltfFailed'));
     }
   } else if (ext === '.obj') {
     const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader.js');
@@ -58,7 +59,7 @@ export async function parseModelFile(file: File): Promise<Group> {
   group.traverse((o) => {
     if (o instanceof Mesh) meshes += 1;
   });
-  if (!meshes) throw new UploadError('檔案裡沒有可顯示的模型');
+  if (!meshes) throw new UploadError(ct('noMesh'));
   group.updateMatrixWorld(true);
   return group;
 }

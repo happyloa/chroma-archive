@@ -1,5 +1,6 @@
 ---
 import type { YearEntry } from '../lib/data';
+import { getLang, useT } from '../i18n/ui';
 
 interface Props {
   entry: YearEntry;
@@ -9,10 +10,14 @@ interface Props {
 }
 
 const { entry, href, class: className } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
 const names = entry.colors.map((c) => c.name).join(' & ');
 const namesZh = entry.colors.map((c) => c.nameZh).join('、');
 const codes = entry.colors.map((c) => c.code).join(' / ');
 const Tag = href ? 'a' : 'div';
+const baseLabel = t('year.swatchLabel', { year: entry.year, names });
+const label = lang === 'en' ? baseLabel : `${baseLabel}（${namesZh}）`;
 ---
 
 <Tag
@@ -22,7 +27,7 @@ const Tag = href ? 'a' : 'div';
     href && 'hover:-translate-y-1 focus-visible:-translate-y-1',
     className,
   ]}
-  aria-label={href ? `${entry.year} 年 ${names}（${namesZh}）` : undefined}
+  aria-label={href ? label : undefined}
 >
   <div class="flex aspect-[5/4] overflow-hidden" aria-hidden="true">
     {entry.colors.map((c) => (
@@ -39,5 +44,5 @@ const Tag = href ? 'a' : 'div';
     <p class="font-mono text-[0.625rem] tracking-wide text-smoke">{codes}</p>
   </div>
   <p class="mt-2 truncate text-sm font-medium">{names}</p>
-  <p class="truncate text-xs text-smoke">{namesZh}</p>
+  {lang === 'zh-tw' && <p class="truncate text-xs text-smoke">{namesZh}</p>}
 </Tag>

@@ -1,3 +1,4 @@
+import { ct } from '../i18n/client';
 /**
  * 複製按鈕（FR-10）：用事件委派掛在 document 上，換頁後不必重新綁定。
  * 按鈕由 CopyButton.astro 產生，帶 data-copy 與 data-copy-label。
@@ -19,15 +20,15 @@ async function copy(button: HTMLButtonElement): Promise<void> {
   try {
     await navigator.clipboard.writeText(value);
     button.dataset.copied = '';
-    if (text) text.textContent = '已複製';
-    announce(`已複製 ${label}`);
+    if (text) text.textContent = ct('copied');
+    announce(ct('copiedLabel', { label }));
   } catch {
-    announce('無法存取剪貼簿，請手動選取文字複製');
+    announce(ct('clipboardDenied'));
     return;
   }
   window.setTimeout(() => {
     delete button.dataset.copied;
-    if (text) text.textContent = '複製';
+    if (text) text.textContent = ct('copy');
   }, RESET_MS);
 }
 

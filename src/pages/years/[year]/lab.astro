@@ -1,0 +1,9 @@
+---
+import type { GetStaticPaths } from 'astro';
+import LabView from '../../../views/LabView.astro';
+import { yearPaths } from '../../../lib/paths';
+
+export const getStaticPaths = yearPaths satisfies GetStaticPaths;
+---
+
+<LabView {...Astro.props} />

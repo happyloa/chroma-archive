@@ -1,0 +1,9 @@
+---
+import type { GetStaticPaths } from 'astro';
+import YearView from '../../../../views/YearView.astro';
+import { yearPaths } from '../../../../lib/paths';
+
+export const getStaticPaths = yearPaths satisfies GetStaticPaths;
+---
+
+<YearView {...Astro.props} />

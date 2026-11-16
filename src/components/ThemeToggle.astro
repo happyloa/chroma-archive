@@ -1,24 +1,27 @@
 ---
+import { getLang, useT } from '../i18n/ui';
+
 interface Props {
   class?: string;
 }
 
 const { class: className } = Astro.props;
+const t = useT(getLang(Astro.currentLocale));
 ---
 
-<!-- 在 JS 載入前停用，避免還不能切換時被點擊 -->
+{/* 在 JS 載入前停用，避免還不能切換時被點擊 */}
 <button
   type="button"
   data-theme-toggle
   disabled
   aria-pressed="false"
-  aria-label="切換深淺色"
+  aria-label={t('theme.toggle')}
   class:list={[
     'group inline-flex size-9 items-center justify-center rounded-full border border-current/25 transition-colors hover:bg-current/10 disabled:opacity-40',
     className,
   ]}
 >
-  <!-- 淺色模式顯示月亮（切到深色），深色模式顯示太陽 -->
+  {/* 淺色模式顯示月亮（切到深色），深色模式顯示太陽 */}
   <svg
     viewBox="0 0 24 24"
     class="size-[18px] group-aria-pressed:hidden"

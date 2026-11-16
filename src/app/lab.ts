@@ -1,3 +1,4 @@
+import { ct } from '../i18n/client';
 import type { ViewReadyDetail } from '../stage/types';
 import type { PhotoProgress } from '../stage/views/PhotoRenderer';
 import type {
@@ -65,6 +66,16 @@ function writeParams(form: HTMLFormElement): void {
   if (checked(form, 'q')) params.set('q', 'photo');
   // 保留 Astro router 放在 history.state 的資料
   history.replaceState(history.state, '', `${location.pathname}?${params}`);
+  syncLangSwitch();
+}
+
+/** 切換語言時保留目前的實驗室設定 */
+function syncLangSwitch(): void {
+  for (const a of document.querySelectorAll<HTMLAnchorElement>('[data-lang-switch]')) {
+    const url = new URL(a.href);
+    url.search = location.search;
+    a.href = url.toString();
+  }
 }
 
 function download(blob: Blob, filename: string): void {
@@ -88,7 +99,7 @@ function focusSlot(form: HTMLFormElement, slot: PickDetail['slot']): void {
   input?.focus({ preventScroll: true });
   fieldset.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   const announcer = document.getElementById('announcer');
-  if (announcer) announcer.textContent = slot === 'primary' ? '已選取主色部位' : '已選取輔色部位';
+  if (announcer) announcer.textContent = ct(slot === 'primary' ? 'pickedPrimary' : 'pickedAccent');
   window.setTimeout(() => delete fieldset.dataset.picked, 1600);
 }
 
@@ -106,6 +117,7 @@ export function initLab(): void {
 
   let view: ProductView | null = null;
   applyParams(form);
+  syncLangSwitch();
 
   viewport.addEventListener('stage:view-ready', (event) => {
     view = (event as CustomEvent<ViewReadyDetail>).detail.view as ProductView;
@@ -116,7 +128,7 @@ export function initLab(): void {
       photo.disabled = true;
       photo.closest('label')?.classList.add('opacity-40', 'cursor-not-allowed');
       const note = document.getElementById('lab-photo-note');
-      if (note) note.textContent = '這台裝置沒有可用的 GPU 加速，無法使用相片級渲染。';
+      if (note) note.textContent = ct('photoUnsupported');
     }
     // 網址帶進來的設定直接套用，不播進場動畫
     view.set(readState(form), false);
@@ -143,7 +155,7 @@ export function initLab(): void {
     photoStatus.hidden = !on;
     photoStatus.classList.toggle('hidden', !on);
     if (!on) return;
-    const text = building ? '相片級渲染準備中…' : `相片級渲染・${samples} 次取樣`;
+    const text = building ? ct('photoBuilding') : ct('photoSamples', { samples });
     if (photoStatus.textContent !== text) photoStatus.textContent = text;
   });
 
@@ -166,23 +178,23 @@ export function initLab(): void {
     const file = (upload as HTMLInputElement).files?.[0];
     (upload as HTMLInputElement).value = '';
     if (!file || !view || !status || !customOption) {
-      if (status && !view) status.textContent = '3D 預覽還沒準備好，請稍候再試';
+      if (status && !view) status.textContent = ct('viewNotReady');
       return;
     }
-    status.textContent = `正在讀取 ${file.name}…`;
+    status.textContent = ct('reading', { name: file.name });
     try {
       const { parseModelFile } = await import('../stage/upload');
       const root = await parseModelFile(file);
       view.setCustomModel(root);
       customOption.hidden = false;
       const name = customOption.querySelector('[data-custom-name]');
-      if (name) name.textContent = `我的模型：${file.name}`;
+      if (name) name.textContent = ct('myModel', { name: file.name });
       const radio = customOption.querySelector<HTMLInputElement>('input');
       if (radio) radio.checked = true;
       writeParams(form);
-      status.textContent = `已載入 ${file.name}。點模型的零件可以切換主色與輔色。`;
+      status.textContent = ct('loaded', { name: file.name });
     } catch (e) {
-      status.textContent = e instanceof Error ? e.message : '無法讀取這個檔案';
+      status.textContent = e instanceof Error ? e.message : ct('readFailed');
     }
   });
 
@@ -192,10 +204,10 @@ export function initLab(): void {
     const label = c1?.dataset.label ?? '';
     exportButton.disabled = true;
     const original = exportButton.textContent;
-    exportButton.textContent = '產生中…';
+    exportButton.textContent = ct('exporting');
     try {
       const blob = await view.exportPNG(2048, `${label} · chroma-archive`, (ratio) => {
-        exportButton.textContent = `渲染中 ${Math.round(ratio * 100)}%`;
+        exportButton.textContent = ct('rendering', { percent: Math.round(ratio * 100) });
       });
       const state = readState(form);
       download(

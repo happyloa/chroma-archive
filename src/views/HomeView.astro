@@ -2,23 +2,29 @@
 import Base from '../layouts/Base.astro';
 import Swatch from '../components/Swatch.astro';
 import { getYears } from '../lib/data';
+import { getLang, localePath, useT } from '../i18n/ui';
+import { localizedContent } from '../i18n/content';
 
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
 const years = await getYears();
 const latest = years.at(-1)!;
 const [main] = latest.colors;
 const dark = main!.isLight;
 const recent = years.slice(-6, -1).reverse();
 const colorCount = years.reduce((n, y) => n + y.colors.length, 0);
+const from = years[0]!.year;
+const { summary } = localizedContent(latest, lang);
 ---
 
 <Base
   title="Chroma Archive"
-  description={`Pantone ${latest.year} 年度色 ${main!.name}，以及 ${years[0]!.year} 年起歷年年度色與產品設計發想。`}
+  description={t('home.description', { year: latest.year, name: main!.name, from })}
   scene="hero"
   headerTone={dark ? 'ink' : 'coty'}
   color={main!.hex}
 >
-  <!-- Hero：當年度色。淺色年份改用深色底（spec.md 第 7 節） -->
+  {/* Hero：當年度色。淺色年份改用深色底（spec.md 第 7 節） */}
   <section
     class:list={[
       'flex min-h-svh flex-col justify-end pt-28 pb-gutter',
@@ -27,7 +33,7 @@ const colorCount = years.reduce((n, y) => n + y.colors.length, 0);
     aria-labelledby="hero-title"
   >
     <div class="page-grid items-end gap-y-8">
-      <p class="eyebrow col-span-4 md:col-span-6">Pantone Color of the Year {latest.year}</p>
+      <p class="eyebrow col-span-4 md:col-span-6">{t('home.eyebrow', { year: latest.year })}</p>
       <p class="eyebrow col-span-4 md:col-span-6 md:text-right">
         Pantone {latest.colors.map((c) => c.code).join(' / ')}
       </p>
@@ -45,57 +51,66 @@ const colorCount = years.reduce((n, y) => n + y.colors.length, 0);
       <h1 id="hero-title" class="col-span-4 md:col-span-12">
         <span class="block font-display text-mega font-light tabular-nums">{latest.year}</span>
         <span class="mt-6 block font-display text-display font-normal italic">{main!.name}</span>
-        <span class="mt-3 block font-serif-tc text-title">{main!.nameZh}</span>
+        {lang === 'zh-tw' && (
+          <span class="mt-3 block font-serif-tc text-title">{main!.nameZh}</span>
+        )}
       </h1>
 
       <div class="col-span-4 flex flex-wrap items-end justify-between gap-6 md:col-span-12">
-        <p class="max-w-[34ch] text-lead">{latest.content.summary}</p>
+        <p class="max-w-[34ch] text-lead">{summary}</p>
         <a
-          href={`/years/${latest.year}/`}
+          href={localePath(lang, `/years/${latest.year}/`)}
           class="eyebrow inline-flex items-center gap-3 border-b border-current pb-1"
         >
-          看 {latest.year} 年度色 <span aria-hidden="true">→</span>
+          {t('home.cta', { year: latest.year })} <span aria-hidden="true">→</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- 年度色是什麼 -->
+  {/* 年度色是什麼 */}
   <section class="page-grid mt-section gap-y-8" aria-labelledby="intro-title">
     <h2 id="intro-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
-      關於年度色
+      {t('home.introTitle')}
     </h2>
     <div class="col-span-4 space-y-6 md:col-span-8 md:col-start-5">
-      <p class="font-serif-tc text-headline leading-[1.3]">
-        Pantone 從 {years[0]!.year} 年開始，每年選一個顏色代表接下來的一年。
+      <p
+        class:list={[
+          'text-headline leading-[1.3]',
+          lang === 'zh-tw' ? 'font-serif-tc' : 'font-display',
+        ]}
+      >
+        {t('home.introLead', { from })}
       </p>
       <p class="max-w-[40em] text-lead text-smoke">
-        這裡收錄 {years[0]!.year} 到 {latest.year} 年共 {colorCount} 個年度色，其中 2016 和 2021
-        年各選了兩色。每個顏色都附上色值、配色組合，以及適合的產品、材質與表面處理，給做提案的設計師參考。
+        {t('home.introBody', { from, to: latest.year, count: colorCount })}
       </p>
     </div>
   </section>
 
-  <!-- 27 年的色帶 -->
+  {/* 歷年色帶 */}
   <section class="mt-section" aria-labelledby="spectrum-title">
     <div class="page-grid mb-8 items-baseline">
       <h2 id="spectrum-title" class="col-span-4 font-display text-headline md:col-span-8">
-        {years.length} 年的顏色
+        {t('home.spectrumTitle', { count: years.length })}
       </h2>
       <a
-        href="/archive/"
+        href={localePath(lang, '/archive/')}
         class="eyebrow col-span-4 justify-self-start border-b border-current pb-1 md:col-span-4 md:justify-self-end"
       >
-        進入典藏 <span aria-hidden="true">→</span>
+        {t('home.enterArchive')} <span aria-hidden="true">→</span>
       </a>
     </div>
-    <ol class="flex h-[42vh] min-h-64 px-gutter" aria-label="歷年年度色">
+    <ol class="flex h-[42vh] min-h-64 px-gutter" aria-label={t('home.spectrumLabel')}>
       {years.map((y) => (
         <li class="group relative flex-1 transition-[flex-grow] duration-500 ease-out-expo hover:flex-[4] focus-within:flex-[4]">
           <a
-            href={`/years/${y.year}/`}
+            href={localePath(lang, `/years/${y.year}/`)}
             class="flex h-full flex-col"
-            aria-label={`${y.year} 年 ${y.colors.map((c) => c.name).join(' & ')}`}
+            aria-label={t('year.swatchLabel', {
+              year: y.year,
+              names: y.colors.map((c) => c.name).join(' & '),
+            })}
           >
             {y.colors.map((c) => (
               <span class="flex-1" style={`background:${c.hex}`} />
@@ -109,15 +124,15 @@ const colorCount = years.reduce((n, y) => n + y.colors.length, 0);
     </ol>
   </section>
 
-  <!-- 近年 -->
+  {/* 近年 */}
   <section class="page-grid mt-section gap-y-10" aria-labelledby="recent-title">
     <h2 id="recent-title" class="eyebrow col-span-4 text-smoke md:col-span-12">
-      近年年度色
+      {t('home.recent')}
     </h2>
     <ul class="col-span-4 grid grid-cols-2 gap-col sm:grid-cols-3 md:col-span-12 md:grid-cols-5">
       {recent.map((y) => (
         <li>
-          <Swatch entry={y} href={`/years/${y.year}/`} />
+          <Swatch entry={y} href={localePath(lang, `/years/${y.year}/`)} />
         </li>
       ))}
     </ul>

@@ -10,6 +10,12 @@ export default defineConfig({
   // 正式網域確定後改成實際網址（tasks.md T076）
   site: 'https://chroma-archive.example.com',
   prefetch: { prefetchAll: true },
+  // 中英雙語（US-13）：繁體中文不加前綴，英文在 /en/
+  i18n: {
+    locales: ['zh-tw', 'en'],
+    defaultLocale: 'zh-tw',
+    routing: { prefixDefaultLocale: false },
+  },
   devToolbar: { enabled: false },
   vite: {
     plugins: [tailwindcss()],

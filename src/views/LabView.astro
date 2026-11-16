@@ -1,14 +1,9 @@
 ---
-import type { GetStaticPaths } from 'astro';
-import Base from '../../../layouts/Base.astro';
-import { getYears, type YearEntry } from '../../../lib/data';
-import { FINISHES, LIGHTS, PRODUCTS } from '../../../lib/schema';
-import { ACCEPTED_EXTENSIONS, MAX_UPLOAD_BYTES } from '../../../stage/upload';
-
-export const getStaticPaths = (async () => {
-  const years = await getYears();
-  return years.map((entry) => ({ params: { year: String(entry.year) }, props: { entry, years } }));
-}) satisfies GetStaticPaths;
+import Base from '../layouts/Base.astro';
+import type { YearEntry } from '../lib/data';
+import { FINISHES, LIGHTS, PRODUCTS } from '../lib/schema';
+import { ACCEPTED_EXTENSIONS, MAX_UPLOAD_BYTES } from '../stage/upload';
+import { getLang, localePath, useT, type UiKey } from '../i18n/ui';
 
 interface Props {
   entry: YearEntry;
@@ -16,47 +11,15 @@ interface Props {
 }
 
 const { entry, years } = Astro.props;
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
 const { year, colors } = entry;
 const main = colors[0]!;
 const names = colors.map((c) => c.name).join(' & ');
 
-const productZh: Record<(typeof PRODUCTS)[number], string> = {
-  chair: '單椅',
-  headphones: '耳罩式耳機',
-  vase: '陶瓷花瓶',
-  speaker: '智慧音箱',
-  lamp: '桌燈',
-  sneaker: '運動鞋',
-};
-const finishZh: Record<(typeof FINISHES)[number], string> = {
-  matte: '霧面',
-  satin: '緞面',
-  gloss: '亮面',
-  metallic: '金屬',
-  velvet: '絨布',
-  translucent: '半透明',
-};
-const lightZh: Record<(typeof LIGHTS)[number], string> = {
-  studio: '棚燈',
-  daylight: '自然光',
-  night: '夜間',
-};
-
 const ROOMS = ['studio', 'living', 'bedroom', 'office'] as const;
-const roomZh: Record<(typeof ROOMS)[number], string> = {
-  studio: '純色背景',
-  living: '客廳',
-  bedroom: '臥室',
-  office: '辦公室',
-};
 const CAMERAS = ['hero', 'front', 'side', 'top', 'detail'] as const;
-const cameraZh: Record<(typeof CAMERAS)[number], string> = {
-  hero: '斜側',
-  front: '正面',
-  side: '側面',
-  top: '俯視',
-  detail: '特寫',
-};
+const label = (prefix: string, value: string) => t(`${prefix}.${value}` as UiKey);
 
 // 輔色預設：雙色年份用第二色，否則用互補色
 const accentDefault = colors[1]?.hex ?? main.palettes.complementary[1]!;
@@ -66,40 +29,42 @@ const accentChoices = [
 ---
 
 <Base
-  title={`${year} ${names} 產品實驗室`}
-  description={`把 Pantone ${year} 年度色 ${names} 套到 3D 產品上，切換材質與燈光。`}
+  title={t('lab.metaTitle', { year, names })}
+  description={t('lab.description', { year, names })}
   scene="lab"
   color={main.hex}
 >
   <section class="page-grid gap-y-6 pt-32 pb-10 md:pt-36">
     <p class="eyebrow col-span-4 text-smoke md:col-span-12">
-      <a href={`/years/${year}/`} class="hover:underline">
+      <a href={localePath(lang, `/years/${year}/`)} class="hover:underline">
         {year} {names}
       </a>{' '}
       / Product Lab
     </p>
-    <h1 class="col-span-4 font-display text-headline font-light md:col-span-12">產品實驗室</h1>
+    <h1 class="col-span-4 font-display text-headline font-light md:col-span-12">
+      {t('lab.title')}
+    </h1>
   </section>
 
   <form
     id="lab-form"
     class="page-grid gap-y-10"
-    aria-label="產品實驗室設定"
+    aria-label={t('lab.form')}
     data-year={year}
     data-primary={main.hex}
   >
     <div class="col-span-4 space-y-4 md:col-span-8">
       <fieldset class="flex flex-wrap items-center gap-2">
-        <legend class="sr-only">情境場景</legend>
+        <legend class="sr-only">{t('lab.scenes')}</legend>
         {ROOMS.map((r, i) => (
           <label class="cursor-pointer rounded-full border border-ink/15 px-3.5 py-1.5 text-sm transition-colors hover:border-ink/40 has-checked:border-ink has-checked:bg-ink has-checked:text-paper has-focus-visible:outline-2 has-focus-visible:outline-offset-2">
             <input type="radio" name="s" value={r} checked={i === 0} class="sr-only" />
-            {roomZh[r]}
+            {label('room', r)}
           </label>
         ))}
       </fieldset>
 
-      <!-- 預覽區：WebGL 場景會畫在這個區塊的位置 -->
+      {/* 預覽區：WebGL 場景會畫在這個區塊的位置 */}
       <div
         id="lab-viewport"
         class="relative col-span-4 flex aspect-square cursor-grab items-center justify-center overflow-hidden bg-mist active:cursor-grabbing md:col-span-8 md:aspect-[4/3]"
@@ -112,9 +77,9 @@ const accentChoices = [
         data-light="studio"
         data-room="studio"
         role="img"
-        aria-label={`${names} 套用在 3D 產品上的預覽，可拖曳旋轉、滾輪縮放`}
+        aria-label={t('lab.viewport', { names })}
       >
-        <!-- 不支援 WebGL 時顯示的替代圖；3D 視窗就緒後隱藏 -->
+        {/* 不支援 WebGL 時顯示的替代圖；3D 視窗就緒後隱藏 */}
         <div
           data-fallback
           class="aspect-square w-1/3 rounded-[38%_42%_30%_34%] shadow-[0_40px_60px_-30px_rgb(0_0_0/0.45)]"
@@ -122,13 +87,13 @@ const accentChoices = [
           aria-hidden="true"
         ></div>
         <p class="absolute bottom-4 left-4 text-xs text-smoke" data-fallback>
-          3D 預覽需要支援 WebGL 的瀏覽器
+          {t('lab.noWebgl')}
         </p>
         <p
           class="pointer-events-none absolute bottom-4 left-4 hidden text-xs text-smoke"
           data-ready-hint
         >
-          拖曳旋轉・滾輪縮放・點產品零件選擇要換色的部位
+          {t('lab.hint')}
         </p>
         <p
           id="lab-photo-status"
@@ -139,11 +104,11 @@ const accentChoices = [
 
       <div class="flex flex-wrap items-center justify-between gap-3">
         <fieldset class="flex flex-wrap items-center gap-2">
-          <legend class="sr-only">鏡頭角度</legend>
+          <legend class="sr-only">{t('lab.cameras')}</legend>
           {CAMERAS.map((c, i) => (
             <label class="cursor-pointer rounded-full border border-ink/15 px-3.5 py-1.5 text-sm transition-colors hover:border-ink/40 has-checked:border-ink has-checked:bg-ink has-checked:text-paper has-focus-visible:outline-2 has-focus-visible:outline-offset-2">
               <input type="radio" name="cam" value={c} checked={i === 0} class="sr-only" />
-              {cameraZh[c]}
+              {label('camera', c)}
             </label>
           ))}
         </fieldset>
@@ -153,43 +118,43 @@ const accentChoices = [
             class="relative h-5 w-9 rounded-full bg-ink/20 transition-colors peer-checked:bg-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-paper after:transition-transform peer-checked:after:translate-x-4"
             aria-hidden="true"
           ></span>
-          自動旋轉
+          {t('lab.spin')}
         </label>
         <label
           class="inline-flex cursor-pointer items-center gap-2 text-sm"
-          title="停止操作後以路徑追蹤逐步算出照片級畫面，需要桌機等級的顯示卡"
+          title={t('lab.photoTitle')}
         >
           <input type="checkbox" name="q" value="photo" class="peer sr-only" />
           <span
             class="relative h-5 w-9 rounded-full bg-ink/20 transition-colors peer-checked:bg-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-paper after:transition-transform peer-checked:after:translate-x-4"
             aria-hidden="true"
           ></span>
-          相片級渲染
+          {t('lab.photo')}
         </label>
       </div>
       <p class="text-xs text-smoke" id="lab-photo-note">
-        相片級渲染會在你停止操作後，用路徑追蹤逐步算出有真實光影的畫面，需要桌機等級的顯示卡；開啟時自動旋轉會暫停。
+        {t('lab.photoNote')}
       </p>
     </div>
 
     <div class="col-span-4 space-y-8 md:col-span-4">
       <fieldset>
-        <legend class="eyebrow mb-3 text-smoke">產品</legend>
+        <legend class="eyebrow mb-3 text-smoke">{t('lab.product')}</legend>
         <div class="grid grid-cols-2 gap-2">
           {PRODUCTS.map((p, i) => (
             <label class="cursor-pointer border border-ink/15 px-3 py-2 text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper">
               <input type="radio" name="p" value={p} checked={i === 0} class="sr-only" />
-              {productZh[p]}
+              {label('product', p)}
             </label>
           ))}
-          <!-- 上傳模型後才出現 -->
+          {/* 上傳模型後才出現 */}
           <label
             id="lab-custom-option"
             hidden
             class="col-span-2 cursor-pointer truncate border border-ink/15 px-3 py-2 text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper"
           >
             <input type="radio" name="p" value="custom" class="sr-only" />
-            <span data-custom-name>我的模型</span>
+            <span data-custom-name>{t('lab.myModel')}</span>
           </label>
         </div>
 
@@ -202,23 +167,25 @@ const accentChoices = [
               class="sr-only"
               aria-describedby="lab-upload-note"
             />
-            <span aria-hidden="true">＋</span> 上傳自己的模型
+            <span aria-hidden="true">＋</span> {t('lab.upload')}
           </label>
           <p id="lab-upload-note" class="mt-2 text-xs leading-relaxed text-smoke">
-            支援 {ACCEPTED_EXTENSIONS.join('、')}，{MAX_UPLOAD_BYTES / 1024 / 1024} MB
-            以內。檔案只在你的瀏覽器裡讀取，不會上傳或儲存到伺服器，關掉頁面就消失。上傳後點模型的零件可以在主色、輔色之間切換。
+            {t('lab.uploadNote', {
+              formats: ACCEPTED_EXTENSIONS.join(lang === 'en' ? ', ' : '、'),
+              size: MAX_UPLOAD_BYTES / 1024 / 1024,
+            })}
           </p>
           <p id="lab-upload-status" class="mt-1 text-xs" role="status" aria-live="polite"></p>
         </div>
       </fieldset>
 
       <fieldset>
-        <legend class="eyebrow mb-3 text-smoke">表面處理</legend>
+        <legend class="eyebrow mb-3 text-smoke">{t('lab.finish')}</legend>
         <div class="grid grid-cols-3 gap-2">
           {FINISHES.map((f, i) => (
             <label class="cursor-pointer border border-ink/15 px-3 py-2 text-center text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper">
               <input type="radio" name="f" value={f} checked={i === 0} class="sr-only" />
-              {finishZh[f]}
+              {label('finish', f)}
             </label>
           ))}
         </div>
@@ -228,7 +195,7 @@ const accentChoices = [
         data-slot="primary"
         class="-m-2 rounded p-2 transition-shadow data-[picked]:ring-2 data-[picked]:ring-ink"
       >
-        <legend class="eyebrow mb-3 text-smoke">主色</legend>
+        <legend class="eyebrow mb-3 text-smoke">{t('lab.primary')}</legend>
         <div class="flex flex-wrap gap-2">
           {years.flatMap((y) =>
             y.colors.map((c, ci) => (
@@ -259,9 +226,9 @@ const accentChoices = [
         data-slot="accent"
         class="-m-2 rounded p-2 transition-shadow data-[picked]:ring-2 data-[picked]:ring-ink"
       >
-        <legend class="eyebrow mb-3 text-smoke">輔色</legend>
+        <legend class="eyebrow mb-3 text-smoke">{t('lab.accent')}</legend>
         <p data-accent-note hidden class="mb-3 text-xs text-smoke">
-          這個產品沒有獨立的輔色部位，換主色就會改變整件產品。
+          {t('lab.accentNone')}
         </p>
         <div class="flex flex-wrap gap-2">
           {accentChoices.map((hex, i) => (
@@ -278,12 +245,12 @@ const accentChoices = [
       </fieldset>
 
       <fieldset>
-        <legend class="eyebrow mb-3 text-smoke">燈光</legend>
+        <legend class="eyebrow mb-3 text-smoke">{t('lab.light')}</legend>
         <div class="grid grid-cols-3 gap-2">
           {LIGHTS.map((l, i) => (
             <label class="cursor-pointer border border-ink/15 px-3 py-2 text-center text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper">
               <input type="radio" name="l" value={l} checked={i === 0} class="sr-only" />
-              {lightZh[l]}
+              {label('light', l)}
             </label>
           ))}
         </div>
@@ -295,7 +262,7 @@ const accentChoices = [
         class="eyebrow w-full bg-ink px-6 py-4 text-paper disabled:cursor-not-allowed disabled:opacity-40"
         disabled
       >
-        匯出圖片
+        {t('lab.export')}
       </button>
     </div>
   </form>

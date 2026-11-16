@@ -1,5 +1,6 @@
 ---
 import { REPO_URL } from '../lib/site';
+import { getLang, localePath, stripLocale, useT } from '../i18n/ui';
 import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
@@ -10,33 +11,41 @@ interface Props {
 const { tone = 'paper' } = Astro.props;
 const toneClass = { paper: 'text-ink', coty: 'text-coty-ink', ink: 'text-day' }[tone];
 
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
+const base = stripLocale(Astro.url.pathname);
 const links = [
-  { href: '/archive/', label: '典藏' },
-  { href: '/space/', label: '色彩空間' },
-  { href: '/about/', label: '關於' },
+  { path: '/archive/', label: t('nav.archive') },
+  { path: '/space/', label: t('nav.space') },
+  { path: '/about/', label: t('nav.about') },
 ];
-
-const path = Astro.url.pathname;
+// 切換語言：同一頁的另一個語系版本
+const otherLang = lang === 'en' ? 'zh-tw' : 'en';
+const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
 ---
 
-<!-- 疊在第一個區塊上方，隨頁面捲走；文字色依該區塊背景決定 -->
+{/* 疊在第一個區塊上方，隨頁面捲走；文字色依該區塊背景決定 */}
 <header
   class:list={[
     'absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-6 px-gutter py-4',
     toneClass,
   ]}
 >
-  <a href="/" class="eyebrow tracking-[0.22em]" aria-current={path === '/' ? 'page' : undefined}>
+  <a
+    href={localePath(lang, '/')}
+    class="eyebrow tracking-[0.22em]"
+    aria-current={base === '/' ? 'page' : undefined}
+  >
     Chroma Archive
   </a>
-  <nav aria-label="主要導覽">
+  <nav aria-label={t('nav.main')}>
     <ul class="flex items-center gap-4 text-sm sm:gap-8">
       {links.map((l) => (
         <li>
           <a
-            href={l.href}
+            href={localePath(lang, l.path)}
             class="underline-offset-4 hover:underline aria-[current=page]:underline"
-            aria-current={path.startsWith(l.href) ? 'page' : undefined}
+            aria-current={base.startsWith(l.path) ? 'page' : undefined}
           >
             {l.label}
           </a>
@@ -48,9 +57,21 @@ const path = Astro.url.pathname;
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center gap-1 underline-offset-4 hover:underline"
-          aria-label="GitHub 原始碼（另開新視窗）"
+          aria-label={t('nav.github')}
         >
           GitHub<span aria-hidden="true">↗</span>
+        </a>
+      </li>
+      <li>
+        <a
+          href={localePath(otherLang, base)}
+          hreflang={otherHtmlLang}
+          lang={otherHtmlLang}
+          class="underline-offset-4 hover:underline"
+          aria-label={t('lang.switchLabel')}
+          data-lang-switch
+        >
+          {t('lang.switch')}
         </a>
       </li>
       <li>
