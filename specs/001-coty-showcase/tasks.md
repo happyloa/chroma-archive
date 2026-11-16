@@ -15,7 +15,7 @@
 
 ## 階段 1：資料與色彩工具
 
-- [ ] T010 逐筆核對 `data/colors.json` 的色號、英文名、HEX，補上 `announced` 日期；中文譯名定稿
+- [x] T010 逐筆核對 `data/colors.json` 的色號、英文名、HEX，補上 `announced` 日期；中文譯名定稿
 - [x] T011 `src/lib/color/`：HEX 轉 RGB、HSL、OKLCH、LAB；對比文字色；五種配色；色域修正；CIEDE2000。附單元測試
 - [x] T012 [P] `src/lib/color/ref.ts`：解析 `YYYY-N` 與 `#RRGGBB` 引用格式，附單元測試
 - [x] T013 `src/content.config.ts`：依 data-model.md 定義 years collection schema

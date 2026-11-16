@@ -52,7 +52,14 @@ const finishZh: Record<string, string> = {
     aria-labelledby="year-title"
   >
     <div class="page-grid gap-y-8">
-      <p class="eyebrow col-span-2 md:col-span-6">Color of the Year</p>
+      <p class="eyebrow col-span-2 md:col-span-6">
+        Color of the Year
+        {entry.announced && (
+          <span class="mt-1 block opacity-70">
+            <time datetime={entry.announced}>{entry.announced.replaceAll('-', '.')}</time> 公布
+          </span>
+        )}
+      </p>
       <p class="eyebrow col-span-2 text-right md:col-span-6">
         Pantone {colors.map((c) => c.code).join(' / ')}
       </p>
