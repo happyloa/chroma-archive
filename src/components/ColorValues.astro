@@ -1,10 +1,10 @@
 ---
-import type { YearColor } from '../lib/data';
+import type { DerivedColor } from '../lib/color';
 import CopyButton from './CopyButton.astro';
 import { getLang, useT } from '../i18n/ui';
 
 interface Props {
-  color: YearColor;
+  color: DerivedColor & { name: string };
 }
 
 const { color: c } = Astro.props;

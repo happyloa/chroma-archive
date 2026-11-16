@@ -1,0 +1,25 @@
+{
+  "name": "Zima Blue",
+  "hex": "#17B5F0",
+  "hexSource": "https://hexcolorpedia.com/color/17b5f0",
+  "credit": {
+    "zh": "致敬〈Zima Blue〉。原著為 Alastair Reynolds 的短篇小說，首次刊於 Postscripts 第 4 期；改編動畫收錄於 Netflix《愛×死×機器人》第一季第 14 集，導演 Robert Valley，Passion Animation Studios 製作。本站為粉絲致敬，與 Netflix 及原著作者無關。",
+    "en": "A tribute to “Zima Blue”, a short story by Alastair Reynolds first published in Postscripts #4, adapted as Love, Death & Robots Volume 1, Episode 14 (Netflix), directed by Robert Valley and animated by Passion Animation Studios. A fan tribute, not affiliated with Netflix or the author."
+  },
+  "reveal": {
+    "zh": "一位藝術家，一輩子都在畫同一種藍。最後他回到了這片藍開始的地方。",
+    "en": "An artist spent his whole life returning to one shade of blue. In the end, he went back to where that blue began."
+  },
+  "story": {
+    "zh": [
+      "Zima Blue 是偏青的亮藍，明度中等、彩度很高，接近泳池磁磚在陽光下的顏色。",
+      "在故事裡，這個藍最早只是巨幅壁畫裡的一小塊方形，後來在作品中越占越大，最後成了全部。",
+      "它沒有官方色值，也不是 Pantone 年度色。本站取 #17B5F0 作為螢幕近似值。"
+    ],
+    "en": [
+      "Zima Blue is a bright, slightly cyan blue with medium lightness and high chroma, close to the color of pool tiles in sunlight.",
+      "In the story it starts as a small square inside huge murals, takes up more of each new work, and finally becomes the whole piece.",
+      "It has no official value and is not a Pantone Color of the Year. This site uses #17B5F0 as a screen approximation."
+    ]
+  }
+}

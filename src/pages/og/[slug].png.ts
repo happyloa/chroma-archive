@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { Resvg } from '@resvg/resvg-js';
 import satori from 'satori';
 import { getYears, type YearEntry } from '../../lib/data';
+import { zima } from '../../lib/zima';
 
 /**
  * 建置時產生 OG 分享圖（T070、US-09）：每個年度一張，加上一張站名的預設圖，1200 × 630。
@@ -35,6 +36,7 @@ export const getStaticPaths = (async () => {
   return [
     ...years.map((entry) => ({ params: { slug: String(entry.year) }, props: { entry, years } })),
     { params: { slug: 'default' }, props: { entry: null, years } },
+    { params: { slug: 'zima' }, props: { entry: null, years, zima: true } },
   ];
 }) satisfies GetStaticPaths;
 
@@ -124,6 +126,57 @@ function yearCard(entry: YearEntry): Node {
   );
 }
 
+/** Zima Blue 彩蛋：整片藍，右下一塊更亮的方形 */
+function zimaCard(): Node {
+  // 外框只負責底色；padding 放在 flex: 1 的內層，總寬高才不會超出 1200 × 630
+  return h('div', { display: 'flex', width: '100%', height: '100%', background: zima.hex }, [
+    h(
+      'div',
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        flex: 1,
+        padding: '64px 72px 56px',
+        color: zima.color.ink,
+      },
+      [
+        h(
+          'div',
+          { fontFamily: 'Inter', fontWeight: 500, fontSize: 22, letterSpacing: 4 },
+          'CHROMA ARCHIVE',
+        ),
+        h('div', { display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }, [
+          h(
+            'div',
+            {
+              fontFamily: 'Fraunces',
+              fontWeight: 300,
+              fontSize: 150,
+              lineHeight: 0.9,
+              letterSpacing: -4,
+            },
+            zima.name,
+          ),
+          h('div', {
+            display: 'flex',
+            width: 120,
+            height: 120,
+            marginBottom: 12,
+            background: '#ffffff',
+            opacity: 0.35,
+          }),
+        ]),
+        h(
+          'div',
+          { fontFamily: 'Inter', fontWeight: 400, fontSize: 20 },
+          `${zima.hex} · A fan tribute, not a Pantone Color of the Year`,
+        ),
+      ],
+    ),
+  ]);
+}
+
 function defaultCard(years: YearEntry[]): Node {
   return h(
     'div',
@@ -173,8 +226,17 @@ function defaultCard(years: YearEntry[]): Node {
 }
 
 export const GET: APIRoute = async ({ props }) => {
-  const { entry, years } = props as { entry: YearEntry | null; years: YearEntry[] };
-  const svg = await satori(entry ? yearCard(entry) : defaultCard(years), {
+  const {
+    entry,
+    years,
+    zima: isZima,
+  } = props as {
+    entry: YearEntry | null;
+    years: YearEntry[];
+    zima?: boolean;
+  };
+  const card = isZima ? zimaCard() : entry ? yearCard(entry) : defaultCard(years);
+  const svg = await satori(card, {
     width: 1200,
     height: 630,
     fonts,

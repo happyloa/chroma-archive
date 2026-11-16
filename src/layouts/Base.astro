@@ -23,6 +23,8 @@ interface Props {
   headerTone?: 'paper' | 'coty' | 'ink';
   /** OG 分享圖路徑，預設是站名圖 */
   ogImage?: string;
+  /** 不讓搜尋引擎收錄（彩蛋頁） */
+  noindex?: boolean;
 }
 
 const {
@@ -32,6 +34,7 @@ const {
   color: colorProp,
   headerTone = 'paper',
   ogImage = '/og/default.png',
+  noindex = false,
 } = Astro.props;
 
 const lang = getLang(Astro.currentLocale);
@@ -62,6 +65,7 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta name="theme-color" content={color} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />

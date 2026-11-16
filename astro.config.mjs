@@ -13,8 +13,8 @@ export default defineConfig({
   integrations: [
     sitemap({
       i18n: { defaultLocale: 'zh-tw', locales: { 'zh-tw': 'zh-Hant-TW', en: 'en' } },
-      // OG 圖不列入 sitemap
-      filter: (page) => !page.includes('/og/'),
+      // OG 圖與彩蛋頁不列入 sitemap
+      filter: (page) => !page.includes('/og/') && !page.includes('/zima/'),
     }),
   ],
   prefetch: { prefetchAll: true },
