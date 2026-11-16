@@ -69,3 +69,15 @@ test('404 頁的語言切換連到英文首頁，不輸出 canonical 與 hreflan
   await expect(page.locator('link[rel="alternate"]')).toHaveCount(0);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
 });
+
+test('沒有 3D 視窗的頁面不載入 three.js', async ({ page }) => {
+  const three: string[] = [];
+  page.on('request', (r) => {
+    if (/\/(Stage|three\.core)\.[^/]+\.js$/.test(r.url())) three.push(r.url());
+  });
+  await page.goto('/about/');
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(1500);
+  expect(three).toEqual([]);
+  expect(await page.evaluate(() => window.__chroma!().stageInstances)).toBe(0);
+});

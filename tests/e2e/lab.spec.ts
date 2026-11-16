@@ -155,3 +155,29 @@ test('上傳損壞的 STL 顯示在地化的錯誤訊息', async ({ page }) => {
   });
   await expect(page.locator('#lab-upload-status')).toHaveText(/無法讀取|讀不到|無法/);
 });
+
+test('關掉自轉、沒有操作時不重畫；拖曳時恢復', async ({ page }) => {
+  await page.goto('/years/2025/lab/?p=vase&spin=0');
+  const viewport = page.locator('#lab-viewport');
+  await expect(viewport).toHaveAttribute('data-stage-ready', '');
+  const draws = () => page.evaluate(() => window.__chroma!().draws);
+  // 等鏡頭與進場動畫結束，畫格數不再增加
+  await expect
+    .poll(
+      async () => {
+        const a = await draws();
+        await page.waitForTimeout(500);
+        return (await draws()) - a;
+      },
+      { timeout: 15_000 },
+    )
+    .toBe(0);
+
+  const before = await draws();
+  const box = (await viewport.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(draws).toBeGreaterThan(before);
+});
