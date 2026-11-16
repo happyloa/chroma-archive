@@ -134,8 +134,7 @@ export function peekHDRI(id: HdriId): Texture | undefined {
 }
 
 /**
- * 載入等距柱狀投影的 HDRI。直接當 scene.environment 使用：
- * 即時算繪時 three.js 會自動轉成 PMREM，路徑追蹤則需要原始的等距柱狀貼圖。
+ * 載入等距柱狀投影的 HDRI。直接當 scene.environment 使用，three.js 會自動轉成 PMREM。
  */
 export function loadHDRI(id: HdriId): Promise<Texture> {
   let task = hdriCache.get(id);

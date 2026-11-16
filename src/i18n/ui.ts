@@ -117,10 +117,6 @@ const zh = {
   'lab.hint': '拖曳旋轉・滾輪縮放・點產品零件選擇要換色的部位',
   'lab.cameras': '鏡頭角度',
   'lab.spin': '自動旋轉',
-  'lab.photo': '相片級渲染',
-  'lab.photoTitle': '停止操作後以路徑追蹤逐步算出照片級畫面，需要桌機等級的顯示卡',
-  'lab.photoNote':
-    '相片級渲染會在你停止操作後，用路徑追蹤逐步算出有真實光影的畫面，需要桌機等級的顯示卡；開啟時自動旋轉會暫停。',
   'lab.product': '產品',
   'lab.myModel': '我的模型',
   'lab.upload': '上傳自己的模型',
@@ -191,7 +187,7 @@ const zh = {
     '本站為個人作品，與 Pantone LLC 沒有任何關係，也未獲其授權或贊助。PANTONE® 及 Pantone Color of the Year 為 Pantone LLC 的商標。各年度色的介紹文字由本站自行撰寫。',
   'about.toolsTitle': '使用的工具',
   'about.tools':
-    '以 Astro、three.js、GSAP、Lenis、Tailwind CSS 製作，色彩計算使用 culori，相片級渲染使用 three-gpu-pathtracer。字型為 Fraunces、Inter、思源宋體與思源黑體，皆採 SIL Open Font License。網站部署在 Cloudflare。',
+    '以 Astro、three.js、GSAP、Lenis、Tailwind CSS 製作，色彩計算使用 culori。字型為 Fraunces、Inter、思源宋體與思源黑體，皆採 SIL Open Font License。網站部署在 Cloudflare。',
   'about.modelsTitle': '3D 模型與場景素材',
   'about.modelsLead': '產品實驗室的部分模型來自公開素材，經過重新上色與壓縮：',
   'about.modelsProcedural': '耳罩式耳機與智慧音箱由本站以程式產生。',
@@ -316,11 +312,6 @@ const en: Record<UiKey, string> = {
   'lab.hint': 'Drag to rotate · Scroll to zoom · Click a part to pick which color it uses',
   'lab.cameras': 'Camera angle',
   'lab.spin': 'Auto-rotate',
-  'lab.photo': 'Photo mode',
-  'lab.photoTitle':
-    'Path-traces a photorealistic image once you stop moving the camera. Needs a desktop-class GPU',
-  'lab.photoNote':
-    'Photo mode path-traces the scene once you stop interacting, building up realistic light and shadow. It needs a desktop-class GPU, and auto-rotate pauses while it is on.',
   'lab.product': 'Product',
   'lab.myModel': 'My model',
   'lab.upload': 'Upload your own model',
@@ -392,7 +383,7 @@ const en: Record<UiKey, string> = {
     'This is a personal project with no connection to Pantone LLC, and it is not licensed or sponsored by Pantone. PANTONE® and Pantone Color of the Year are trademarks of Pantone LLC. The descriptions of each color are written for this site.',
   'about.toolsTitle': 'Built with',
   'about.tools':
-    'Built with Astro, three.js, GSAP, Lenis and Tailwind CSS, with culori for color math and three-gpu-pathtracer for photo mode. Typefaces are Fraunces, Inter, Noto Serif TC and Noto Sans TC, all under the SIL Open Font License. Hosted on Cloudflare.',
+    'Built with Astro, three.js, GSAP, Lenis and Tailwind CSS, with culori for color math. Typefaces are Fraunces, Inter, Noto Serif TC and Noto Sans TC, all under the SIL Open Font License. Hosted on Cloudflare.',
   'about.modelsTitle': '3D models and scene assets',
   'about.modelsLead':
     'Some product lab models come from public sources and have been recolored and compressed:',

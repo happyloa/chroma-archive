@@ -92,11 +92,6 @@ const accentChoices = [
         >
           {t('lab.hint')}
         </p>
-        <p
-          id="lab-photo-status"
-          class="pointer-events-none absolute top-4 right-4 hidden rounded-full bg-night/70 px-3 py-1 text-xs text-day tabular-nums backdrop-blur"
-          aria-live="polite"
-        ></p>
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -117,21 +112,7 @@ const accentChoices = [
           ></span>
           {t('lab.spin')}
         </label>
-        <label
-          class="inline-flex cursor-pointer items-center gap-2 text-sm"
-          title={t('lab.photoTitle')}
-        >
-          <input type="checkbox" name="q" value="photo" class="peer sr-only" />
-          <span
-            class="relative h-5 w-9 rounded-full bg-ink/20 transition-colors peer-checked:bg-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-paper after:transition-transform peer-checked:after:translate-x-4"
-            aria-hidden="true"
-          ></span>
-          {t('lab.photo')}
-        </label>
       </div>
-      <p class="text-xs text-smoke" id="lab-photo-note">
-        {t('lab.photoNote')}
-      </p>
     </div>
 
     <div class="col-span-4 space-y-8 md:col-span-4">

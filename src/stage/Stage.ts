@@ -238,8 +238,7 @@ export class Stage {
           r.clearDepth();
         }
         view.beforeRender?.(r);
-        if (view.render) view.render(r, rect.height);
-        else r.render(view.scene, view.camera);
+        r.render(view.scene, view.camera);
       }
       r.setScissorTest(false);
       this.fps.sample(delta);
