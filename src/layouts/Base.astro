@@ -9,7 +9,6 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { pickInk, scrollbarColors } from '../lib/color';
 import { getLatestYear } from '../lib/data';
-import { rootTransition } from '../app/transitions';
 import { HTML_LANG, OG_LOCALE, getLang, localePath, stripLocale, useT } from '../i18n/ui';
 
 interface Props {
@@ -57,7 +56,6 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
 ---
 
 <html
-  transition:animate={rootTransition}
   lang={HTML_LANG[lang]}
   style={`--coty: ${color}; --coty-ink: ${ink}; --scroll-thumb: ${color}; --scroll-track: ${scrollTrack}`}
 >

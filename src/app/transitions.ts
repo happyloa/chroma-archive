@@ -1,25 +1,25 @@
-import type { TransitionDirectionalAnimations } from 'astro';
-
 /**
  * 換頁轉場（T035、T044、US-07）：
  * - 目的頁的年度色從點擊位置以液態邊緣擴散蓋滿畫面，再退開露出新頁，約 1 秒（樣式在 global.css）
  * - 色票卡片：典藏頁與年度頁的色票用同一個 transition:name，瀏覽器自動做共享元素轉場
  * - 3D 時間軸的色卡：點擊時在色塊位置放一塊同色方塊，和年度頁主視覺配成一組，放大成主視覺
+ * 有共享元素的換頁（點色票卡、3D 色卡）不播墨水，新舊頁面平滑交叉淡化，讓色票卡飛到新位置。
  * 減少動態效果，或瀏覽器的上一頁、下一頁時，改為 200 毫秒淡入淡出。
  */
-const reveal = {
-  old: { name: 'vt-root-out', duration: '1s', easing: 'linear', fillMode: 'both' },
-  new: { name: 'vt-root-in', duration: '1s', easing: 'linear', fillMode: 'both' },
-};
-
-export const rootTransition: TransitionDirectionalAnimations = {
-  forwards: reveal,
-  backwards: reveal,
-};
+/*
+ * 整頁的動畫寫在 global.css 的 ::view-transition-old(root)、new(root)。<html> 不能用 Astro 的
+ * transition:animate：它會給 <html> 每頁不同的 view-transition 名稱，新舊頁面變成兩個無關的群組，
+ * 新頁面的群組疊在最上面，蓋住墨水與飛行中的色票卡，針對 root 的樣式也全部失效。
+ */
 
 let origin = { x: '50%', y: '50%' };
-/** 這次換頁是不是瀏覽器的上一頁、下一頁 */
-let traverse = false;
+/**
+ * 這次換頁的轉場（<html data-vt>）：
+ * - ink：一般連結，墨水擴散（預設，不設屬性）
+ * - morph：點了有共享元素的色票卡或 3D 色卡
+ * - traverse：瀏覽器的上一頁、下一頁
+ */
+let mode: 'ink' | 'morph' | 'traverse' = 'ink';
 /** 下一次換頁要讓主視覺接手的轉場名稱與目的地（見 morphIntoHero） */
 let pendingHero: { name: string; path: string } | null = null;
 
@@ -66,11 +66,17 @@ export function initTransitions(): void {
     const root = document.documentElement;
     root.style.setProperty('--vt-x', origin.x);
     root.style.setProperty('--vt-y', origin.y);
-    if (traverse) root.dataset.vt = 'traverse';
-    else delete root.dataset.vt;
+    if (mode === 'ink') delete root.dataset.vt;
+    else root.dataset.vt = mode;
   };
   document.addEventListener('astro:before-preparation', (event) => {
-    traverse = event.navigationType === 'traverse';
+    const link = event.sourceElement?.closest('a');
+    mode =
+      event.navigationType === 'traverse'
+        ? 'traverse'
+        : pendingHero || link?.hasAttribute('data-astro-transition-scope')
+          ? 'morph'
+          : 'ink';
     apply();
   });
   document.addEventListener('astro:after-swap', apply);

@@ -372,22 +372,23 @@
   pointer-events: none;
   view-transition-name: vt-ink;
 }
+/* 新舊頁面在墨水下平滑交叉淡化；墨水沒有完全蓋住時也不會在某一格硬切（看起來像閃一下） */
 @keyframes vt-root-out {
   0%,
-  50% {
+  35% {
     opacity: 1;
   }
-  50.01%,
+  65%,
   100% {
     opacity: 0;
   }
 }
 @keyframes vt-root-in {
   0%,
-  50% {
+  35% {
     opacity: 0;
   }
-  50.01%,
+  65%,
   100% {
     opacity: 1;
   }
@@ -408,6 +409,13 @@
     mask-position: calc(var(--vt-x, 50vw) - 160vmax) calc(var(--vt-y, 50vh) - 160vmax);
     opacity: 0;
   }
+}
+/* 整頁：舊頁停留、新頁在墨水下交叉淡化（<html> 沒有 transition:animate，名稱是預設的 root） */
+::view-transition-old(root) {
+  animation: vt-root-out 1s linear both;
+}
+::view-transition-new(root) {
+  animation: vt-root-in 1s linear both;
 }
 ::view-transition-group(vt-ink) {
   animation: none;
@@ -435,6 +443,20 @@
   from {
     opacity: 0;
   }
+}
+/* 有共享元素的換頁：不播墨水，新舊頁面 0.5 秒交叉淡化，色票卡 0.7 秒飛到新位置 */
+:root[data-vt='morph']::view-transition-new(vt-ink) {
+  animation: none;
+  opacity: 0;
+}
+:root[data-vt='morph']::view-transition-old(root) {
+  animation: vt-fade-out 0.5s ease both;
+}
+:root[data-vt='morph']::view-transition-new(root) {
+  animation: vt-fade-in 0.5s ease both;
+}
+:root[data-vt='morph']::view-transition-group(*) {
+  animation-duration: 0.7s;
 }
 /* 瀏覽器的上一頁、下一頁：不播墨水，200 毫秒淡入淡出（src/app/transitions.ts 設定 data-vt） */
 :root[data-vt='traverse']::view-transition-new(vt-ink) {
