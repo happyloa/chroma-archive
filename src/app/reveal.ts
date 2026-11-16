@@ -50,7 +50,7 @@ export function initReveal(root: ParentNode = document): void {
         stagger: english ? 0.06 : 0.035,
         delay: hero ? 0.2 : 0,
         scrollTrigger: hero ? undefined : { trigger: el, start: 'top 85%', once: true },
-        // 進場結束後才建立退場，起始值才會是進場後的位置
+        // 進場結束後才建立退場，起始值才會是進場後的位置；標題往上捲過畫面 35% 才開始淡出
         onComplete: exit
           ? () =>
               context?.add(() => {
@@ -60,9 +60,9 @@ export function initReveal(root: ParentNode = document): void {
                   ease: 'none',
                   stagger: english ? 0.04 : 0.02,
                   scrollTrigger: {
-                    trigger: hero,
-                    start: 'top top',
-                    end: 'bottom 30%',
+                    trigger: el,
+                    start: 'top 35%',
+                    end: 'bottom top',
                     scrub: true,
                   },
                 });

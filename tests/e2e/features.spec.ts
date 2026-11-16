@@ -283,3 +283,29 @@ test('時間軸在畫面上時，方向鍵移到前後一年', async ({ page }) 
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(after - step * 0.4);
 });
+
+test('站內換頁到首頁時不播預載畫面', async ({ page }) => {
+  await page.goto('/about/');
+  await page.getByRole('link', { name: 'Chroma Archive' }).first().click();
+  await expect(page).toHaveURL(/localhost:\d+\/$/);
+  await expect(page.locator('#preloader')).toHaveCount(0, { timeout: 1000 });
+});
+
+test('自訂游標啟用時隱藏原生游標', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'WebKit 的 pointer: fine 判斷在無頭模式下不一致');
+  await page.goto('/about/');
+  await page.mouse.move(300, 300);
+  await page.mouse.move(320, 310);
+  await expect(page.locator('html')).toHaveAttribute('data-cursor', 'custom');
+  await expect(page.locator('body')).toHaveCSS('cursor', 'none');
+  await expect(page.locator('.chroma-cursor')).toHaveAttribute('data-moved', '');
+});
+
+test.describe('減少動態效果時', () => {
+  test.use({ reducedMotion: 'reduce' });
+  test('保留原生游標', async ({ page }) => {
+    await page.goto('/about/');
+    await expect(page.locator('html')).not.toHaveAttribute('data-cursor', /.+/);
+    await expect(page.locator('.chroma-cursor')).toHaveCount(0);
+  });
+});

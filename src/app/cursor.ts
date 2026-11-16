@@ -3,8 +3,9 @@ import { onMotionChange, prefersReducedMotion } from './motion';
 
 /**
  * 自訂游標（T036、FR-09）：跟著滑鼠的圓點，滑到連結、按鈕會放大成外框；
- * 滑到帶 data-cursor-color 的色塊時吸取那個顏色。原生游標保留，圓點只是視覺。
- * 觸控裝置與減少動態效果時不啟用。
+ * 滑到帶 data-cursor-color 的色塊時吸取那個顏色。啟用時隱藏原生游標（<html data-cursor="custom">），
+ * 所以圓點中心緊貼滑鼠位置，只有放大、吸色的變化有動畫。
+ * 觸控裝置與減少動態效果時不啟用，保留原生游標。
  */
 let dot: HTMLElement | null = null;
 
@@ -19,13 +20,12 @@ export function initCursor(): void {
     dot.className = 'chroma-cursor';
     dot.setAttribute('aria-hidden', 'true');
     document.body.append(dot);
-    const x = gsap.quickTo(dot, 'x', { duration: 0.35, ease: 'power3' });
-    const y = gsap.quickTo(dot, 'y', { duration: 0.35, ease: 'power3' });
+    document.documentElement.dataset.cursor = 'custom';
 
     window.addEventListener('pointermove', (e) => {
       if (!dot) return;
-      x(e.clientX);
-      y(e.clientY);
+      gsap.set(dot, { x: e.clientX, y: e.clientY });
+      dot.dataset.moved = '';
       const target = e.target as Element | null;
       const colored = target?.closest<HTMLElement>('[data-cursor-color]');
       const interactive = target?.closest('a, button, label, input, [data-view]');
@@ -44,13 +44,17 @@ export function initCursor(): void {
 
   setup();
   // ClientRouter 換頁會換掉 body 內容，把圓點加回去
+  // <html> 的屬性也會被換掉，重新標記
   document.addEventListener('astro:after-swap', () => {
-    if (dot && !dot.isConnected) document.body.append(dot);
+    if (!dot) return;
+    if (!dot.isConnected) document.body.append(dot);
+    document.documentElement.dataset.cursor = 'custom';
   });
   onMotionChange(() => {
     if (!enabled()) {
       dot?.remove();
       dot = null;
+      delete document.documentElement.dataset.cursor;
     } else setup();
   });
 }

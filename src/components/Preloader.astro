@@ -3,7 +3,9 @@ import type { YearEntry } from '../lib/data';
 
 /**
  * 首頁預載畫面（T040、US-01-1）：年份從第一年數到今年，色塊跟著換成各年度色，數到今年後往上滑開，總長約 2.1 秒（US-01-1 上限 2.2 秒）。
- * 同一個分頁只播一次（sessionStorage），減少動態效果時不播。用 inline script 在首次繪製前決定要不要顯示。
+ * 同一個分頁只播一次（sessionStorage），減少動態效果時不播。只在直接開啟首頁時播放：
+ * 站內換頁到首頁時新頁面正在建立 3D 主視覺，計數動畫會卡住，所以直接移除。
+ * 用 inline script 在首次繪製前決定要不要顯示，data-astro-rerun 讓每次換頁都重新判斷。
  */
 interface Props {
   years: YearEntry[];
@@ -29,7 +31,7 @@ const frames = years.map((y) => [y.year, y.colors[0]!.hex]);
   ></span>
 </div>
 
-<script is:inline>
+<script is:inline data-astro-rerun>
   (() => {
     const el = document.getElementById('preloader');
     if (!el) return;
@@ -40,7 +42,8 @@ const frames = years.map((y) => [y.year, y.colors[0]!.hex]);
       // 儲存空間被封鎖時照常播放
     }
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (seen || reduced) {
+    // Base layout 在第一次站內換頁時設定 __chromaNavigated
+    if (seen || reduced || window.__chromaNavigated) {
       el.remove();
       return;
     }

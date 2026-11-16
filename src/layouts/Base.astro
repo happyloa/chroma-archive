@@ -110,6 +110,10 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
         if (!window.__chromaHeadInit) {
           window.__chromaHeadInit = true;
           document.addEventListener('astro:after-swap', apply);
+          // 站內換頁過就不再播首頁預載畫面（Preloader.astro）
+          document.addEventListener('astro:before-preparation', () => {
+            window.__chromaNavigated = true;
+          });
         }
       })();
     </script>
