@@ -36,6 +36,8 @@ jobs:
         with:
           name: lighthouse
           path: .lighthouseci/
+          # 以 . 開頭的資料夾預設不上傳
+          include-hidden-files: true
           retention-days: 7
 
   # 和 quality 同時跑：Playwright 的 webServer 會自己 build，不需要等 quality 的產物

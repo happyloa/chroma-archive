@@ -1,6 +1,9 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import '@fontsource-variable/fraunces/opsz.css';
+// 標題字型的拉丁字檔預載（plan.md 風險表）：預載畫面與首頁的大年份用 Fraunces，
+// 字型晚到的話，年份會先用備用字型畫出來，換上 Fraunces 時字變大，被算成新的 LCP
+import frauncesLatin from '@fontsource-variable/fraunces/files/fraunces-latin-opsz-normal.woff2?url';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/noto-serif-tc';
 import '@fontsource-variable/noto-sans-tc';
@@ -65,6 +68,7 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
 >
   <head>
     <meta charset="utf-8" />
+    <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     {(noindex || isNotFound) && <meta name="robots" content="noindex" />}

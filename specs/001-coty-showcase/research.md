@@ -190,3 +190,15 @@ E2E 測試在無頭瀏覽器裡也是軟體算繪，所以 `tests/e2e/fixtures.t
 改法：視窗新增可選的 `needsRender()`，產品視窗在自轉、鏡頭移動（OrbitControls 的 change，包含慣性減速）、GSAP 動畫進行中、狀態改變或載入完成時回報要重畫。看得到的視窗都沒有變化、位置與尺寸也和上一次畫的一樣時，Stage 整格跳過，連清除都不做；WebGL canvas 那一格沒被畫過，瀏覽器就繼續顯示上一格。只要有一個視窗要重畫就清掉整個 canvas、全部重畫，因為 `preserveDrawingBuffer` 為 false，畫新的一格時不能假設上一格的內容還在。主視覺、時間軸、色彩空間一直在動，沒有實作 `needsRender()`，行為和原本一樣。
 
 Fraunces 原本引入 `full.css`（wght、opsz、SOFT、WONK 四個軸），程式只用到 wght，SOFT、WONK 維持預設值。改用 `opsz.css`（wght 與 opsz），拉丁字檔從 121 KB 降到 67 KB，瀏覽器的自動光學尺寸照常有效。
+
+## CI 首頁 LCP 超標（預載標題字型）
+
+2026-11-16 推送 T094 到 T096 之後，CI 的 Lighthouse 首頁 LCP 兩次超標（2,672 毫秒與 6,771 毫秒，門檻 2,500），其他頁面都在 1.0 到 1.6 秒。第二次的 FCP 只有 1,061 毫秒，LCP 元素是預載畫面的大年份（Fraunces）。本機用模擬節流、devtools 節流、CPU 放慢 6 到 10 倍都重現不了：Fraunces 在第一次繪製前就到了，LCP 都等於 FCP。
+
+推測是 CI 機器上年份先用備用字型畫出來，Fraunces 之後才換上，字變大，瀏覽器把換字那一刻記成新的 LCP；模擬節流再把那之前的所有請求算進去，估計值就被拉長。T095 把 Fraunces 換成較小的 opsz 字檔，字型到達的時間因此提前，可能剛好落在預載畫面還沒移除的時候。
+
+處理：
+
+- 在 `<head>` 預載 Fraunces 的拉丁字檔（plan.md 風險表原本就寫了「標題字型預載」，先前沒有做）。預載之後本機量到字型在 16 毫秒開始下載，首頁仍是 0.99。
+- CI 原本沒有上傳 Lighthouse 報告：`actions/upload-artifact` 預設略過以 `.` 開頭的資料夾，所以加上 `include-hidden-files`。
+- `scripts/lhci-summary.mjs` 多列出實測（未經模擬）的 FCP、LCP，以及 Fraunces、Inter 的請求時間。下次再超標時，可以直接看出 LCP 是不是在字型換上的時候發生。

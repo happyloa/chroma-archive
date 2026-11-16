@@ -70,6 +70,7 @@
 - [x] T094 沒有 3D 的頁面不載入 three.js；Stage 改成畫面有變化才重畫（plan.md 2.2，research.md「閒置時不重畫」）
 - [x] T095 Fraunces 改用 opsz 子集（只含 wght 與 opsz 軸），拉丁字檔 121 KB 降為 67 KB
 - [x] T096 移除沒用到的 `@gltf-transform/cli` 與 3 個沒有引用的 export
+- [x] T097 預載 Fraunces 拉丁字檔（plan.md 風險表原本就要求預載）；CI 的 Lighthouse 報告改為確實上傳，摘要多列實測的 FCP、LCP 與字型請求時間
 - [x] T054 產品實驗室情境場景：客廳、臥室、辦公室（US-05-8）
 - [x] T055 產品實驗室互動：點選零件換色、懸停高亮、鏡頭預設、自轉開關、換產品與換色動畫（US-05-9、5-10）
 - [x] T056 運動鞋模型改良：目前輪廓太圓鈍，鞋頭、鞋口與鞋帶要更清楚

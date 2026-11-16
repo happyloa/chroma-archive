@@ -20,5 +20,18 @@ for (const file of readdirSync(dir).filter((f) => /^lhr-.*\.json$/.test(f))) {
     `${path} perf=${r.categories.performance.score} FCP=${Math.round(a['first-contentful-paint'].numericValue)} LCP=${Math.round(a['largest-contentful-paint'].numericValue)} TBT=${Math.round(a['total-blocking-time'].numericValue)}`,
   );
   console.log(`  LCP element: ${lcp ? `${lcp[1]} | ${lcp[2]}` : '(unknown)'}`);
+  // 實際量到的時間（上面是模擬節流後的估計值）；兩者差很多時，看是哪個請求拖慢了 LCP
+  const m = a.metrics?.details?.items?.[0] ?? {};
+  console.log(
+    `  observed: FCP=${Math.round(m.observedFirstContentfulPaint ?? 0)} LCP=${Math.round(m.observedLargestContentfulPaint ?? 0)}`,
+  );
+  const fonts = (a['network-requests']?.details?.items ?? [])
+    .filter((i) => /fraunces|inter/i.test(i.url))
+    .map(
+      (i) =>
+        `${i.url.split('/').pop()?.slice(0, 28)}@${Math.round(i.networkRequestTime ?? 0)}-${Math.round(i.networkEndTime ?? 0)}`,
+    )
+    .join(' ');
+  console.log(`  latin fonts: ${fonts || '(none)'}`);
   console.log(`  long tasks: ${long}`);
 }
