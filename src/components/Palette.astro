@@ -40,7 +40,7 @@ const cssVars = colors.map((hex, i) => `--${slug}-${kind}-${i + 1}: ${hex};`).jo
   <ul class="flex h-28 overflow-hidden md:h-36">
     {colors.map((hex) => (
       <li
-        class="group relative flex flex-1 items-end p-2 transition-[flex-grow] duration-500 ease-out-expo hover:flex-[1.6]"
+        class="paper-fiber group relative flex flex-1 items-end p-2 transition-[flex-grow] duration-500 ease-out-expo hover:flex-[1.6]"
         style={`background:${hex}; color:${pickInk(hex).ink}`}
         data-cursor-color={hex}
       >

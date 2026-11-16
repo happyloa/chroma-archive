@@ -36,6 +36,15 @@ export class Stage {
   private reducedMotion = false;
   private mountToken = 0;
   private readonly fps = new FpsGuard(() => this.downgrade());
+  /** canvas 尺寸變化時更新 renderer，節流 100 毫秒（spec.md 第 8 節） */
+  private resizeTimer = 0;
+  private readonly resizeObserver = new ResizeObserver(() => {
+    if (this.resizeTimer) return;
+    this.resizeTimer = window.setTimeout(() => {
+      this.resizeTimer = 0;
+      this.resize();
+    }, 100);
+  });
   frames = 0;
 
   static get(canvas: HTMLCanvasElement): Stage {
@@ -70,7 +79,7 @@ export class Stage {
     this.applyTier();
 
     this.resize();
-    window.addEventListener('resize', this.resize);
+    this.resizeObserver.observe(canvas);
     document.addEventListener('visibilitychange', this.onVisibility);
     onTick(this.render);
   }
@@ -154,6 +163,8 @@ export class Stage {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, settings.maxDpr));
     this.renderer.shadowMap.enabled = settings.shadows;
     this.canvas.dataset.tier = this.tier;
+    // 底片顆粒等 CSS 後製效果依畫質檔位開關（global.css）
+    document.documentElement.dataset.tier = this.tier;
   }
 
   private downgrade(): void {
@@ -214,7 +225,8 @@ export class Stage {
 
   private dispose(): void {
     this.unmount();
-    window.removeEventListener('resize', this.resize);
+    this.resizeObserver.disconnect();
+    window.clearTimeout(this.resizeTimer);
     document.removeEventListener('visibilitychange', this.onVisibility);
     this.renderer.toneMapping = NoToneMapping;
     this.renderer.dispose();

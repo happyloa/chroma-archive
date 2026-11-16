@@ -8,6 +8,13 @@ const zh = useT('zh-tw');
 const en = useT('en');
 const years = await getYears();
 const latest = years.at(-1)!;
+// 每次開啟隨機換成某一年的顏色（inline script），沒有 JS 時顯示最新年度色
+const choices = years.map((y) => ({
+  year: y.year,
+  name: y.colors.map((c) => c.name).join(' & '),
+  hex: y.colors[0]!.hex,
+  hexes: y.colors.map((c) => c.hex),
+}));
 ---
 
 <Base title={zh('notFound.metaTitle')} color={latest.colors[0]!.hex}>
@@ -25,6 +32,28 @@ const latest = years.at(-1)!;
         {en('notFound.lead')}
       </span>
     </p>
+    <figure class="col-span-2 md:col-span-3" data-random-color={JSON.stringify(choices)}>
+      <a href={`/years/${latest.year}/`} class="group block bg-chip p-[5%] pb-[4%] text-night">
+        <span
+          class="paper-fiber flex aspect-[5/4]"
+          data-random-swatch
+          aria-hidden="true"
+          style={`background:${latest.colors[0]!.hex}`}
+        ></span>
+        <span class="mt-3 flex items-baseline justify-between gap-3">
+          <span class="font-display text-title tabular-nums" data-random-year>
+            {latest.year}
+          </span>
+          <span class="text-sm" data-random-name>
+            {latest.colors.map((c) => c.name).join(' & ')}
+          </span>
+        </span>
+      </a>
+      <figcaption class="mt-2 text-xs text-smoke">
+        {zh('notFound.random')}
+        <span lang="en"> · {en('notFound.random')}</span>
+      </figcaption>
+    </figure>
     <div class="col-span-4 flex flex-wrap gap-6 md:col-span-12">
       <a href="/" class="eyebrow border-b border-current pb-1">
         {zh('notFound.home')}
@@ -40,4 +69,30 @@ const latest = years.at(-1)!;
       </a>
     </div>
   </section>
+  <script is:inline data-astro-rerun>
+    (() => {
+      const fig = document.querySelector('[data-random-color]');
+      if (!fig) return;
+      const list = JSON.parse(fig.dataset.randomColor || '[]');
+      const pick = list[Math.floor(Math.random() * list.length)];
+      if (!pick) return;
+      const stops = pick.hexes
+        .map(
+          (c, i) =>
+            c +
+            ' ' +
+            (i / pick.hexes.length) * 100 +
+            '% ' +
+            ((i + 1) / pick.hexes.length) * 100 +
+            '%',
+        )
+        .join(', ');
+      fig.querySelector('[data-random-swatch]').style.background =
+        'linear-gradient(90deg, ' + stops + ')';
+      fig.querySelector('[data-random-year]').textContent = pick.year;
+      fig.querySelector('[data-random-name]').textContent = pick.name;
+      fig.querySelector('a').href = '/years/' + pick.year + '/';
+      document.documentElement.style.setProperty('--scroll-thumb', pick.hex);
+    })();
+  </script>
 </Base>

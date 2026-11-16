@@ -122,6 +122,8 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
   <body class="min-h-screen">
     {/* 換頁轉場的墨水層：透明，只用來產生 view-transition 群組（global.css） */}
     <div class="vt-ink" aria-hidden="true"></div>
+    {/* 全畫面底片顆粒（global.css .film-grain） */}
+    <div class="film-grain" aria-hidden="true"></div>
     <a
       href="#content"
       class="sr-only z-50 bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-4 focus:left-4"

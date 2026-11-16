@@ -32,7 +32,7 @@ const Tag = href ? 'a' : 'div';
   <div class="flex aspect-[5/4] overflow-hidden" aria-hidden="true">
     {entry.colors.map((c) => (
       <span
-        class:list={['flex-1', c.isLight && 'shadow-[inset_0_0_0_1px_rgb(0_0_0/0.06)]']}
+        class:list={['paper-fiber flex-1', c.isLight && 'shadow-[inset_0_0_0_1px_rgb(0_0_0/0.06)]']}
         style={`background:${c.hex}`}
       />
     ))}

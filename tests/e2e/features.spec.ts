@@ -309,3 +309,48 @@ test.describe('減少動態效果時', () => {
     await expect(page.locator('.chroma-cursor')).toHaveCount(0);
   });
 });
+
+test.describe('規格補做：下載、404、雙色、質感', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('年度頁可以下載 CSS 變數檔', async ({ page, request }) => {
+    await page.goto('/years/2025/');
+    await expect(page.locator('a[href="/css/2025.css"]')).toHaveAttribute(
+      'download',
+      'chroma-archive-2025.css',
+    );
+    const res = await request.get('/css/2025.css');
+    expect(res.headers()['content-type']).toContain('text/css');
+    const css = await res.text();
+    expect(css).toContain('--mocha-mousse: #A47864;');
+    expect(css).toContain('--mocha-mousse-complementary-1:');
+  });
+
+  test('404 頁顯示一個隨機年度色並連到那一年', async ({ page }) => {
+    await page.goto('/years/2027/');
+    const year = await page.locator('[data-random-year]').textContent();
+    expect(Number(year)).toBeGreaterThanOrEqual(2000);
+    await expect(page.locator('[data-random-color] a')).toHaveAttribute('href', `/years/${year}/`);
+  });
+
+  test('雙色年份的主視覺帶第二個顏色', async ({ page }) => {
+    await page.goto('/years/2016/');
+    await expect(page.locator('[data-view="hero"]')).toHaveAttribute('data-color2', '#93A9D1');
+  });
+
+  test('全畫面有底片顆粒層，色塊有紙張纖維', async ({ page }) => {
+    await page.goto('/years/2025/');
+    await expect(page.locator('.film-grain')).toHaveCount(1);
+    await expect(page.locator('.paper-fiber').first()).toBeVisible();
+  });
+});
+
+test('視窗縮放後 canvas 跟著更新尺寸', async ({ page }) => {
+  await page.goto('/years/2025/');
+  test.skip(!(await stageShown(page)), '沒有 WebGL 2');
+  await expect.poll(() => views(page)).toBeGreaterThan(0);
+  await page.setViewportSize({ width: 900, height: 700 });
+  await expect
+    .poll(() => page.evaluate(() => (document.getElementById('stage') as HTMLCanvasElement).height))
+    .toBe(700 * (await page.evaluate(() => Math.min(window.devicePixelRatio, 2))));
+});

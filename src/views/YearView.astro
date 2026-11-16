@@ -73,6 +73,8 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
     data-view="hero"
     data-motion-only
     data-color={main!.hex}
+    data-color2={colors[1]?.hex}
+    style={colors[1] ? `--coty-2: ${colors[1].hex}` : undefined}
     data-mode={main!.isLight ? 'cloud' : 'liquid'}
     data-background="#0E0E0E"
   >
@@ -181,6 +183,13 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
         {t('year.downloadAse')} <span aria-hidden="true">↓</span>
       </a>
       <p class="text-xs text-smoke">{t('year.downloadAseNote')}</p>
+      <a
+        href={`/css/${year}.css`}
+        download={`chroma-archive-${year}.css`}
+        class="eyebrow inline-flex items-center gap-2 border-b border-current pb-1"
+      >
+        {t('year.downloadCss')} <span aria-hidden="true">↓</span>
+      </a>
     </div>
     <div class="col-span-4 space-y-16 md:col-span-9">
       {colors.map((c) => (

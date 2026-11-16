@@ -31,6 +31,8 @@ const fragmentShader = /* glsl */ `
   uniform vec2 uMouse;
   uniform float uMouseStrength;
   uniform vec3 uColor;
+  uniform vec3 uColor2;
+  uniform float uDual; // 1：雙色年份，兩色交融
   uniform vec3 uBackground;
   uniform float uMode; // 0 液態、1 雲
 
@@ -87,14 +89,16 @@ const fragmentShader = /* glsl */ `
         fbm(p * 0.7 + 1.6 * q + vec2(8.3, 2.8) - swirl * 2.0 + t * 0.05)
       );
       float f = fbm(p * 0.6 + 1.4 * r);
+      // 雙色年份：兩個顏色依另一層雜訊交融
+      vec3 base = mix(uColor, uColor2, uDual * smoothstep(-0.3, 0.3, fbm(p * 0.45 + r * 0.8 + t * 0.02)));
       // 以年度色為中心做深淺變化，保持接近原色，文字才讀得清楚
-      vec3 light = mix(uColor, vec3(1.0), 0.22);
-      vec3 dark = uColor * 0.78;
+      vec3 light = mix(base, vec3(1.0), 0.22);
+      vec3 dark = base * 0.78;
       vec3 col = mix(dark, light, smoothstep(-0.8, 0.9, f));
       // 顏料表面的細微高光
       float sheen = smoothstep(0.55, 0.95, f + length(r) * 0.25);
       col += sheen * 0.035;
-      col = mix(col, uColor, 0.35);
+      col = mix(col, base, 0.35);
       gl_FragColor = vec4(col, 1.0);
     } else {
       // 雲：多層 fbm，上方與右側較濃，左下保留給文字
@@ -107,7 +111,8 @@ const fragmentShader = /* glsl */ `
       density *= mask;
       // 光從右上來：雲的亮面與暗面
       float lit = smoothstep(-0.4, 0.6, n2 - n * 0.4);
-      vec3 cloud = mix(uColor * 0.62, uColor, lit);
+      vec3 tint = mix(uColor, uColor2, uDual * smoothstep(-0.2, 0.4, n2));
+      vec3 cloud = mix(tint * 0.62, tint, lit);
       vec3 col = mix(uBackground, cloud, density * 0.85);
       gl_FragColor = vec4(col, 1.0);
     }
@@ -143,6 +148,8 @@ class HeroView implements StageView {
         uMouse: { value: this.mouse },
         uMouseStrength: { value: 0 },
         uColor: { value: new Color(el.dataset.color ?? '#A47864') },
+        uColor2: { value: new Color(el.dataset.color2 ?? el.dataset.color ?? '#A47864') },
+        uDual: { value: el.dataset.color2 ? 1 : 0 },
         uBackground: { value: new Color(el.dataset.background ?? '#0E0E0E') },
         uMode: { value: cloud ? 1 : 0 },
       },

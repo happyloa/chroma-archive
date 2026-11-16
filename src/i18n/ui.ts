@@ -78,6 +78,8 @@ const zh = {
   'year.palettes': '配色',
   'year.downloadAse': '下載 .ase 色票',
   'year.downloadAseNote': '年度色與五組配色，可匯入 Illustrator、Photoshop、InDesign。',
+  'year.downloadCss': '下載 CSS 變數',
+  'notFound.random': '隨機一個年度色',
   'year.ideas': '設計發想',
   'year.ideasPending':
     '這個顏色的產品概念與材質建議還在整理中。可以先到產品實驗室，把 {names} 套到 3D 產品上試試看。',
@@ -272,6 +274,8 @@ const en: Record<UiKey, string> = {
   'year.storyPending': 'The full story for this color is still being written.',
   'year.palettes': 'Palettes',
   'year.downloadAse': 'Download .ase swatches',
+  'year.downloadCss': 'Download CSS variables',
+  'notFound.random': 'A random Color of the Year',
   'year.downloadAseNote':
     'The color and all five palettes, ready for Illustrator, Photoshop and InDesign.',
   'year.ideas': 'Design ideas',
