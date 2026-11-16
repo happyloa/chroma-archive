@@ -59,6 +59,8 @@ Astro 7.4.12、three 0.187.0、gsap 3.15.1、lenis 1.3.27。Playwright 1.65 測 
 
 年度頁的 Performance 最低，一頁有 4 個 3D 視窗（主視覺 shader 加 3 個設計發想模型）。CI 對 Performance 只發警告，Accessibility、SEO、LCP、CLS 不合格時會失敗。
 
+改成只有深色介面（T068）之後重新量測：`/` 0.99、`/archive/` 0.89、`/years/2025/` 0.92、`/en/space/` 0.92，其他三項仍然都是 1。單次量測的 Performance 本來就會有幾分的起伏。
+
 第一次跑時 Accessibility 沒有滿分，原因有兩個：
 
 - GSAP SplitText 在拆開的 `span` 上加 `aria-label`，觸發 `aria-prohibited-attr`。改成拆字的元素設 `aria-hidden`，前面另外放一份 `sr-only` 原文（`src/app/reveal.ts`）。
@@ -73,7 +75,7 @@ Astro 7.4.12、three 0.187.0、gsap 3.15.1、lenis 1.3.27。Playwright 1.65 測 
 
 ### axe
 
-`tests/e2e/a11y.spec.ts` 用 Chromium 掃描中英文共 11 頁（淺色模式、減少動態效果），WCAG 2.2 AA 範圍內不能有 serious 或 critical 等級的問題。深色模式目前沒有自動掃描。修正過的問題是 `label-content-name-mismatch`：語言切換、年份導覽、色票卡片原本用 `aria-label` 蓋掉畫面上的文字。改成可見文字留在名稱裡，補充說明放在 `sr-only` 文字。
+`tests/e2e/a11y.spec.ts` 用 Chromium 掃描中英文共 11 頁（減少動態效果），WCAG 2.2 AA 範圍內不能有 serious 或 critical 等級的問題。當時有淺色與深色兩種配色，只掃了淺色；改成只有深色之後，掃的就是唯一的配色。修正過的問題是 `label-content-name-mismatch`：語言切換、年份導覽、色票卡片原本用 `aria-label` 蓋掉畫面上的文字。改成可見文字留在名稱裡，補充說明放在 `sr-only` 文字。
 
 ## Playwright 的 Windows 版 WebKit 在 View Transition 換頁時當掉
 
