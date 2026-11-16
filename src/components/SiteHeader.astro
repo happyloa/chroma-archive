@@ -1,4 +1,6 @@
 ---
+import { REPO_URL } from '../lib/site';
+
 interface Props {
   /** 頁首下方第一個區塊的背景：決定文字用哪個顏色 */
   tone?: 'paper' | 'coty' | 'ink';
@@ -39,6 +41,17 @@ const path = Astro.url.pathname;
           </a>
         </li>
       ))}
+      <li>
+        <a
+          href={REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1 underline-offset-4 hover:underline"
+          aria-label="GitHub 原始碼（另開新視窗）"
+        >
+          GitHub<span aria-hidden="true">↗</span>
+        </a>
+      </li>
     </ul>
   </nav>
 </header>

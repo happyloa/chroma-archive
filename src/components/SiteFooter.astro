@@ -1,5 +1,6 @@
 ---
 import { getYears } from '../lib/data';
+import { REPO_URL } from '../lib/site';
 
 const years = await getYears();
 ---
@@ -28,6 +29,17 @@ const years = await getYears();
         <li>
           <a href="/about/" class="hover:underline">
             關於本站
+          </a>
+        </li>
+        <li>
+          <a
+            href={REPO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:underline"
+            aria-label="GitHub 原始碼（另開新視窗）"
+          >
+            GitHub 原始碼<span aria-hidden="true"> ↗</span>
           </a>
         </li>
       </ul>
