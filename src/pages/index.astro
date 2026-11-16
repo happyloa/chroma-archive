@@ -1,10 +1,27 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getYears } from '../lib/data';
+
+// 暫時的首頁：列出全部年份，確認資料層在建置時能正常運作。T024 換成正式版面。
+const years = await getYears();
+const latest = years.at(-1)!;
 ---
 
-<Base title="CHROMA ARCHIVE" scene="none">
+<Base title="CHROMA ARCHIVE" scene="none" color={latest.colors[0]!.hex}>
   <h1>CHROMA ARCHIVE</h1>
   <p>Pantone 歷年年度代表色典藏，建置中。</p>
+  <ol>
+    {years.map((y) => (
+      <li>
+        {y.year}：
+        {y.colors.map((c) => (
+          <span>
+            {c.name}（{c.nameZh}）{c.code} {c.hex}{' '}
+          </span>
+        ))}
+      </li>
+    ))}
+  </ol>
   <p>
     <a href="/spike/a/">T005 技術驗證頁</a>
   </p>
