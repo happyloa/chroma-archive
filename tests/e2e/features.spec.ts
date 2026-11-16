@@ -445,3 +445,28 @@ test.describe('手機寬度', () => {
     }
   });
 });
+
+test('整頁轉場的群組名稱固定是 root，點色票卡時不播墨水', async ({ page, browserName }) => {
+  test.skip(
+    browserName === 'webkit' && process.platform === 'win32',
+    'fixtures 拿掉了 View Transition',
+  );
+  // <html> 用 Astro 的 transition:animate 會變成每頁不同的名稱，新頁面的群組會蓋住墨水與共享元素
+  await page.goto('/archive/');
+  expect(
+    await page.evaluate(() => getComputedStyle(document.documentElement).viewTransitionName),
+  ).toBe('root');
+  await page.addInitScript(() => {
+    document.addEventListener('astro:before-swap', (e) => {
+      void (e as unknown as { viewTransition: ViewTransition }).viewTransition.ready.then(() => {
+        (window as unknown as { __mode?: string }).__mode = document.documentElement.dataset.vt;
+      });
+    });
+  });
+  await page.reload();
+  await page.locator('section[aria-label="全部年度色"] a[href="/years/2024/"]').click();
+  await expect(page).toHaveURL(/\/years\/2024\/$/);
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __mode?: string }).__mode))
+    .toBe('morph');
+});
