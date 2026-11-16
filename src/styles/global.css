@@ -93,6 +93,17 @@
     outline-offset: 3px;
   }
 
+  /* 3D 視窗就緒後：元素變透明讓底下的 canvas 透出來，隱藏靜態替代內容 */
+  [data-stage-ready] {
+    background: transparent !important;
+  }
+  [data-stage-ready] [data-fallback] {
+    display: none;
+  }
+  [data-stage-ready] [data-ready-hint] {
+    display: block;
+  }
+
   code,
   .tabular {
     font-variant-numeric: tabular-nums;
