@@ -7,7 +7,8 @@ import '@fontsource-variable/noto-sans-tc';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { pickInk } from '../lib/color';
+import { buildPalettes, pickInk } from '../lib/color';
+import { getLatestYear } from '../lib/data';
 
 interface Props {
   title: string;
@@ -24,15 +25,22 @@ const {
   title,
   description = 'Pantone 歷年年度代表色與產品設計發想。',
   scene = 'none',
-  color = '#F0EEE9',
+  color: colorProp,
   headerTone = 'paper',
 } = Astro.props;
 
+// 沒指定顏色的頁面（關於、色彩空間等）用最新年度色
+const color = colorProp ?? (await getLatestYear()).colors[0]!.hex;
 const { ink } = pickInk(color);
+// 捲軸：滑塊是這一頁的年度色，軌道是它的互補色（首頁等總覽頁用最新年度色）
+const scrollTrack = buildPalettes(color).complementary[1];
 const fullTitle = title === 'Chroma Archive' ? title : `${title}｜Chroma Archive`;
 ---
 
-<html lang="zh-Hant-TW" style={`--coty: ${color}; --coty-ink: ${ink}`}>
+<html
+  lang="zh-Hant-TW"
+  style={`--coty: ${color}; --coty-ink: ${ink}; --scroll-thumb: ${color}; --scroll-track: ${scrollTrack}`}
+>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

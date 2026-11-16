@@ -122,6 +122,26 @@
     font-feature-settings: 'ss01', 'cv11';
   }
 
+  /*
+   * 細捲軸：滑塊是年度色，軌道是它的互補色（值由 Base layout 寫在 <html> 上）。
+   * 標準屬性給 Firefox 與新版 Chromium；::-webkit-scrollbar 給 Safari。
+   */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scroll-thumb, var(--coty)) var(--scroll-track, transparent);
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scroll-track, transparent);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb, var(--coty));
+    border-radius: 3px;
+  }
+
   ::selection {
     background: var(--coty);
     color: var(--coty-ink);
