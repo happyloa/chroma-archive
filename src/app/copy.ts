@@ -1,6 +1,6 @@
 import { ct } from '../i18n/client';
 /**
- * 複製按鈕（FR-10）：用事件委派掛在 document 上，換頁後不必重新綁定。
+ * 複製按鈕：用事件委派掛在 document 上，換頁後不必重新綁定。
  * 按鈕由 CopyButton.astro 產生，帶 data-copy 與 data-copy-label。
  */
 const RESET_MS = 1600;

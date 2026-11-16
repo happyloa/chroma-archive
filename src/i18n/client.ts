@@ -1,5 +1,5 @@
 /**
- * 瀏覽器端程式用的文字（US-13）。語系取自 <html lang>，ClientRouter 換頁後會跟著更新。
+ * 瀏覽器端程式用的文字。語系取自 <html lang>，ClientRouter 換頁後會跟著更新。
  */
 const zh = {
   copied: '已複製',

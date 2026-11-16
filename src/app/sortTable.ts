@@ -1,5 +1,5 @@
 /**
- * 可排序表格（US-06-4）：表頭按鈕帶 data-sort-key，資料列帶同名的 data-* 值。
+ * 可排序表格：表頭按鈕帶 data-sort-key，資料列帶同名的 data-* 值。
  * 同一欄再點一次反向排序，並更新 aria-sort。
  */
 export function initSortTable(): void {

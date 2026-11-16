@@ -2,7 +2,7 @@ import { gsap } from 'gsap';
 import { prefersReducedMotion } from './motion';
 
 /**
- * Zima Blue 致敬動畫（specs/002-zima-blue US-Z2）：一小塊方形慢慢放大到蓋滿畫面，
+ * Zima Blue 致敬動畫：一小塊方形慢慢放大到蓋滿畫面，
  * 水面開始起伏，最後出現短文與出處。用原生 <dialog>：Esc 關閉、焦點留在對話框內。
  * 減少動態效果時直接顯示最後的畫面。
  */

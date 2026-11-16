@@ -19,7 +19,7 @@ const spaceItems = rows.map((r) => ({
   h: r.oklch.h,
   href: localePath(lang, `/years/${r.year}/`),
 }));
-// 彩蛋：一顆不列在表格裡的 Zima Blue 球（specs/002-zima-blue US-Z1）
+// 彩蛋：一顆不列在表格裡的 Zima Blue 球
 const zimaItem = { hex: zima.hex, ...zima.color.oklch, label: t('space.hidden') };
 const layouts = [
   { id: 'space', label: t('space.layoutSpace') },
@@ -36,7 +36,7 @@ const layouts = [
 >
   <PageIntro eyebrow="OKLCH Color Space" title={t('space.title')} lead={t('space.lead')} />
 
-  {/* 3D 色彩空間（T051）：只有視覺，資料同樣列在下方表格 */}
+  {/* 3D 色彩空間：只有視覺，資料同樣列在下方表格 */}
   <section class="webgl-only" aria-hidden="true">
     <div class="page-grid">
       <div class="col-span-4 mb-4 flex flex-wrap gap-2 md:col-span-12">

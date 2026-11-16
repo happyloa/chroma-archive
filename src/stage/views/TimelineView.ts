@@ -19,11 +19,11 @@ import { morphIntoHero } from '../../app/transitions';
 import type { StageContext, StageView } from '../types';
 
 /**
- * 典藏頁的 3D 色卡時間軸（T043、US-02）。
+ * 典藏頁的 3D 色卡時間軸。
  * 元素是黏在畫面上的視窗（position: sticky），外層是很高的捲動軌道；
  * 捲動進度決定鏡頭沿曲線前進到哪一年。色卡用 CanvasTexture 畫出實體色票的樣子。
- * 時間軸在畫面上時，左右方向鍵移到前後一年（US-02-2）；螢幕閱讀器使用下方的 HTML 色票格。
- * 聚焦的色卡浮起，其他色卡退後並降低飽和度（US-02-3）；點擊色卡時色塊放大成年度頁主視覺（US-02-5）。
+ * 時間軸在畫面上時，左右方向鍵移到前後一年；螢幕閱讀器使用下方的 HTML 色票格。
+ * 聚焦的色卡浮起，其他色卡退後並降低飽和度；點擊色卡時色塊放大成年度頁主視覺。
  */
 export interface TimelineItem {
   year: number;

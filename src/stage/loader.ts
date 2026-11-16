@@ -1,7 +1,7 @@
 import type { Group } from 'three';
 
 /**
- * glTF 模型載入（T034）。載入器與 Meshopt 解碼器延遲載入；同一網址只下載與解析一次，
+ * glTF 模型載入。載入器與 Meshopt 解碼器延遲載入；同一網址只下載與解析一次，
  * 之後回傳 clone（幾何與材質共用，不在視窗釋放時 dispose）。
  * 模型貼圖用 WebP（EXT_texture_webp），three.js 內建支援，不需要額外的轉碼器。
  * Meshopt 解碼放在 2 個 worker，不佔主執行緒。

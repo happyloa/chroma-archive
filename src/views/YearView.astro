@@ -26,7 +26,7 @@ const { summary, keywords } = localizedContent(entry, lang);
 // 色彩故事目前只有中文
 const doc = zh ? await getEntry('years', String(year)) : undefined;
 const { Content } = doc ? await render(doc) : { Content: null };
-// 有設計發想就顯示；status 只記錄是否已經人工審稿（見 data-model.md）
+// 有設計發想就顯示；status 只記錄是否已經人工審稿
 const hasIdeas = content.concepts.length > 0;
 const resolve = (ref: string) =>
   parseColorRef(

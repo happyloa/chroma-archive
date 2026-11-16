@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures';
 
 /*
- * T025：reduced-motion 下的靜態截圖基準。
+ * reduced-motion 下的靜態截圖基準。
  * 截圖會因作業系統字型渲染不同而有差異，所以只在本機跑（npm run test:visual），CI 不跑。
  * 版面有意改動時用 npm run test:visual -- --update-snapshots 更新基準。
  */

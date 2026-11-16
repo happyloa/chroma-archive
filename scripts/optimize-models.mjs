@@ -1,5 +1,5 @@
 /**
- * 把下載的公開模型壓縮成網站用的 .glb（tasks.md T058）。
+ * 把下載的公開模型壓縮成網站用的 .glb。
  *
  * 用法：node scripts/optimize-models.mjs <原始模型資料夾>
  * 原始資料夾的結構見下方 MODELS 的 file 欄位；來源與授權記在 public/models/LICENSES.md。

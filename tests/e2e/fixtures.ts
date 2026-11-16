@@ -15,7 +15,7 @@ export const test = base.extend<{ fullGraphics: boolean; testHooks: void }>({
       }
       /**
        * Playwright 的 WebKit 在 Windows（WinCairo 版本）上，View Transition 換頁時偶爾會讓分頁當掉，
-       * 跟頁面內容、WebGL、字型都無關（research.md）。只在這個組合拿掉 startViewTransition，
+       * 跟頁面內容、WebGL、字型都無關。只在這個組合拿掉 startViewTransition，
        * Astro 會改用自己的換頁動畫；CI 的 Linux WebKit 和 Chromium 照常測 View Transition。
        */
       if (browserName === 'webkit' && process.platform === 'win32') {

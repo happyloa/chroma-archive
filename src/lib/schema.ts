@@ -1,6 +1,6 @@
 import { z } from 'astro/zod';
 
-/** data/colors.json（data-model.md 第 1 節） */
+/** data/colors.json */
 export const ColorSchema = z.object({
   name: z.string().min(1),
   nameZh: z.string().min(1),
@@ -21,7 +21,7 @@ export const ColorsFileSchema = z.object({
 
 export type ColorEntry = z.infer<typeof ColorSchema>;
 
-/** src/content/years/*.md 的 frontmatter（data-model.md 第 2 節） */
+/** src/content/years/*.md 的 frontmatter */
 export const FINISHES = ['matte', 'satin', 'gloss', 'metallic', 'velvet', 'translucent'] as const;
 export const PRODUCTS = ['chair', 'headphones', 'vase', 'speaker', 'lamp', 'sneaker'] as const;
 export const LIGHTS = ['studio', 'daylight', 'night'] as const;
@@ -55,7 +55,7 @@ const ConceptSchema = z.object({
     product: z.enum(PRODUCTS),
     light: z.enum(LIGHTS).default('studio'),
   }),
-  /** 英文版（US-13） */
+  /** 英文版 */
   en: z
     .object({
       title: z.string(),
@@ -84,7 +84,7 @@ export const YearContentSchema = z
         avoid: z.array(MaterialNoteSchema).length(3),
       })
       .optional(),
-    /** 英文版的摘要與關鍵字（US-13）；沒有時英文頁退回中文 */
+    /** 英文版的摘要與關鍵字；沒有時英文頁退回中文 */
     en: z
       .object({
         summary: z.string().max(160),

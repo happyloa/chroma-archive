@@ -8,7 +8,7 @@ import type {
 } from '../stage/views/ProductView';
 
 /**
- * 產品實驗室頁的表單控制（US-05、T049、T055）：
+ * 產品實驗室頁的表單控制：
  * 表單 ↔ 3D 視窗 ↔ 網址參數三方同步、點選零件、匯出 PNG。
  */
 const PARAMS = ['p', 'f', 'c1', 'c2', 'l', 's', 'cam'] as const;

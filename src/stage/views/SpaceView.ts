@@ -21,7 +21,7 @@ import { getEnvironment } from '../environment';
 import type { StageContext, StageView } from '../types';
 
 /**
- * 色彩空間（T051、US-06）：每個年度色是一顆球。三種排列：
+ * 色彩空間：每個年度色是一顆球。三種排列：
  * - space：OKLCH 圓柱座標（角度＝色相、半徑＝彩度、高度＝明度）
  * - spiral：依年份排成螺旋
  * - wheel：依色相排成色環

@@ -10,7 +10,7 @@ import {
 import type { StageContext, StageView } from '../types';
 
 /**
- * 首頁 Hero（T041、US-01）：
+ * 首頁 Hero：
  * - 一般年份：年度色的液態顏料，domain-warped fbm noise 產生流動的深淺變化，滑鼠會攪動顏料。
  * - 淺色年份（OKLCH L > 0.85，例如 Cloud Dancer）：深色底上緩慢飄動的雲，雲用年度色。
  * 元素上的 data-color、data-mode（liquid | cloud）、data-background 決定外觀。

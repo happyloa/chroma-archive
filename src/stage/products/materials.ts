@@ -3,7 +3,7 @@ import { Color, MeshPhysicalMaterial, MeshStandardMaterial } from 'three';
 export type Finish = 'matte' | 'satin' | 'gloss' | 'metallic' | 'velvet' | 'translucent';
 
 /**
- * 六種表面處理（plan.md 2.5）。同一個 MeshPhysicalMaterial 切換參數，
+ * 六種表面處理。同一個 MeshPhysicalMaterial 切換參數，
  * 每次都把所有相關參數設回去，避免上一種表面的設定殘留。
  */
 export function applyFinish(mat: MeshPhysicalMaterial, finish: Finish, hex: string): void {

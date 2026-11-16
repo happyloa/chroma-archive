@@ -118,7 +118,7 @@ function getShadowTexture(): CanvasTexture {
 const shadowGeometry = new PlaneGeometry(1, 1);
 
 /**
- * 3D 產品視窗（T048、T054、T055）。元素上的 data-* 決定初始狀態：
+ * 3D 產品視窗。元素上的 data-* 決定初始狀態：
  * data-product、data-finish、data-primary、data-accent、data-light、data-room，
  * data-interactive 允許縮放與點選零件，data-transparent 不畫背景（疊在頁面底色上）。
  */
@@ -805,7 +805,7 @@ export class ProductView implements StageView {
     this.camera.updateProjectionMatrix();
   }
 
-  /** 以離屏 render target 輸出正方形 PNG（FR-12），不受視窗大小影響 */
+  /** 以離屏 render target 輸出正方形 PNG，不受視窗大小影響 */
   exportPNG(size: number, watermark: string): Promise<Blob> {
     const camera = this.camera.clone();
     camera.aspect = 1;

@@ -19,7 +19,7 @@ import { loadGLTF } from './loader';
 import type { ProductId } from './products';
 
 /**
- * 產品實驗室的情境場景（T054、T059、US-05-8）。單位是公尺。
+ * 產品實驗室的情境場景。單位是公尺。
  * 地板、牆面用 Poly Haven 的 PBR 貼圖，家具用 Poly Haven 的模型（皆為 CC0，見 public/models/LICENSES.md）；
  * 床和長凳沒有合適的公開模型，以程式產生。家具非同步載入，載入前場景先顯示空房間。
  */

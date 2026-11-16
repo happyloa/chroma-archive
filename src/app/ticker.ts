@@ -10,7 +10,7 @@ let lenis: Lenis | null = null;
 const callbacks = new Set<Callback>();
 
 /**
- * GSAP ticker 是全站唯一的時鐘（plan.md 2.2）。
+ * GSAP ticker 是全站唯一的時鐘。
  * 模組只會執行一次，重複呼叫 initTicker 不會重複註冊。
  */
 export function initTicker(): Lenis {

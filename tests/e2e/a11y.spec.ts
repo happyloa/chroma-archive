@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './fixtures';
 
-/** T073：axe 自動掃描，WCAG 2.2 AA 範圍內不能有 serious 或 critical 的問題 */
+/** axe 自動掃描，WCAG 2.2 AA 範圍內不能有 serious 或 critical 的問題 */
 test.use({ reducedMotion: 'reduce' });
 
 const pages = [

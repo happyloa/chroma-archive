@@ -7,7 +7,7 @@ import { getYears, type YearEntry } from '../../lib/data';
 import { zima } from '../../lib/zima';
 
 /**
- * 建置時產生 OG 分享圖（T070、US-09）：每個年度一張，加上一張站名的預設圖，1200 × 630。
+ * 建置時產生 OG 分享圖：每個年度一張，加上一張站名的預設圖，1200 × 630。
  * 文字只用英文與數字，中英文頁面共用同一張；字型用 Fontsource 的 woff（satori 不支援 woff2）。
  */
 const require = createRequire(import.meta.url);

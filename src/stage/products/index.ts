@@ -9,7 +9,7 @@ import { buildVase } from './vase';
 import type { ProductBuilder, ProductId, ProductModel } from './shared';
 
 /**
- * 產品模型（T047、T058）。
+ * 產品模型。
  * 單椅、花瓶、運動鞋、桌燈用公開的 glTF 模型（來源與授權見 public/models/LICENSES.md），
  * 耳機與智慧音箱沒有合適的公開模型，用程式產生。glTF 載入失敗時退回程式產生的版本。
  */

@@ -1,5 +1,5 @@
 ---
-# 複製這個檔案為 YYYY.md，欄位說明見 specs/001-coty-showcase/data-model.md
+# 複製這個檔案為 YYYY.md，欄位定義見 src/content.config.ts，新增年度色的步驟見 README
 year: 2027
 summary: 一句話描述這個顏色，120 字以內。
 keywords: [關鍵字一, 關鍵字二, 關鍵字三, 關鍵字四]

@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures';
 
-// US-10：全站只有深色介面
+// 全站只有深色介面
 test.describe('深色介面', () => {
   test('系統設定為淺色時也維持深色，頁首沒有切換按鈕', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });

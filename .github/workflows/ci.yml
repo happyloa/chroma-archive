@@ -24,7 +24,7 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
-      # 憲章第 3 條：打包大小預算
+      # 打包大小預算
       - run: npm run size
       # 可及性、SEO、LCP、CLS 門檻（lighthouserc.json）
       - run: npm run lhci

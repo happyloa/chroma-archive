@@ -3,7 +3,7 @@ import { encodeAse, type AseGroup } from '../../lib/ase';
 import { getYears, type YearEntry } from '../../lib/data';
 import { PALETTE_KINDS, type PaletteKind } from '../../lib/color';
 
-/** 建置時產生每年的 .ase 色票檔（T082）：年度色本身加上五組配色，每組一個群組 */
+/** 建置時產生每年的 .ase 色票檔：年度色本身加上五組配色，每組一個群組 */
 const KINDS = PALETTE_KINDS;
 const KIND_NAMES: Record<PaletteKind, string> = {
   complementary: 'Complementary',

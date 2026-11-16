@@ -1,5 +1,5 @@
 /**
- * 產品實驗室情境場景的素材（tasks.md T059）：Poly Haven 的 HDRI、PBR 貼圖與家具模型，全部 CC0。
+ * 產品實驗室情境場景的素材：Poly Haven 的 HDRI、PBR 貼圖與家具模型，全部 CC0。
  *
  * 用法：node scripts/optimize-scene-assets.mjs <原始素材資料夾>
  * 原始資料夾結構：hdri/<id>_1k.hdr、tex/<id>/{Diffuse,nor_gl,arm}.jpg、models/<id>/<id>_1k.gltf

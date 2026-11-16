@@ -2,7 +2,7 @@ import { ct, listSeparator } from '../i18n/client';
 import { Group, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 
 /**
- * 使用者上傳的 3D 模型（US-11）。檔案只在瀏覽器裡解析，不會上傳或儲存到伺服器。
+ * 使用者上傳的 3D 模型。檔案只在瀏覽器裡解析，不會上傳或儲存到伺服器。
  * 支援自成一檔的格式：.glb、.gltf（資源需內嵌）、.obj、.stl。
  */
 export const ACCEPTED_EXTENSIONS = ['.glb', '.gltf', '.obj', '.stl'] as const;

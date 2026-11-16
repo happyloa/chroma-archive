@@ -20,7 +20,7 @@ async function go(page: Page, testId: 'next-year' | 'prev-year', year: number): 
   await expect(page).toHaveURL(new RegExp(`/years/${year}/$`));
 }
 
-// T005：canvas 跨頁保留、renderer 不重建、ticker 不重複註冊、GPU 資源不增長
+// canvas 跨頁保留、renderer 不重建、ticker 不重複註冊、GPU 資源不增長
 test('在年度頁之間換頁 20 次後 WebGL 舞台仍是同一個', async ({ page }) => {
   // 每次換頁有 0.9 秒轉場，加上軟體算繪建立 3D 視窗，20 次會超過預設的 30 秒
   test.setTimeout(180_000);

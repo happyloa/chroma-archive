@@ -6,11 +6,11 @@ import { prefersReducedMotion } from './motion';
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 /**
- * 文字與區塊出場（T037、T042）：
+ * 文字與區塊出場：
  * - [data-split]：逐字（中文）或逐詞（英文）由下往上出場
  * - [data-reveal]：整塊淡入上移
- * - [data-split-exit]：首頁主視覺的標題，進場後隨捲動逐字往上淡出（US-01-3）
- * - [data-weight]：年份數字隨捲動從 300 變到 900（Fraunces 可變字重，spec.md 第 7 節）
+ * - [data-split-exit]：首頁主視覺的標題，進場後隨捲動逐字往上淡出
+ * - [data-weight]：年份數字隨捲動從 300 變到 900（Fraunces 可變字重）
  * 內容本來就在 HTML 裡；沒有 JS 或減少動態效果時照常顯示。每次換頁前清掉這一頁的動畫。
  */
 let context: gsap.Context | null = null;

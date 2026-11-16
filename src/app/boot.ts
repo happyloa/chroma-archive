@@ -27,7 +27,7 @@ async function applyPage(): Promise<void> {
   pageLoads += 1;
   const page = pageLoads;
   initLab();
-  // 不支援 WebGL 時不載入 three.js，頁面維持靜態版（憲章第 2 條）
+  // 不支援 WebGL 時不載入 three.js，頁面維持靜態版
   if (!webglAvailable) return;
   const canvas = document.getElementById('stage');
   const main = document.querySelector('main');
@@ -35,7 +35,7 @@ async function applyPage(): Promise<void> {
   // 這一頁沒有 3D 視窗（例如 about、404），而且還沒建立過舞台：不必下載 three.js、建立 WebGL
   if (!StageClass && !main.querySelector('[data-view]')) return;
 
-  // three.js 延遲載入，不算進首頁初始 JS 預算（憲章第 3 條）
+  // three.js 延遲載入，不算進首頁初始 JS 預算
   if (!StageClass) {
     // 第一次載入：等瀏覽器閒置（最多 1.2 秒）才載入 three.js、建立 3D，首屏文字先畫出來
     await new Promise<void>((resolve) =>

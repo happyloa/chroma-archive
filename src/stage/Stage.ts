@@ -9,7 +9,7 @@ import { onTick } from '../app/ticker';
 import { FpsGuard, TIERS, detectTier, lowerTier, type Tier } from './quality';
 import type { StageContext, StageView, ViewFactory, ViewKind, ViewReadyDetail } from './types';
 
-/** data-view 對應的工廠，延遲載入（plan.md 2.1） */
+/** data-view 對應的工廠，延遲載入 */
 const REGISTRY: Record<ViewKind, () => Promise<ViewFactory>> = {
   product: () => import('./views/ProductView').then((m) => m.createProductView),
   hero: () => import('./views/HeroView').then((m) => m.createHeroView),
@@ -18,7 +18,7 @@ const REGISTRY: Record<ViewKind, () => Promise<ViewFactory>> = {
 };
 
 /**
- * 全站共用的 WebGL 舞台（T033）。canvas 透過 transition:persist 跨頁保留，
+ * 全站共用的 WebGL 舞台。canvas 透過 transition:persist 跨頁保留，
  * renderer 只建立一次；每頁的 3D 視窗在 mount 時建立、unmount 時釋放。
  */
 export class Stage {
@@ -42,7 +42,7 @@ export class Stage {
   private drawn = new Map<StageView, DOMRect>();
   /** canvas 尺寸改變、換頁等情況，下一格一定要重畫 */
   private forceDraw = true;
-  /** canvas 尺寸變化時更新 renderer，節流 100 毫秒（spec.md 第 8 節） */
+  /** canvas 尺寸變化時更新 renderer，節流 100 毫秒 */
   private resizeTimer = 0;
   private readonly resizeObserver = new ResizeObserver(() => {
     if (this.resizeTimer) return;

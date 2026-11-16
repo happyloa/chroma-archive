@@ -2,7 +2,7 @@ import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-/** 憲章第 3 條：單一 3D 模型（含貼圖）不超過 1.5 MB */
+/** 單一 3D 模型（含貼圖）不超過 1.5 MB */
 const LIMIT = 1.5 * 1024 * 1024;
 const dirs = ['public/models', 'public/models/furniture'];
 const models = dirs.flatMap((d) =>

@@ -3,7 +3,7 @@ import raw from '../../data/zima.json';
 import { buildPalettes, deriveColor } from './color';
 
 /**
- * Zima Blue 彩蛋（specs/002-zima-blue）。不是 Pantone 年度色，所以不放進 data/colors.json，
+ * Zima Blue 彩蛋。不是 Pantone 年度色，所以不放進 data/colors.json，
  * 也不出現在典藏、年份導覽與色彩空間的表格。
  */
 const Localized = z.object({ zh: z.string().min(1), en: z.string().min(1) });

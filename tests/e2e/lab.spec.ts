@@ -105,7 +105,7 @@ test('拒絕不支援的檔案類型', async ({ page }) => {
 });
 
 test('舊的分享網址帶 q=photo 仍可開啟，換設定後網址不再帶 q', async ({ page }) => {
-  // 相片級渲染已拿掉（spec.md US-12），之前分享出去的網址要能照常使用
+  // 相片級渲染已拿掉，之前分享出去的網址要能照常使用
   await page.goto('/years/2025/lab/?p=vase&spin=0&q=photo');
   await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
   await expect(page.locator('input[name="p"]:checked')).toHaveValue('vase');

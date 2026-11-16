@@ -3,7 +3,7 @@ import { getYears, type YearEntry } from '../../lib/data';
 import { PALETTE_KINDS, cssVarSlug, paletteVar } from '../../lib/color';
 
 /**
- * 年度色與五組配色的 CSS 變數檔（US-03-4）。變數名稱和配色區塊「複製」按鈕的一樣：
+ * 年度色與五組配色的 CSS 變數檔。變數名稱和配色區塊「複製」按鈕的一樣：
  * --色名-配色-序號，例如 --mocha-mousse-complementary-1。
  */
 export const getStaticPaths = (async () => {

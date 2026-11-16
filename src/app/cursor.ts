@@ -2,7 +2,7 @@ import { gsap } from 'gsap';
 import { onMotionChange, prefersReducedMotion } from './motion';
 
 /**
- * 自訂游標（T036、FR-09）：跟著滑鼠的圓點，滑到連結、按鈕會放大成外框；
+ * 自訂游標：跟著滑鼠的圓點，滑到連結、按鈕會放大成外框；
  * 滑到帶 data-cursor-color 的色塊時吸取那個顏色。啟用時隱藏原生游標（<html data-cursor="custom">），
  * 所以圓點中心緊貼滑鼠位置，只有放大、吸色的變化有動畫。
  * 觸控裝置與減少動態效果時不啟用，保留原生游標。

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './fixtures';
 
-// specs/002-zima-blue：色彩空間的隱藏球、致敬動畫、隱藏頁
+// 色彩空間的隱藏球、致敬動畫、隱藏頁
 
 const openReveal = (page: Page) =>
   page.evaluate(() => document.dispatchEvent(new CustomEvent('chroma:zima')));

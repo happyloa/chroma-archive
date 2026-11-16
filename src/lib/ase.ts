@@ -1,5 +1,5 @@
 /**
- * Adobe Swatch Exchange（.ase）編碼（T082）。Illustrator、Photoshop、InDesign 都能匯入。
+ * Adobe Swatch Exchange（.ase）編碼。Illustrator、Photoshop、InDesign 都能匯入。
  *
  * 格式：'ASEF'、版本 1.0、區塊數，接著是區塊。每個區塊是 2 bytes 類型 + 4 bytes 長度 + 內容：
  * - 0xC001 群組開始：名稱

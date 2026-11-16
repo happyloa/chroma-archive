@@ -1,10 +1,10 @@
 @import 'tailwindcss';
 
 /*
- * 設計 token（憲章第 1 條）：介面只用中性色，彩度留給年度色。
+ * 設計 token：介面只用中性色，彩度留給年度色。
  * --coty、--coty-ink 由 Base layout 依頁面寫在 <html> 上，元件用 bg-coty、text-coty-ink 引用。
  *
- * 全站只有深色介面（US-10）：ink 是文字色、paper 是底色。
+ * 全站只有深色介面：ink 是文字色、paper 是底色。
  * night、day 是固定的深淺色，用在淺色年份的深色 Hero、白色色票標籤這類固定外觀。
  */
 @theme {
@@ -146,7 +146,7 @@
 }
 
 /*
- * 質感（spec.md 第 7 節）：色票與配色色塊的紙張纖維。
+ * 質感：色票與配色色塊的紙張纖維。
  * 用 CSS 漸層畫細紋：背景圖片（包括 SVG）會被 Lighthouse 當成 LCP 候選，
  * 在模擬的慢速網路下讓色塊的 LCP 拖到十幾秒，漸層不會。
  */
@@ -176,7 +176,7 @@
   pointer-events: none;
 }
 
-/* 減少動態效果時主視覺不跑 shader，改成靜態漸層（US-01-4） */
+/* 減少動態效果時主視覺不跑 shader，改成靜態漸層 */
 :root[data-motion='reduce'] [data-view='hero'],
 :root[data-webgl='off'] [data-view='hero'],
 :root[data-lite='on'] [data-view='hero'] {
@@ -207,7 +207,7 @@
   );
 }
 
-/* Zima Blue 彩蛋（specs/002-zima-blue）：--zima、--zima-ink 由元件寫在 style 上 */
+/* Zima Blue 彩蛋：--zima、--zima-ink 由元件寫在 style 上 */
 .zima-reveal {
   position: fixed;
   inset: 0;
@@ -359,7 +359,7 @@
 }
 
 /*
- * 換頁轉場（US-07，src/app/transitions.ts）：目的頁的年度色從點擊位置以液態邊緣擴散蓋滿畫面，
+ * 換頁轉場（src/app/transitions.ts）：目的頁的年度色從點擊位置以液態邊緣擴散蓋滿畫面，
  * 再淡出露出新頁，約 1 秒。墨水層是 Base 的 .vt-ink：透明的固定層，只用來產生 vt-ink 群組，
  * 顏色畫在 ::view-transition-new(vt-ink) 的背景上（:root 的 --coty 在換頁後已經是目的頁的顏色）。
  * 墨水層在 body 最前面，共享元素（色票卡片、色卡放大的主視覺）會在墨水上方移動。
@@ -469,7 +469,7 @@
 :root[data-vt='traverse']::view-transition-new(root) {
   animation: vt-fade-in 0.2s ease both;
 }
-/* 減少動態效果：200 毫秒淡入淡出（US-07-4）。Astro 內建的樣式會用 !important 關掉所有轉場動畫，所以加上 :root 提高權重 */
+/* 減少動態效果：200 毫秒淡入淡出。Astro 內建的樣式會用 !important 關掉所有轉場動畫，所以加上 :root 提高權重 */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),

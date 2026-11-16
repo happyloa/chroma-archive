@@ -11,7 +11,7 @@ const t = useT(lang);
 const years = await getYears();
 const first = years[0]!.year;
 const last = years.at(-1)!.year;
-// 3D 時間軸的資料（T043）
+// 3D 時間軸的資料
 const timelineItems = years.map((y) => ({
   year: y.year,
   hexes: y.colors.map((c) => c.hex),

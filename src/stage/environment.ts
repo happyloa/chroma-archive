@@ -16,8 +16,8 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 
 /**
- * 產品實驗室的三種燈光（US-05-4）。
- * 主要用 Poly Haven 的實拍 HDRI（T059）；HDRI 下載完成前，先用程式產生的燈箱場景烘成的環境貼圖，
+ * 產品實驗室的三種燈光。
+ * 主要用 Poly Haven 的實拍 HDRI；HDRI 下載完成前，先用程式產生的燈箱場景烘成的環境貼圖，
  * 每個 renderer 每種只烘一次。
  */
 export type LightPreset = 'studio' | 'daylight' | 'night';

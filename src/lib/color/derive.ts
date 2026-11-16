@@ -13,7 +13,7 @@ import {
 export const INK = '#0E0E0E';
 export const PAPER = '#F4F2EE';
 
-/** OKLCH 明度超過這個值就套用淺色年份規則（spec.md 第 7 節） */
+/** OKLCH 明度超過這個值就套用淺色年份規則 */
 export const LIGHT_THRESHOLD = 0.85;
 /** WCAG AA 內文對比 */
 export const MIN_CONTRAST = 4.5;

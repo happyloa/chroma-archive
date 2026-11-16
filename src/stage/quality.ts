@@ -1,7 +1,7 @@
 import type { WebGLRenderer } from 'three';
 
 /**
- * 畫質檔位（T032、FR-05、plan.md 2.3）。
+ * 畫質檔位。
  * 不用 detect-gpu：它執行時會向外部 CDN 下載跑分資料。改用裝置資訊估計初始檔位，
  * 再由 FpsGuard 依實際幀率往下調。
  */
@@ -50,7 +50,7 @@ export function lowerTier(tier: Tier): Tier {
   return ORDER[Math.min(ORDER.indexOf(tier) + 1, ORDER.length - 1)]!;
 }
 
-/** 連續 2 秒平均幀率低於門檻就通知降一檔（plan.md 2.3） */
+/** 連續 2 秒平均幀率低於門檻就通知降一檔 */
 export class FpsGuard {
   private elapsed = 0;
   private frames = 0;

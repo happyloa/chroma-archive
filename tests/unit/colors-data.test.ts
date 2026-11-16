@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import data from '../../data/colors.json';
 
-// 正式的 schema 驗證在 T013、T014 實作；這裡先確認種子資料的基本形狀
+// 正式的 schema 驗證在 src/lib/schema.ts 與 src/lib/entries.ts；這裡先確認資料的基本形狀
 describe('data/colors.json', () => {
   it('年份從 2000 開始連續遞增、不重複', () => {
     const years = data.years.map((y) => y.year);

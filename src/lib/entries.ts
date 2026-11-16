@@ -29,7 +29,7 @@ export interface ContentInput {
 }
 
 /**
- * 合併 colors.json 與 Markdown 內容並計算衍生值（data-model.md 第 3 節）。
+ * 合併 colors.json 與 Markdown 內容並計算衍生值。
  * 不依賴 astro:content，方便單元測試；任何資料問題都會拋錯讓建置失敗。
  */
 export function buildYearEntries(

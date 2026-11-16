@@ -1,5 +1,5 @@
 /**
- * 動態偏好與 WebGL 可用性（T031、FR-07、FR-08）。
+ * 動態偏好與 WebGL 可用性。
  * 結果寫在 <html data-motion data-webgl> 上，CSS 可以依此切換靜態替代內容。
  */
 
