@@ -145,7 +145,11 @@
   display: block;
 }
 
-/* 質感（spec.md 第 7 節）：色票與配色色塊的紙張纖維 */
+/*
+ * 質感（spec.md 第 7 節）：色票與配色色塊的紙張纖維。
+ * 用 CSS 漸層畫細紋：背景圖片（包括 SVG）會被 Lighthouse 當成 LCP 候選，
+ * 在模擬的慢速網路下讓色塊的 LCP 拖到十幾秒，漸層不會。
+ */
 .paper-fiber {
   position: relative;
 }
@@ -153,10 +157,22 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0167 0.4' numOctaves='3' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -0.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
-  background-size: 240px 240px;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.07) 0 1px,
+      transparent 1px 3px,
+      rgb(0 0 0 / 0.05) 3px 4px,
+      transparent 4px 7px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgb(255 255 255 / 0.04) 0 1px,
+      transparent 1px 11px,
+      rgb(0 0 0 / 0.03) 11px 12px,
+      transparent 12px 23px
+    );
   mix-blend-mode: soft-light;
-  opacity: 0.35;
   pointer-events: none;
 }
 
