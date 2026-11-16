@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Swatch from '../components/Swatch.astro';
+import Preloader from '../components/Preloader.astro';
 import { getYears } from '../lib/data';
 import { getLang, localePath, useT } from '../i18n/ui';
 import { localizedContent } from '../i18n/content';
@@ -24,6 +25,7 @@ const { summary } = localizedContent(latest, lang);
   headerTone={dark ? 'ink' : 'coty'}
   color={main!.hex}
 >
+  <Preloader years={years} />
   {/* Hero：當年度色。淺色年份改用深色底（spec.md 第 7 節） */}
   <section
     class:list={[
@@ -31,6 +33,10 @@ const { summary } = localizedContent(latest, lang);
       dark ? 'bg-night text-day' : 'bg-coty text-coty-ink',
     ]}
     aria-labelledby="hero-title"
+    data-view="hero"
+    data-color={main!.hex}
+    data-mode={dark ? 'cloud' : 'liquid'}
+    data-background="#0E0E0E"
   >
     <div class="page-grid items-end gap-y-8">
       <p class="eyebrow col-span-4 md:col-span-6">{t('home.eyebrow', { year: latest.year })}</p>
@@ -49,15 +55,21 @@ const { summary } = localizedContent(latest, lang);
       )}
 
       <h1 id="hero-title" class="col-span-4 md:col-span-12">
-        <span class="block font-display text-mega font-light tabular-nums">{latest.year}</span>
-        <span class="mt-6 block font-display text-display font-normal italic">{main!.name}</span>
+        <span class="block font-display text-mega font-light tabular-nums" data-split>
+          {latest.year}
+        </span>
+        <span class="mt-6 block font-display text-display font-normal italic" data-split lang="en">
+          {main!.name}
+        </span>
         {lang === 'zh-tw' && (
           <span class="mt-3 block font-serif-tc text-title">{main!.nameZh}</span>
         )}
       </h1>
 
       <div class="col-span-4 flex flex-wrap items-end justify-between gap-6 md:col-span-12">
-        <p class="max-w-[34ch] text-lead">{summary}</p>
+        <p class="max-w-[34ch] text-lead" data-reveal-up>
+          {summary}
+        </p>
         <a
           href={localePath(lang, `/years/${latest.year}/`)}
           class="eyebrow inline-flex items-center gap-3 border-b border-current pb-1"
@@ -82,7 +94,7 @@ const { summary } = localizedContent(latest, lang);
       >
         {t('home.introLead', { from })}
       </p>
-      <p class="max-w-[40em] text-lead text-smoke">
+      <p class="max-w-[40em] text-lead text-smoke" data-reveal-up>
         {t('home.introBody', { from, to: latest.year, count: colorCount })}
       </p>
     </div>
@@ -91,7 +103,11 @@ const { summary } = localizedContent(latest, lang);
   {/* 歷年色帶 */}
   <section class="mt-section" aria-labelledby="spectrum-title">
     <div class="page-grid mb-8 items-baseline">
-      <h2 id="spectrum-title" class="col-span-4 font-display text-headline md:col-span-8">
+      <h2
+        id="spectrum-title"
+        class="col-span-4 font-display text-headline md:col-span-8"
+        data-split
+      >
         {t('home.spectrumTitle', { count: years.length })}
       </h2>
       <a
@@ -113,9 +129,12 @@ const { summary } = localizedContent(latest, lang);
             })}
           >
             {y.colors.map((c) => (
-              <span class="flex-1" style={`background:${c.hex}`} />
+              <span class="flex-1" style={`background:${c.hex}`} data-cursor-color={c.hex} />
             ))}
-            <span class="absolute -bottom-7 left-0 text-[0.6875rem] text-smoke tabular-nums opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:hidden">
+            <span
+              class="absolute -bottom-7 left-0 text-[0.6875rem] text-smoke tabular-nums opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:hidden"
+              aria-hidden="true"
+            >
               {y.year}
             </span>
           </a>
@@ -132,7 +151,11 @@ const { summary } = localizedContent(latest, lang);
     <ul class="col-span-4 grid grid-cols-2 gap-col sm:grid-cols-3 md:col-span-12 md:grid-cols-5">
       {recent.map((y) => (
         <li>
-          <Swatch entry={y} href={localePath(lang, `/years/${y.year}/`)} />
+          <Swatch
+            entry={y}
+            href={localePath(lang, `/years/${y.year}/`)}
+            transitionName={`swatch-${y.year}`}
+          />
         </li>
       ))}
     </ul>

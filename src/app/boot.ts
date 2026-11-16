@@ -2,6 +2,7 @@ import type { Stage } from '../stage/Stage';
 import { initCopy } from './copy';
 import { initCursor } from './cursor';
 import { cleanupReveal, initReveal } from './reveal';
+import { initSortTable } from './sortTable';
 import { initTransitions } from './transitions';
 import { initLab } from './lab';
 import { initMotion, onMotionChange, prefersReducedMotion, webglAvailable } from './motion';
@@ -18,6 +19,7 @@ initCopy();
 initTheme();
 initCursor();
 initTransitions();
+initSortTable();
 setCanvasSnapshotProvider(() => stage?.snapshot());
 
 let stage: Stage | null = null;

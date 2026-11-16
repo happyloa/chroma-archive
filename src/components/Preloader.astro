@@ -1,0 +1,73 @@
+---
+import type { YearEntry } from '../lib/data';
+
+/**
+ * 首頁預載畫面（T040、US-01-1）：年份從第一年數到今年，色塊跟著換成各年度色，約 1.8 秒後往上滑開。
+ * 同一個分頁只播一次（sessionStorage），減少動態效果時不播。用 inline script 在首次繪製前決定要不要顯示。
+ */
+interface Props {
+  years: YearEntry[];
+}
+
+const { years } = Astro.props;
+const frames = years.map((y) => [y.year, y.colors[0]!.hex]);
+---
+
+<div
+  id="preloader"
+  class="fixed inset-0 z-[80] flex items-end justify-between bg-night px-gutter pb-gutter text-day transition-transform duration-700 ease-out-expo"
+  aria-hidden="true"
+  data-frames={JSON.stringify(frames)}
+>
+  <span data-preloader-year class="font-display text-mega leading-[0.8] font-light tabular-nums">
+    {frames[0]![0]}
+  </span>
+  <span
+    data-preloader-swatch
+    class="mb-4 size-24 md:size-40"
+    style={`background:${frames[0]![1]}`}
+  ></span>
+</div>
+
+<script is:inline>
+  (() => {
+    const el = document.getElementById('preloader');
+    if (!el) return;
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem('chroma-preloaded') === '1';
+    } catch {
+      // 儲存空間被封鎖時照常播放
+    }
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (seen || reduced) {
+      el.remove();
+      return;
+    }
+    const frames = JSON.parse(el.dataset.frames || '[]');
+    const yearEl = el.querySelector('[data-preloader-year]');
+    const swatch = el.querySelector('[data-preloader-swatch]');
+    const total = 1500;
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / total);
+      // 先慢後快再慢，最後停在今年
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const [year, hex] = frames[Math.min(frames.length - 1, Math.floor(eased * frames.length))];
+      yearEl.textContent = year;
+      swatch.style.background = hex;
+      if (t < 1) requestAnimationFrame(tick);
+      else
+        setTimeout(() => {
+          el.style.transform = 'translateY(-100%)';
+          setTimeout(() => el.remove(), 750);
+        }, 250);
+    };
+    requestAnimationFrame(tick);
+    try {
+      sessionStorage.setItem('chroma-preloaded', '1');
+    } catch {
+      // 忽略
+    }
+  })();
+</script>

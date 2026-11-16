@@ -8,6 +8,20 @@ const lang = getLang(Astro.currentLocale);
 const t = useT(lang);
 const years = await getYears();
 const rows = years.flatMap((y) => y.colors.map((c) => ({ year: y.year, ...c })));
+const spaceItems = rows.map((r) => ({
+  year: r.year,
+  name: r.name,
+  hex: r.hex,
+  l: r.oklch.l,
+  c: r.oklch.c,
+  h: r.oklch.h,
+  href: localePath(lang, `/years/${r.year}/`),
+}));
+const layouts = [
+  { id: 'space', label: t('space.layoutSpace') },
+  { id: 'spiral', label: t('space.layoutSpiral') },
+  { id: 'wheel', label: t('space.layoutWheel') },
+];
 ---
 
 <Base
@@ -18,35 +32,112 @@ const rows = years.flatMap((y) => y.colors.map((c) => ({ year: y.year, ...c })))
 >
   <PageIntro eyebrow="OKLCH Color Space" title={t('space.title')} lead={t('space.lead')} />
 
-  <section class="page-grid" aria-label={t('space.tableLabel')}>
+  {/* 3D 色彩空間（T051）：只有視覺，資料同樣列在下方表格 */}
+  <section class="webgl-only" aria-hidden="true">
+    <div class="page-grid">
+      <div class="col-span-4 mb-4 flex flex-wrap gap-2 md:col-span-12">
+        {layouts.map((l, i) => (
+          <button
+            type="button"
+            data-space-layout={l.id}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+            tabindex="-1"
+            class="cursor-pointer rounded-full border border-ink/15 px-3.5 py-1.5 text-sm aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-paper"
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+      <div
+        class="relative col-span-4 aspect-square cursor-grab active:cursor-grabbing md:col-span-12 md:aspect-[16/9]"
+        data-view="space"
+        data-items={JSON.stringify(spaceItems)}
+      >
+        <p
+          data-space-tooltip
+          hidden
+          class="pointer-events-none absolute z-10 rounded-full bg-night/80 px-3 py-1 text-xs whitespace-nowrap text-day"
+        ></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-grid mt-16" aria-label={t('space.tableLabel')}>
     <div class="col-span-4 overflow-x-auto md:col-span-12">
-      <table class="w-full min-w-[40rem] text-left text-sm tabular-nums">
-        <caption class="sr-only">{t('space.caption')}</caption>
+      <table data-sortable class="w-full min-w-[40rem] text-left text-sm tabular-nums">
+        <caption class="sr-only">
+          {t('space.caption')}
+          {lang === 'en' ? '. ' : '，'}
+          {t('space.sortHint')}
+        </caption>
         <thead class="eyebrow text-smoke">
           <tr class="border-b border-ink/15">
-            <th scope="col" class="py-3 pr-4 font-medium">
-              {t('space.year')}
+            <th scope="col" class="py-3 pr-4 font-medium" aria-sort={'ascending'}>
+              <button
+                type="button"
+                data-sort-key="year"
+                class="cursor-pointer uppercase hover:text-ink"
+              >
+                {t('space.year')}
+              </button>
             </th>
-            <th scope="col" class="py-3 pr-4 font-medium">
-              {t('space.color')}
+            <th scope="col" class="py-3 pr-4 font-medium" aria-sort={undefined}>
+              <button
+                type="button"
+                data-sort-key="name"
+                class="cursor-pointer uppercase hover:text-ink"
+              >
+                {t('space.color')}
+              </button>
             </th>
-            <th scope="col" class="py-3 pr-4 font-medium">
-              HEX
+            <th scope="col" class="py-3 pr-4 font-medium" aria-sort={undefined}>
+              <button
+                type="button"
+                data-sort-key="hex"
+                class="cursor-pointer uppercase hover:text-ink"
+              >
+                HEX
+              </button>
             </th>
-            <th scope="col" class="py-3 pr-4 text-right font-medium">
-              {t('space.l')}
+            <th scope="col" class="py-3 pr-4 font-medium text-right" aria-sort={undefined}>
+              <button
+                type="button"
+                data-sort-key="l"
+                class="cursor-pointer uppercase hover:text-ink"
+              >
+                {t('space.l')}
+              </button>
             </th>
-            <th scope="col" class="py-3 pr-4 text-right font-medium">
-              {t('space.c')}
+            <th scope="col" class="py-3 pr-4 font-medium text-right" aria-sort={undefined}>
+              <button
+                type="button"
+                data-sort-key="c"
+                class="cursor-pointer uppercase hover:text-ink"
+              >
+                {t('space.c')}
+              </button>
             </th>
-            <th scope="col" class="py-3 text-right font-medium">
-              {t('space.h')}
+            <th scope="col" class="py-3 pr-4 font-medium text-right" aria-sort={undefined}>
+              <button
+                type="button"
+                data-sort-key="h"
+                class="cursor-pointer uppercase hover:text-ink"
+              >
+                {t('space.h')}
+              </button>
             </th>
           </tr>
         </thead>
         <tbody class="divide-y divide-ink/10">
           {rows.map((r) => (
-            <tr>
+            <tr
+              data-year={r.year}
+              data-name={r.name}
+              data-hex={r.hex}
+              data-l={r.oklch.l}
+              data-c={r.oklch.c}
+              data-h={r.oklch.h}
+            >
               <td class="py-3 pr-4">
                 <a href={localePath(lang, `/years/${r.year}/`)} class="hover:underline">
                   {r.year}

@@ -12,6 +12,9 @@ import type { StageContext, StageView, ViewFactory, ViewKind, ViewReadyDetail } 
 /** data-view 對應的工廠，延遲載入（plan.md 2.1） */
 const REGISTRY: Record<ViewKind, () => Promise<ViewFactory>> = {
   product: () => import('./views/ProductView').then((m) => m.createProductView),
+  hero: () => import('./views/HeroView').then((m) => m.createHeroView),
+  timeline: () => import('./views/TimelineView').then((m) => m.createTimelineView),
+  space: () => import('./views/SpaceView').then((m) => m.createSpaceView),
 };
 
 /**
@@ -27,6 +30,7 @@ export class Stage {
   private tier: Tier;
   private readonly views = new Map<HTMLElement, StageView>();
   private readonly visible = new Set<HTMLElement>();
+  private readonly seen = new WeakSet<HTMLElement>();
   private observer: IntersectionObserver | null = null;
   private running = true;
   private reducedMotion = false;
@@ -97,8 +101,13 @@ export class Stage {
       (entries) => {
         for (const e of entries) {
           const el = e.target as HTMLElement;
-          if (e.isIntersecting) this.visible.add(el);
-          else this.visible.delete(el);
+          if (e.isIntersecting) {
+            this.visible.add(el);
+            if (!this.seen.has(el)) {
+              this.seen.add(el);
+              this.views.get(el)?.onFirstVisible?.();
+            }
+          } else this.visible.delete(el);
         }
       },
       { rootMargin: '10% 0px' },

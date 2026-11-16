@@ -11,6 +11,14 @@ const t = useT(lang);
 const years = await getYears();
 const first = years[0]!.year;
 const last = years.at(-1)!.year;
+// 3D 時間軸的資料（T043）
+const timelineItems = years.map((y) => ({
+  year: y.year,
+  hexes: y.colors.map((c) => c.hex),
+  name: y.colors.map((c) => c.name).join(' & '),
+  code: y.colors.map((c) => c.code).join(' / '),
+  href: localePath(lang, `/years/${y.year}/`),
+}));
 ---
 
 <Base
@@ -25,6 +33,15 @@ const last = years.at(-1)!.year;
     lead={t('archive.lead', { from: first, to: last, name: years.at(-1)!.colors[0]!.name })}
   />
 
+  {/* 3D 色卡時間軸：外層是捲動軌道，裡面的視窗黏在畫面上；只有視覺，鍵盤操作用下方的色票格 */}
+  <section class="webgl-only relative h-[420vh]" aria-hidden="true">
+    <div
+      class="sticky top-0 h-svh w-full"
+      data-view="timeline"
+      data-items={JSON.stringify(timelineItems)}
+    ></div>
+  </section>
+
   <YearNav years={years} />
 
   <section aria-label={t('archive.all')} class="page-grid mt-16">
@@ -34,7 +51,11 @@ const last = years.at(-1)!.year;
     >
       {[...years].reverse().map((y) => (
         <li>
-          <Swatch entry={y} href={localePath(lang, `/years/${y.year}/`)} />
+          <Swatch
+            entry={y}
+            href={localePath(lang, `/years/${y.year}/`)}
+            transitionName={`swatch-${y.year}`}
+          />
         </li>
       ))}
     </ol>
