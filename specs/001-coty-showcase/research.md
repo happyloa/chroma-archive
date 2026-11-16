@@ -43,3 +43,63 @@ Astro 7.4.12、three 0.187.0、gsap 3.15.1、lenis 1.3.27。Playwright 1.65 測 
 - 模組層級的狀態會跨頁保留，所以每頁的 ScrollTrigger 要在 `astro:before-swap` 時 `kill()`，否則會累積。T030 實作時處理。
 - `astro preview` 和 `wrangler dev` 都能正確提供靜態檔；`wrangler dev` 下 `/spike/a` 會 307 轉到 `/spike/a/`，未知路徑回傳自訂 404 頁。
 - 驗證頁 `src/pages/spike/` 在 T024 做出正式頁面後刪除，e2e 測試改指向正式頁面。
+
+## T072、T073：品質工具的結果
+
+2026-11-16 在本機對建置後的 `dist/` 量測。
+
+### Lighthouse（desktop preset，`lighthouserc.json`）
+
+| 網址           | Performance | Accessibility | Best Practices | SEO |
+| -------------- | ----------- | ------------- | -------------- | --- |
+| `/`            | 1           | 1             | 1              | 1   |
+| `/archive/`    | 0.89        | 1             | 1              | 1   |
+| `/years/2025/` | 0.8         | 1             | 1              | 1   |
+| `/en/space/`   | 0.95        | 1             | 1              | 1   |
+
+年度頁的 Performance 最低，一頁有 4 個 3D 視窗（主視覺 shader 加 3 個設計發想模型）。CI 對 Performance 只發警告，Accessibility、SEO、LCP、CLS 不合格時會失敗。
+
+第一次跑時 Accessibility 沒有滿分，原因有兩個：
+
+- GSAP SplitText 在拆開的 `span` 上加 `aria-label`，觸發 `aria-prohibited-attr`。改成拆字的元素設 `aria-hidden`，前面另外放一份 `sr-only` 原文（`src/app/reveal.ts`）。
+- 深色模式下，色票卡片的次要文字沿用會跟著主題反轉的 `smoke`，在白色卡片上對比不足。改用固定色 `--color-stone`。
+
+### 打包大小（size-limit，gzip）
+
+| 項目                  | 大小      | 預算   |
+| --------------------- | --------- | ------ |
+| 首頁初始 JS           | 60.14 KB  | 120 KB |
+| three.js 與產品實驗室 | 196.87 KB | 250 KB |
+
+### axe
+
+`tests/e2e/a11y.spec.ts` 用 Chromium 掃描中英文共 11 頁（淺色模式、減少動態效果），WCAG 2.2 AA 範圍內不能有 serious 或 critical 等級的問題。深色模式目前沒有自動掃描。修正過的問題是 `label-content-name-mismatch`：語言切換、年份導覽、色票卡片原本用 `aria-label` 蓋掉畫面上的文字。改成可見文字留在名稱裡，補充說明放在 `sr-only` 文字。
+
+## Playwright 的 Windows 版 WebKit 在 View Transition 換頁時當掉
+
+2026-11-16 跑完整 e2e 時，WebKit 有兩個測試在換頁後逾時。追查後發現是分頁整個當掉（Playwright 的 `crash` 事件）。
+
+### 現象
+
+- 用 View Transition 從 `/about/` 換到 `/years/2025/` 或 `/archive/`，大約一半到三分之二的次數會當掉，時間點在 `astro:after-swap` 之後 100 到 150 毫秒，`astro:page-load` 還沒觸發。
+- 換到 `/en/about/`、`/space/`、`/years/2025/lab/` 沒有當過。
+
+### 排除過的原因
+
+| 嘗試                                                           | 結果       |
+| -------------------------------------------------------------- | ---------- |
+| 轉場期間暫停 WebGL 繪製，3D 視窗等轉場結束才建立               | 仍會當掉   |
+| 轉場期間把 canvas 設成 `visibility: hidden` 或 `display: none` | 仍會當掉   |
+| 換頁前先載入全部 226 個字型檔                                  | 仍會當掉   |
+| 關掉共享元素（`view-transition-name: none`）                   | 仍會當掉   |
+| 關掉根元素的轉場動畫                                           | 仍會當掉   |
+| 拿掉 `document.startViewTransition`，改用 Astro 自己的換頁動畫 | 4 次都沒當 |
+| 同一份 HTML 改由 Playwright 的 `page.route` 回應               | 3 次都沒當 |
+
+最後一項只改變了回應的時間點，頁面內容完全相同，所以判斷是這個 WebKit 版本的 View Transition 有時序上的問題，跟網站程式無關。暫停繪製與延後建立 3D 視窗都沒有幫助，已經還原。
+
+### 處理
+
+`tests/e2e/fixtures.ts` 只在「WebKit 加 Windows」這個組合拿掉 `startViewTransition`，其他測試照常進行。CI 在 Linux 上跑，WebKit 和 Chromium 都會測 View Transition。
+
+Safari 用的是另一套繪圖架構，這次無法驗證會不會有同樣的問題，T074 實機測試時要特別試站內換頁。

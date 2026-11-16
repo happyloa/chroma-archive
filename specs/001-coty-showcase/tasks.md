@@ -35,62 +35,66 @@
 
 3D 產品展示是網站的核心，所以 T031 到 T034 完成後，先做階段 4 的 T047、T048、T046、T049、T050，再回來做 T035 之後的轉場與 Hero。
 
-- [ ] T030 `src/app/ticker.ts`、`scroll.ts`：GSAP ticker 驅動 Lenis 與 ScrollTrigger
+- [x] T030 `src/app/ticker.ts`、`scroll.ts`：GSAP ticker 驅動 Lenis 與 ScrollTrigger（兩者合在 `ticker.ts`）
 - [x] T031 `src/app/motion.ts`：reduced-motion 偵測（含執行中切換）、WebGL 可用性偵測
 - [x] T032 `src/stage/quality.ts`：依裝置資訊分級與執行期自動降級（不用 detect-gpu，見 plan.md 2.3）
 - [x] T033 `src/stage/Stage.ts`：renderer、composer、resize、visibility 暫停、SceneRegistry
 - [x] T034 [P] `src/stage/loader.ts`：GLTFLoader、KTX2Loader、Meshopt decoder、HDRI，含快取與載入進度
-- [ ] T035 `src/app/transition.ts`：換頁液態擴散轉場，串 Astro 路由事件
-- [ ] T036 [P] `src/app/cursor.ts`：自訂游標與吸色效果
-- [ ] T037 [P] SplitText 文字出場的共用工具，支援中文逐字
+- [x] T035 `src/app/transition.ts`：換頁液態擴散轉場，串 Astro 路由事件（目前做成從點擊位置圓形擴散，與 US-07-1 的差異待確認）
+- [x] T036 [P] `src/app/cursor.ts`：自訂游標與吸色效果
+- [x] T037 [P] SplitText 文字出場的共用工具，支援中文逐字
 
 ## 階段 4：頁面與場景
 
-- [ ] T040 預載畫面（US-01-1）
-- [ ] T041 HeroScene：液態 shader；淺色年份改體積雲（US-01）
-- [ ] T042 首頁捲動敘事段落（US-01-3）
-- [ ] T043 ArchiveScene：樣條曲線色卡時間軸、慣性、聚焦效果、雙色卡（US-02）
-- [ ] T044 時間軸到年度頁的共享元素轉場（US-02-5）
+- [x] T040 預載畫面（US-01-1）
+- [x] T041 HeroScene：液態 shader；淺色年份改體積雲（US-01）
+- [x] T042 首頁捲動敘事段落（US-01-3）
+- [x] T043 ArchiveScene：樣條曲線色卡時間軸、慣性、聚焦效果、雙色卡（US-02）
+- [x] T044 時間軸到年度頁的共享元素轉場（US-02-5）
 - [x] T045 年度頁：色值、故事、配色、相鄰年份比較（US-03）
-- [ ] T046 年度頁：設計發想段落以 3D 產品模型展示，每個概念一個可旋轉的模型，捲動進場、畫面外暫停 render（US-04）
+- [x] T046 年度頁：設計發想段落以 3D 產品模型展示，每個概念一個可旋轉的模型，捲動進場、畫面外暫停 render（US-04）
 - [x] T047 [P] 6 個產品模型：第一版以程式產生幾何，依畫質檔位調整曲面分段
 - [x] T048 LabScene：換色、六種表面處理、三種燈光、軌道控制（US-05-1 到 5-4）
 - [x] T049 產品實驗室：網址參數同步與 PNG 匯出（US-05-5、5-6）
-- [ ] T050 [P] 產品實驗室的無 WebGL 靜態圖（US-05-7）
-- [ ] T051 SpaceScene 與對應 HTML 表格（US-06，P2）
+- [x] T050 [P] 產品實驗室的無 WebGL 靜態圖（US-05-7）：用 SVG 剪影，跟著主色與輔色變色
+- [x] T051 SpaceScene 與對應 HTML 表格（US-06，P2）
 - [x] T052 [P] 404 頁、about 頁
 
 - [x] T053 深淺色切換與圓形揭露動畫（US-10）
 - [x] T054 產品實驗室情境場景：客廳、臥室、辦公室（US-05-8）
 - [x] T055 產品實驗室互動：點選零件換色、懸停高亮、鏡頭預設、自轉開關、換產品與換色動畫（US-05-9、5-10）
-- [x] T062 中英雙語：/en/ 路由、介面字典、年度內容英文摘要、hreflang（US-13）
-- [x] T061 細捲軸：年度色滑塊、互補色軌道
-- [x] T060 相片級渲染：three-gpu-pathtracer 路徑追蹤、取樣進度、匯出、低畫質檔位停用（US-12）
-- [x] T059 情境場景真實化：Poly Haven HDRI、PBR 貼圖、家具模型、柔和陰影（US-12）
-- [x] T058 單椅、花瓶、運動鞋、桌燈改用公開模型（Poly Haven CC0、Khronos CC BY 4.0），建置壓縮腳本與授權標註
-- [x] T057 上傳自己的模型（US-11）
 - [x] T056 運動鞋模型改良：目前輪廓太圓鈍，鞋頭、鞋口與鞋帶要更清楚
+- [x] T057 上傳自己的模型（US-11）
+- [x] T058 單椅、花瓶、運動鞋、桌燈改用公開模型（Poly Haven CC0、Khronos CC BY 4.0），建置壓縮腳本與授權標註
+- [x] T059 情境場景真實化：Poly Haven HDRI、PBR 貼圖、家具模型、柔和陰影（US-12）
+- [x] T063 相片級渲染：three-gpu-pathtracer 路徑追蹤、取樣進度、匯出、低畫質檔位停用（US-12）
+- [x] T064 細捲軸：年度色滑塊、互補色軌道
+- [x] T065 中英雙語：/en/ 路由、介面字典、年度內容英文摘要、hreflang（US-13）
+- [x] T066 捲軸對比修正：原本互補色軌道和滑塊的對比只有 1.0 到 1.16，淺色年份幾乎看不到滑塊。改由 `scrollbarColors()` 調整軌道明度，29 個顏色都達到 WCAG 1.4.11 的 3:1（`tests/unit/scrollbar.test.ts`）
+- [x] T067 CI 修正：CI 的軟體算繪（SwiftShader）解 1.4 MB 的 HDRI 會卡住主執行緒，產品實驗室 e2e 逾時。低畫質檔位改用程式產生的環境光，不載入 HDRI；CI 的 Playwright workers 降為 2
+
+（T063 到 T065 的 commit 訊息當時用了 T060 到 T062 的編號，與階段 5 撞號，之後改成現在的編號。）
 
 ## 階段 5：內容
 
-- [ ] T060 撰寫 2017 到 2026 年的色彩故事與設計發想，審稿後改為 `reviewed`
-- [ ] T061 撰寫 2000 到 2016 年內容（可在上線後補）
-- [ ] T062 [P] 產生每年產品概念的靜態預覽圖（供無 WebGL 與 OG 使用）
+- [ ] T060 撰寫 2017 到 2026 年的色彩故事與設計發想，審稿後改為 `reviewed`（初稿已寫完，等審稿）
+- [ ] T061 撰寫 2000 到 2016 年內容（可在上線後補；初稿已寫完，等審稿）
+- [x] T062 [P] 產生每年產品概念的靜態預覽圖（供無 WebGL 與 OG 使用）：無 WebGL 時用 T050 的 SVG 剪影，OG 圖見 T070
 
 ## 階段 6：品質與上線
 
-- [ ] T070 [P] `scripts/og-images.ts`：satori 產生 OG 圖（US-09）
-- [ ] T071 [P] sitemap、robots.txt、meta 標籤
-- [ ] T072 size-limit 與 Lighthouse CI 接進 GitHub Actions，門檻依憲章第 3 條
-- [ ] T073 可及性稽核：axe 自動掃描加鍵盤與 VoiceOver／NVDA 手動測試
+- [x] T070 [P] `scripts/og-images.ts`：satori 產生 OG 圖（US-09）。改寫成建置時的端點 `src/pages/og/[slug].png.ts`，不需要另外跑腳本
+- [x] T071 [P] sitemap、robots.txt、meta 標籤
+- [x] T072 size-limit 與 Lighthouse CI 接進 GitHub Actions，門檻依憲章第 3 條
+- [ ] T073 可及性稽核：axe 自動掃描加鍵盤與 VoiceOver／NVDA 手動測試（axe 掃描 11 頁已通過，接進 e2e；手動測試待做）
 - [ ] T074 實機測試：iPhone、中階 Android 的幀率與發熱，必要時調整畫質檔位
 - [ ] T075 Cloudflare Workers Builds 連接 GitHub repo，設定正式與 PR 預覽部署
 - [ ] T076 綁定自訂網域、開啟 Cloudflare Web Analytics
-- [ ] T077 上線檢查清單：非官方聲明、近似色標註、模型授權、所有年份 404 測試
+- [x] T077 上線檢查清單：非官方聲明、近似色標註、模型授權、所有年份 404 測試（[launch-checklist.md](./launch-checklist.md)）
 
 ## 階段 7：上線後
 
 - [ ] T080 2027 年度色公布後依 data-model.md 第 5 節新增
-- [x] T081 英文版（見 T062）
-- [ ] T082 配色下載 `.ase` 檔（P2）
+- [x] T081 英文版（見 T065）
+- [x] T082 配色下載 `.ase` 檔（P2）
 - [ ] T083 投稿 Awwwards

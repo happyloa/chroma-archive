@@ -10,18 +10,22 @@
 
 ## 目前狀態
 
-全站頁面的靜態版已上線，包括首頁、典藏、27 個年度頁、產品實驗室、色彩空間。正在做 3D 產品展示（階段 3）。進度見 [tasks.md](specs/001-coty-showcase/tasks.md)。
+功能都做完了：首頁的年度色主視覺（液態顏料或雲霧 shader，淺色年份用雲霧）、3D 色卡時間軸、27 個年度頁（每年 3 個 3D 設計發想）、產品實驗室（情境場景、上傳模型、相片級渲染）、OKLCH 色彩空間，以及中英雙語、深淺色切換、OG 圖和 `.ase` 色票下載。
+
+上線前還要審稿（色彩故事與設計發想目前是初稿）、做實機測試，並設定 Cloudflare 自動部署，見 [上線檢查清單](specs/001-coty-showcase/launch-checklist.md)。進度見 [tasks.md](specs/001-coty-showcase/tasks.md)。
 
 開發依照規格驅動流程（Spec-Driven Development）：先寫規格，再寫計畫與任務，最後實作。
 
-| 文件                                                                           | 內容                                     |
-| ------------------------------------------------------------------------------ | ---------------------------------------- |
-| [docs/constitution.md](docs/constitution.md)                                   | 專案原則：效能預算、可及性、色彩資料標示 |
-| [specs/001-coty-showcase/spec.md](specs/001-coty-showcase/spec.md)             | 功能規格：使用者故事、驗收條件、視覺方向 |
-| [specs/001-coty-showcase/plan.md](specs/001-coty-showcase/plan.md)             | 技術計畫：選型、架構、部署               |
-| [specs/001-coty-showcase/data-model.md](specs/001-coty-showcase/data-model.md) | 資料模型與新增年度色的流程               |
-| [specs/001-coty-showcase/tasks.md](specs/001-coty-showcase/tasks.md)           | 任務清單                                 |
-| [data/colors.json](data/colors.json)                                           | 2000 到 2026 年年度色資料                |
+| 文件                                                                                       | 內容                                     |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| [docs/constitution.md](docs/constitution.md)                                               | 專案原則：效能預算、可及性、色彩資料標示 |
+| [specs/001-coty-showcase/spec.md](specs/001-coty-showcase/spec.md)                         | 功能規格：使用者故事、驗收條件、視覺方向 |
+| [specs/001-coty-showcase/plan.md](specs/001-coty-showcase/plan.md)                         | 技術計畫：選型、架構、部署               |
+| [specs/001-coty-showcase/data-model.md](specs/001-coty-showcase/data-model.md)             | 資料模型與新增年度色的流程               |
+| [specs/001-coty-showcase/tasks.md](specs/001-coty-showcase/tasks.md)                       | 任務清單                                 |
+| [specs/001-coty-showcase/research.md](specs/001-coty-showcase/research.md)                 | 技術驗證與品質量測結果                   |
+| [specs/001-coty-showcase/launch-checklist.md](specs/001-coty-showcase/launch-checklist.md) | 上線檢查清單                             |
+| [data/colors.json](data/colors.json)                                                       | 2000 到 2026 年年度色資料                |
 
 ## 開發
 
@@ -43,6 +47,8 @@ npm run check        # 型別檢查
 npm test             # 單元測試
 npm run test:e2e     # Playwright e2e（Chromium、WebKit）
 npm run test:visual  # 截圖比對，只在本機跑
+npm run size         # 打包大小預算（先 build）
+npm run lhci         # Lighthouse CI（先 build）
 ```
 
 新增年度色的流程見 [data-model.md 第 5 節](specs/001-coty-showcase/data-model.md)。
