@@ -1,46 +1,21 @@
 import { expect, test } from './fixtures';
 
-test.describe('深淺色切換', () => {
-  test('沒有選過時跟隨系統設定', async ({ browser }) => {
-    const dark = await browser.newContext({ colorScheme: 'dark' });
-    const page = await dark.newPage();
-    await page.goto('/');
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await dark.close();
-  });
-
-  test('切換後記住選擇，換頁與重新整理都維持', async ({ page }) => {
+// US-10：全站只有深色介面
+test.describe('深色介面', () => {
+  test('系統設定為淺色時也維持深色，頁首沒有切換按鈕', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('/archive/');
-    const html = page.locator('html');
-    await expect(html).toHaveAttribute('data-theme', 'light');
-
-    const toggle = page.getByRole('button', { name: '切換深淺色' });
-    await expect(toggle).toBeEnabled();
-    await toggle.click();
-    await expect(html).toHaveAttribute('data-theme', 'dark');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(14, 14, 14)');
+    await expect(page.locator('body')).toHaveCSS('color', 'rgb(244, 242, 238)');
+    await expect(page.locator('[data-theme-toggle]')).toHaveCount(0);
 
-    // 站內換頁（ClientRouter 會換掉 <html> 屬性）
+    // 站內換頁後仍是深色
     await page.getByRole('link', { name: '色彩空間' }).first().click();
     await expect(page).toHaveURL(/\/space\/$/);
-    await expect(html).toHaveAttribute('data-theme', 'dark');
-
-    await page.reload();
-    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(14, 14, 14)');
   });
 
-  test('揭露動畫結束後移除疊層', async ({ page }) => {
-    await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'no-preference' });
-    await page.goto('/about/');
-    await page.getByRole('button', { name: '切換深淺色' }).click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await expect(page.locator('.theme-reveal-layer')).toHaveCount(0, { timeout: 3000 });
-  });
-
-  test('色票卡片在深色模式維持白色標籤與深色文字', async ({ page }) => {
-    await page.emulateMedia({ colorScheme: 'dark' });
+  test('色票卡片維持白色標籤與深色文字', async ({ page }) => {
     await page.goto('/archive/');
     const card = page.locator('section[aria-label="全部年度色"] li a').first();
     await expect(card).toHaveCSS('background-color', 'rgb(253, 252, 250)');

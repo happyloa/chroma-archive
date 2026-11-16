@@ -208,20 +208,6 @@ export class Stage {
     this.frames += 1;
   };
 
-  /**
-   * 目前畫面的快照（給切換配色的揭露動畫用）。drawing buffer 沒有保留，
-   * 所以先同步畫一次再立刻讀取。沒有 3D 視窗時回傳 undefined。
-   */
-  snapshot(): string | undefined {
-    if (!this.visible.size) return undefined;
-    this.render(0, 0);
-    try {
-      return this.canvas.toDataURL('image/png');
-    } catch {
-      return undefined;
-    }
-  }
-
   private dispose(): void {
     this.unmount();
     window.removeEventListener('resize', this.resize);

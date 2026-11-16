@@ -129,13 +129,8 @@ class TimelineView implements StageView {
     el.addEventListener('pointermove', this.onMove);
     el.addEventListener('pointerleave', this.onLeave);
     el.addEventListener('click', this.onClick);
-    window.addEventListener('themechange', this.readTheme);
-    this.readTheme();
+    this.paper.set(cssColor('--color-paper', '#0e0e0e'));
   }
-
-  private readTheme = (): void => {
-    this.paper.set(cssColor('--color-paper', '#f4f2ee'));
-  };
 
   private pick(): number {
     this.raycaster.setFromCamera(this.pointer, this.camera);
@@ -225,7 +220,6 @@ class TimelineView implements StageView {
     this.el.removeEventListener('pointermove', this.onMove);
     this.el.removeEventListener('pointerleave', this.onLeave);
     this.el.removeEventListener('click', this.onClick);
-    window.removeEventListener('themechange', this.readTheme);
     for (const card of this.cards) {
       card.material.map?.dispose();
       card.material.dispose();

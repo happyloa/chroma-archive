@@ -1,7 +1,6 @@
 ---
 import { REPO_URL } from '../lib/site';
 import { getLang, localePath, stripLocale, useT } from '../i18n/ui';
-import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
   /** 頁首下方第一個區塊的背景：決定文字用哪個顏色 */
@@ -73,9 +72,6 @@ const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
           {t('lang.switch')}
           <span class="sr-only">{t('lang.switchHint')}</span>
         </a>
-      </li>
-      <li>
-        <ThemeToggle />
       </li>
     </ul>
   </nav>

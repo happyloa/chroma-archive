@@ -279,7 +279,6 @@ export class ProductView implements StageView {
     this.setRoom(this.state.room);
     this.setLight(this.state.light);
     this.productReady = this.setProduct(this.state.product, false);
-    window.addEventListener('themechange', this.onThemeChange);
   }
 
   getState(): ProductState {
@@ -684,10 +683,6 @@ export class ProductView implements StageView {
   }
 
   /** 網站切換深淺色時，背景跟著換 */
-  private onThemeChange = (): void => {
-    this.setLight(this.state.light);
-  };
-
   setReducedMotion(reduced: boolean): void {
     this.reducedMotion = reduced;
     if (reduced) this.state.spin = false;
@@ -785,10 +780,10 @@ export class ProductView implements StageView {
     }
     c2d.putImageData(image, 0, 0);
 
-    const dark = this.state.light === 'night' || document.documentElement.dataset.theme === 'dark';
     c2d.font = `500 ${Math.round(size / 64)}px "Inter Variable", system-ui, sans-serif`;
     c2d.textAlign = 'right';
-    c2d.fillStyle = dark ? 'rgba(244,242,238,0.75)' : 'rgba(14,14,14,0.65)';
+    // 背景都是深色，浮水印用淺色
+    c2d.fillStyle = 'rgba(244,242,238,0.75)';
     c2d.fillText(watermark, size - size / 32, size - size / 32);
 
     return new Promise((resolve, reject) =>
@@ -799,7 +794,6 @@ export class ProductView implements StageView {
   dispose(): void {
     this.disposed = true;
     this.photo.dispose();
-    window.removeEventListener('themechange', this.onThemeChange);
     this.el.removeEventListener('pointermove', this.onPointerMove);
     this.el.removeEventListener('pointerleave', this.onPointerLeave);
     this.el.removeEventListener('pointerdown', this.onPointerDown);

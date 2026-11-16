@@ -93,20 +93,18 @@ export function getEnvironment(renderer: WebGLRenderer, preset: LightPreset): Te
   return texture;
 }
 
-/** 各燈光預設的背景色（淺色模式、深色模式）與環境光強度 */
+/** 各燈光預設的背景色（深色介面）與環境光強度 */
 export const LIGHT_LOOK: Record<
   LightPreset,
-  { background: number; backgroundDark: number; envIntensity: number; exposure: number }
+  { background: number; envIntensity: number; exposure: number }
 > = {
-  studio: { background: 0xe3e0da, backgroundDark: 0x1d1c1a, envIntensity: 0.55, exposure: 0.9 },
-  daylight: { background: 0xebe4d6, backgroundDark: 0x24211c, envIntensity: 0.6, exposure: 0.95 },
-  night: { background: 0x15161a, backgroundDark: 0x0f1013, envIntensity: 0.7, exposure: 1.1 },
+  studio: { background: 0x1d1c1a, envIntensity: 0.55, exposure: 0.9 },
+  daylight: { background: 0x24211c, envIntensity: 0.6, exposure: 0.95 },
+  night: { background: 0x0f1013, envIntensity: 0.7, exposure: 1.1 },
 };
 
-/** 依目前網站配色取背景色 */
 export function backgroundFor(preset: LightPreset): number {
-  const look = LIGHT_LOOK[preset];
-  return document.documentElement.dataset.theme === 'dark' ? look.backgroundDark : look.background;
+  return LIGHT_LOOK[preset].background;
 }
 
 // —— HDRI ——

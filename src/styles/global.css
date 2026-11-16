@@ -4,16 +4,16 @@
  * 設計 token（憲章第 1 條）：介面只用中性色，彩度留給年度色。
  * --coty、--coty-ink 由 Base layout 依頁面寫在 <html> 上，元件用 bg-coty、text-coty-ink 引用。
  *
- * 深淺色：ink（文字）與 paper（底色）在深色模式互換，smoke、mist 一起調整。
- * night、day 是不隨主題變動的固定深淺色，用在淺色年份的深色 Hero 這類固定外觀。
+ * 全站只有深色介面（US-10）：ink 是文字色、paper 是底色。
+ * night、day 是固定的深淺色，用在淺色年份的深色 Hero、白色色票標籤這類固定外觀。
  */
 @theme {
-  --color-ink: #0e0e0e;
-  --color-paper: #f4f2ee;
-  /* 次要文字：在 paper 上對比約 6.4:1 */
-  --color-smoke: #5c5954;
+  --color-ink: #f4f2ee;
+  --color-paper: #0e0e0e;
+  /* 次要文字：在 paper 上對比約 7:1 */
+  --color-smoke: #a8a49d;
   /* 分隔線與淡底 */
-  --color-mist: #e3e0da;
+  --color-mist: #1d1c1a;
   --color-night: #0e0e0e;
   /* 固定的次要文字色，用在不隨主題變動的白色色票標籤上 */
   --color-stone: #5c5954;
@@ -71,45 +71,11 @@
   text-transform: uppercase;
 }
 
-/* 深色模式：由 <html data-theme="dark"> 切換（src/app/theme.ts） */
-:root[data-theme='dark'] {
-  --color-ink: #f4f2ee;
-  --color-paper: #0e0e0e;
-  /* 在深色底上對比約 7:1 */
-  --color-smoke: #a8a49d;
-  --color-mist: #1d1c1a;
-  color-scheme: dark;
-}
-
-/* 切換配色時的圓形揭露（src/app/themeReveal.ts，參考作品集網站的做法） */
-.theme-reveal-overlays {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-}
-.theme-reveal-layer {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  mask-image: radial-gradient(
-    circle at var(--theme-x) var(--theme-y),
-    transparent var(--theme-reveal-radius),
-    #000 calc(var(--theme-reveal-radius) + 1px)
-  );
-}
-@property --theme-reveal-radius {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
 @layer base {
   :root {
     --coty: #f0eee9;
     --coty-ink: #0e0e0e;
-    color-scheme: light;
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }

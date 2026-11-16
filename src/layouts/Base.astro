@@ -79,22 +79,12 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
-    {/* 首次繪製前套用深淺色，避免閃爍；換頁後 <html> 屬性會被換掉，所以在 after-swap 再套一次 */}
+    {/* 首次繪製前決定動態偏好與 WebGL 可用性；換頁後 <html> 屬性會被換掉，所以在 after-swap 再套一次 */}
     <script is:inline>
       (() => {
         const apply = () => {
-          let theme = null;
-          try {
-            theme = localStorage.getItem('chroma-theme');
-          } catch {
-            // 儲存空間被封鎖時改用系統設定
-          }
-          if (theme !== 'light' && theme !== 'dark') {
-            theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-          }
           const root = document.documentElement;
-          root.dataset.theme = theme;
-          // 動態偏好與 WebGL 可用性也在首次繪製前決定，依此顯示或隱藏 3D 區塊才不會造成版面跳動
+          // 依動態偏好與 WebGL 可用性顯示或隱藏 3D 區塊，首次繪製前決定才不會造成版面跳動
           root.dataset.motion = matchMedia('(prefers-reduced-motion: reduce)').matches
             ? 'reduce'
             : 'full';
@@ -113,8 +103,8 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
           }
         };
         apply();
-        if (!window.__chromaThemeInit) {
-          window.__chromaThemeInit = true;
+        if (!window.__chromaHeadInit) {
+          window.__chromaHeadInit = true;
           document.addEventListener('astro:after-swap', apply);
         }
       })();

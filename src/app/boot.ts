@@ -6,7 +6,6 @@ import { initSortTable } from './sortTable';
 import { initTransitions } from './transitions';
 import { initLab } from './lab';
 import { initMotion, onMotionChange, prefersReducedMotion, webglAvailable } from './motion';
-import { initTheme, setCanvasSnapshotProvider } from './theme';
 import { initTicker, tickerCallbackCount } from './ticker';
 
 /**
@@ -16,11 +15,9 @@ import { initTicker, tickerCallbackCount } from './ticker';
 initMotion();
 initTicker();
 initCopy();
-initTheme();
 initCursor();
 initTransitions();
 initSortTable();
-setCanvasSnapshotProvider(() => stage?.snapshot());
 
 let stage: Stage | null = null;
 let StageClass: typeof Stage | null = null;
