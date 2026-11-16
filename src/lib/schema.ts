@@ -56,11 +56,21 @@ const ConceptSchema = z.object({
     product: z.enum(PRODUCTS),
     light: z.enum(LIGHTS).default('studio'),
   }),
+  /** 英文版（US-13） */
+  en: z
+    .object({
+      title: z.string(),
+      pitch: z.string().max(140),
+      audience: z.string(),
+      material: z.string(),
+    })
+    .optional(),
 });
 
 const MaterialNoteSchema = z.object({
   material: z.string(),
   reason: z.string().max(60),
+  en: z.object({ material: z.string(), reason: z.string().max(120) }).optional(),
 });
 
 export const YearContentSchema = z
@@ -80,6 +90,8 @@ export const YearContentSchema = z
       .object({
         summary: z.string().max(160),
         keywords: z.array(z.string()).min(4).max(6),
+        /** 英文色彩故事，段落之間空一行 */
+        story: z.string().optional(),
       })
       .optional(),
     status: z.enum(['draft', 'reviewed']).default('draft'),
