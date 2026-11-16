@@ -14,13 +14,16 @@ import {
   Vector2,
   Vector3,
 } from 'three';
+import { initTicker } from '../../app/ticker';
+import { morphIntoHero } from '../../app/transitions';
 import type { StageContext, StageView } from '../types';
 
 /**
  * 典藏頁的 3D 色卡時間軸（T043、US-02）。
  * 元素是黏在畫面上的視窗（position: sticky），外層是很高的捲動軌道；
  * 捲動進度決定鏡頭沿曲線前進到哪一年。色卡用 CanvasTexture 畫出實體色票的樣子。
- * 鍵盤與螢幕閱讀器使用下方的 HTML 色票格，這個視窗只負責視覺。
+ * 時間軸在畫面上時，左右方向鍵移到前後一年（US-02-2）；螢幕閱讀器使用下方的 HTML 色票格。
+ * 聚焦的色卡浮起，其他色卡退後並降低飽和度（US-02-3）；點擊色卡時色塊放大成年度頁主視覺（US-02-5）。
  */
 export interface TimelineItem {
   year: number;
@@ -106,10 +109,24 @@ class TimelineView implements StageView {
     );
 
     this.items.forEach((item, i) => {
-      const mesh = new Mesh(
-        this.geometry,
-        new MeshBasicMaterial({ map: drawCard(item), toneMapped: false, transparent: true }),
-      );
+      const material = new MeshBasicMaterial({
+        map: drawCard(item),
+        toneMapped: false,
+        transparent: true,
+      });
+      // 飽和度：1 是原色，0 是灰階
+      const saturation = { value: 1 };
+      material.onBeforeCompile = (shader) => {
+        shader.uniforms.uSaturation = saturation;
+        shader.fragmentShader = shader.fragmentShader
+          .replace('void main() {', 'uniform float uSaturation;\nvoid main() {')
+          .replace(
+            '#include <map_fragment>',
+            '#include <map_fragment>\n  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, uSaturation);',
+          );
+      };
+      const mesh = new Mesh(this.geometry, material);
+      mesh.userData.saturation = saturation;
       mesh.position.copy(points[i]!);
       mesh.userData.index = i;
       this.cards.push(mesh);
@@ -129,6 +146,7 @@ class TimelineView implements StageView {
     el.addEventListener('pointermove', this.onMove);
     el.addEventListener('pointerleave', this.onLeave);
     el.addEventListener('click', this.onClick);
+    document.addEventListener('keydown', this.onKey);
     this.paper.set(cssColor('--color-paper', '#0e0e0e'));
   }
 
@@ -156,7 +174,55 @@ class TimelineView implements StageView {
   private onClick = (): void => {
     const i = this.pick();
     const item = this.items[i];
-    if (item) void navigate(item.href);
+    if (!item) return;
+    if (!this.reducedMotion) morphIntoHero(this.swatchRect(i), item.hexes, `hero-${item.year}`);
+    void navigate(item.href);
+  };
+
+  /** 色卡上色塊部分在畫面上的位置（drawCard 的版面：四周留 30px，色塊高 66%） */
+  private swatchRect(i: number): DOMRect {
+    const card = this.cards[i]!;
+    card.updateMatrixWorld();
+    const texH = (512 * CARD_H) / CARD_W;
+    const padX = (30 / 512) * CARD_W;
+    const top = CARD_H / 2 - (30 / texH) * CARD_H;
+    const bottom = top - 0.66 * CARD_H;
+    const rect = this.el.getBoundingClientRect();
+    const xs: number[] = [];
+    const ys: number[] = [];
+    for (const [x, y] of [
+      [-CARD_W / 2 + padX, top],
+      [CARD_W / 2 - padX, top],
+      [-CARD_W / 2 + padX, bottom],
+      [CARD_W / 2 - padX, bottom],
+    ] as const) {
+      const p = new Vector3(x, y, 0).applyMatrix4(card.matrixWorld).project(this.camera);
+      xs.push(rect.left + ((p.x + 1) / 2) * rect.width);
+      ys.push(rect.top + ((1 - p.y) / 2) * rect.height);
+    }
+    const left = Math.min(...xs);
+    const topPx = Math.min(...ys);
+    return new DOMRect(left, topPx, Math.max(...xs) - left, Math.max(...ys) - topPx);
+  }
+
+  /** 時間軸黏在畫面上時，左右方向鍵移到前後一年 */
+  private onKey = (event: KeyboardEvent): void => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+    const track = this.el.parentElement;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const range = rect.height - window.innerHeight;
+    if (range <= 0 || rect.top > 0 || rect.bottom < window.innerHeight) return;
+    const n = this.items.length;
+    const current = Math.round(this.progress * (n - 1));
+    const next = Math.min(n - 1, Math.max(0, current + (event.key === 'ArrowRight' ? 1 : -1)));
+    if (next === current) return;
+    event.preventDefault();
+    const y = window.scrollY + rect.top + (next / (n - 1)) * range;
+    initTicker().scrollTo(y, { immediate: this.reducedMotion, duration: 0.8 });
   };
 
   setReducedMotion(reduced: boolean): void {
@@ -197,8 +263,9 @@ class TimelineView implements StageView {
       card.position.y = this.curve.points[i]!.y + near * 0.18;
       card.rotation.y = (i < focus ? 0.5 : -0.5) * Math.min(1, d * 0.8) + bend * (1 - near);
       card.scale.setScalar(1 + near * 0.08 + (i === this.hovered ? 0.05 : 0));
-      const shade = 0.45 + 0.55 * Math.max(near, i === this.hovered ? 0.8 : 0);
-      card.material.color.setScalar(shade);
+      const focusAmount = Math.max(near, i === this.hovered ? 0.8 : 0);
+      card.material.color.setScalar(0.55 + 0.45 * focusAmount);
+      (card.userData.saturation as { value: number }).value = 0.2 + 0.8 * focusAmount;
       // 已經經過的色卡很快淡出，避免擋在鏡頭前；遠處的也逐漸淡出
       const passed = Math.max(0, focus - i - 0.4);
       card.material.opacity = Math.max(0, Math.min(1 - passed * 2.2, 1 - Math.max(0, d - 6) * 0.2));
@@ -220,6 +287,7 @@ class TimelineView implements StageView {
     this.el.removeEventListener('pointermove', this.onMove);
     this.el.removeEventListener('pointerleave', this.onLeave);
     this.el.removeEventListener('click', this.onClick);
+    document.removeEventListener('keydown', this.onKey);
     for (const card of this.cards) {
       card.material.map?.dispose();
       card.material.dispose();

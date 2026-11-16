@@ -177,3 +177,109 @@ test('年度頁的大年份隨捲動變粗', async ({ page }) => {
     .poll(async () => year.evaluate((e) => getComputedStyle(e).fontVariationSettings))
     .toMatch(/"wght" (?!300)\d+/);
 });
+
+/** 換頁時記錄 View Transition 虛擬元素上的動畫 */
+const recordTransition = (page: Page) =>
+  page.addInitScript(() => {
+    const w = window as unknown as { __vt: { pseudo: string; name: string; duration: number }[] };
+    w.__vt = [];
+    document.addEventListener('astro:before-swap', (e) => {
+      void (e as unknown as { viewTransition: ViewTransition }).viewTransition.ready.then(() => {
+        for (const a of document.getAnimations()) {
+          const effect = a.effect as KeyframeEffect | null;
+          if (!effect?.pseudoElement) continue;
+          w.__vt.push({
+            pseudo: effect.pseudoElement,
+            name: (a as CSSAnimation).animationName ?? '',
+            duration: Number(effect.getTiming().duration),
+          });
+        }
+      });
+    });
+  });
+const readTransition = (page: Page) =>
+  page.evaluate(
+    () =>
+      (window as unknown as { __vt: { pseudo: string; name: string; duration: number }[] }).__vt,
+  );
+
+test('換頁時目的頁的年度色以液態墨水擴散', async ({ page, browserName }) => {
+  test.skip(
+    browserName === 'webkit' && process.platform === 'win32',
+    'fixtures 拿掉了 View Transition',
+  );
+  await recordTransition(page);
+  await page.goto('/about/');
+  await page.getByRole('link', { name: '色彩空間' }).first().click();
+  await expect(page).toHaveURL(/\/space\/$/);
+  await expect.poll(async () => (await readTransition(page)).length).toBeGreaterThan(0);
+  const vt = await readTransition(page);
+  expect(vt).toContainEqual(
+    expect.objectContaining({
+      pseudo: '::view-transition-new(vt-ink)',
+      name: 'vt-ink',
+      duration: 1000,
+    }),
+  );
+});
+
+test.describe('減少動態效果的換頁', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('改為 200 毫秒淡入淡出', async ({ page, browserName }) => {
+    test.skip(
+      browserName === 'webkit' && process.platform === 'win32',
+      'fixtures 拿掉了 View Transition',
+    );
+    // 轉場開始時讀虛擬元素實際套用的動畫（這種情況下 getAnimations() 不會列出虛擬元素）
+    await page.addInitScript(() => {
+      document.addEventListener('astro:before-swap', (e) => {
+        void (e as unknown as { viewTransition: ViewTransition }).viewTransition.ready.then(() => {
+          const read = (p: string) => {
+            const s = getComputedStyle(document.documentElement, p);
+            return `${s.animationName} ${s.animationDuration}`;
+          };
+          (window as unknown as { __rm: string[] }).__rm = [
+            read('::view-transition-new(root)'),
+            read('::view-transition-old(root)'),
+          ];
+        });
+      });
+    });
+    await page.goto('/about/');
+    await page.getByRole('link', { name: '色彩空間' }).first().click();
+    await expect(page).toHaveURL(/\/space\/$/);
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __rm?: string[] }).__rm))
+      .toEqual(['vt-fade-in 0.2s', 'vt-fade-out 0.2s']);
+  });
+});
+
+test('時間軸在畫面上時，方向鍵移到前後一年', async ({ page }) => {
+  await page.goto('/archive/');
+  test.skip(!(await stageShown(page)), '沒有 WebGL 2，3D 區塊不顯示');
+  await expect.poll(() => views(page)).toBeGreaterThan(0);
+  const track = page.locator('[data-view="timeline"]').locator('xpath=..');
+  const box = (await track.boundingBox())!;
+  await page.evaluate((y) => window.scrollTo(0, y), box.y + 1200);
+  // 等捲動停下來再讀位置
+  const settled = async () => {
+    let last = -1;
+    await expect
+      .poll(async () => {
+        const y = await page.evaluate(() => window.scrollY);
+        const same = y === last;
+        last = y;
+        return same;
+      })
+      .toBe(true);
+    return last;
+  };
+  const before = await settled();
+  const step = (box.height - (await page.evaluate(() => window.innerHeight))) / 26;
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + step * 0.4);
+  const after = await settled();
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(after - step * 0.4);
+});

@@ -294,32 +294,98 @@
   visibility: hidden;
 }
 
-/* 換頁轉場：新頁面從點擊位置以圓形擴散出現（src/app/transitions.ts） */
-@keyframes vt-reveal {
-  from {
-    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%));
+/*
+ * 換頁轉場（US-07，src/app/transitions.ts）：目的頁的年度色從點擊位置以液態邊緣擴散蓋滿畫面，
+ * 再淡出露出新頁，約 1 秒。墨水層是 Base 的 .vt-ink：透明的固定層，只用來產生 vt-ink 群組，
+ * 顏色畫在 ::view-transition-new(vt-ink) 的背景上（:root 的 --coty 在換頁後已經是目的頁的顏色）。
+ * 墨水層在 body 最前面，共享元素（色票卡片、色卡放大的主視覺）會在墨水上方移動。
+ */
+.vt-ink {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  view-transition-name: vt-ink;
+}
+@keyframes vt-root-out {
+  0%,
+  50% {
+    opacity: 1;
   }
-  to {
-    clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 50%));
+  50.01%,
+  100% {
+    opacity: 0;
   }
 }
-@keyframes vt-hold {
-  from {
+@keyframes vt-root-in {
+  0%,
+  50% {
+    opacity: 0;
+  }
+  50.01%,
+  100% {
     opacity: 1;
   }
-  to {
+}
+@keyframes vt-ink {
+  0% {
+    mask-size: 0 0;
+    mask-position: var(--vt-x, 50%) var(--vt-y, 50%);
     opacity: 1;
   }
+  55% {
+    mask-size: 320vmax 320vmax;
+    mask-position: calc(var(--vt-x, 50vw) - 160vmax) calc(var(--vt-y, 50vh) - 160vmax);
+    opacity: 1;
+  }
+  100% {
+    mask-size: 320vmax 320vmax;
+    mask-position: calc(var(--vt-x, 50vw) - 160vmax) calc(var(--vt-y, 50vh) - 160vmax);
+    opacity: 0;
+  }
+}
+::view-transition-group(vt-ink) {
+  animation: none;
+}
+::view-transition-old(vt-ink) {
+  animation: none;
+  opacity: 0;
+}
+::view-transition-new(vt-ink) {
+  background: var(--coty);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M100 6c22 0 33 13 50 21s38 20 41 44-9 34-6 54-8 41-30 50-34 20-57 18-40-13-55-27S8 135 6 113s4-38 13-56S38 22 58 13 78 6 100 6z'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  animation: vt-ink 1s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 ::view-transition-group(*) {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
 }
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+/* 減少動態效果：200 毫秒淡入淡出（US-07-4）。Astro 內建的樣式會用 !important 關掉所有轉場動畫，所以加上 :root 提高權重 */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
-    animation-duration: 0.2s !important;
-    animation-name: none !important;
+    animation: none !important;
+  }
+  ::view-transition-new(vt-ink) {
+    opacity: 0;
+  }
+  :root::view-transition-old(root) {
+    animation: vt-fade-out 0.2s ease both !important;
+  }
+  :root::view-transition-new(root) {
+    animation: vt-fade-in 0.2s ease both !important;
   }
 }

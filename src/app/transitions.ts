@@ -2,18 +2,14 @@ import type { TransitionDirectionalAnimations } from 'astro';
 
 /**
  * 換頁轉場（T035、T044、US-07）：
- * - 整頁：新頁面從點擊位置以圓形擴散出現，舊頁面留在底下，約 0.9 秒
+ * - 目的頁的年度色從點擊位置以液態邊緣擴散蓋滿畫面，再退開露出新頁，約 1 秒（樣式在 global.css）
  * - 色票卡片：典藏頁與年度頁的色票用同一個 transition:name，瀏覽器自動做共享元素轉場
- * 減少動態效果時由 global.css 關掉動畫。
+ * - 3D 時間軸的色卡：點擊時在色塊位置放一塊同色方塊，和年度頁主視覺配成一組，放大成主視覺
+ * 減少動態效果時改為 200 毫秒淡入淡出。
  */
 const reveal = {
-  old: { name: 'vt-hold', duration: '0.9s', easing: 'linear', fillMode: 'both' },
-  new: {
-    name: 'vt-reveal',
-    duration: '0.9s',
-    easing: 'cubic-bezier(0.7, 0, 0.2, 1)',
-    fillMode: 'both',
-  },
+  old: { name: 'vt-root-out', duration: '1s', easing: 'linear', fillMode: 'both' },
+  new: { name: 'vt-root-in', duration: '1s', easing: 'linear', fillMode: 'both' },
 };
 
 export const rootTransition: TransitionDirectionalAnimations = {
@@ -22,6 +18,35 @@ export const rootTransition: TransitionDirectionalAnimations = {
 };
 
 let origin = { x: '50%', y: '50%' };
+/** 下一次換頁要讓主視覺接手的轉場名稱（見 morphIntoHero） */
+let pendingHero: string | null = null;
+
+/**
+ * 3D 色卡換頁前呼叫：在畫面上 rect 的位置放一塊顏色方塊，換頁時放大成新頁的主視覺。
+ * 方塊在舊頁面裡，換頁後會跟著舊頁面一起被換掉。
+ */
+export function morphIntoHero(rect: DOMRect, colors: string[], name: string): void {
+  const block = document.createElement('div');
+  const stops = colors
+    .map((c, i) => `${c} ${(i / colors.length) * 100}% ${((i + 1) / colors.length) * 100}%`)
+    .join(', ');
+  Object.assign(block.style, {
+    position: 'fixed',
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+    background: `linear-gradient(90deg, ${stops})`,
+    pointerEvents: 'none',
+    zIndex: '70',
+    viewTransitionName: name,
+  });
+  block.setAttribute('aria-hidden', 'true');
+  document.body.append(block);
+  pendingHero = name;
+  // 換頁沒有發生（例如被取消）時移除
+  setTimeout(() => block.remove(), 4000);
+}
 
 /** 記住最後一次點擊的位置；換頁後 <html> 的 style 會被換掉，所以在 after-swap 再寫一次 */
 export function initTransitions(): void {
@@ -41,4 +66,17 @@ export function initTransitions(): void {
   };
   document.addEventListener('astro:before-preparation', apply);
   document.addEventListener('astro:after-swap', apply);
+
+  // 新頁面的主視覺只在這一次換頁接手色卡方塊，轉場結束就拿掉名稱，避免之後換頁時單獨成組
+  document.addEventListener('astro:before-swap', (event) => {
+    if (!pendingHero) return;
+    const hero = event.newDocument.querySelector<HTMLElement>('[data-view="hero"]');
+    const name = pendingHero;
+    pendingHero = null;
+    if (!hero) return;
+    hero.style.viewTransitionName = name;
+    void event.viewTransition.finished.finally(() => {
+      if (hero.style.viewTransitionName === name) hero.style.viewTransitionName = '';
+    });
+  });
 }
