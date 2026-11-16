@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('3D 視窗就緒後隱藏替代圖、啟用匯出', async ({ page }) => {
   await page.goto('/years/2025/lab/');
@@ -140,5 +140,9 @@ test('換頁離開實驗室時釋放 3D 視窗', async ({ page }) => {
   expect(await page.evaluate(() => window.__chroma!().views)).toBe(1);
   await page.getByRole('link', { name: '2025 Mocha Mousse' }).click();
   await expect(page).toHaveURL(/\/years\/2025\/$/);
-  await expect.poll(() => page.evaluate(() => window.__chroma!().views)).toBe(0);
+  // 實驗室的視窗釋放後，只剩年度頁自己的視窗（主視覺加 3 個設計發想）
+  const yearViews = await page.locator('main [data-view]').count();
+  expect(yearViews).toBe(4);
+  await expect.poll(() => page.evaluate(() => window.__chroma!().views)).toBe(yearViews);
+  await expect(page.locator('#lab-viewport')).toHaveCount(0);
 });

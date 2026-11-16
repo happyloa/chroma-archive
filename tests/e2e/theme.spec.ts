@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test.describe('深淺色切換', () => {
   test('沒有選過時跟隨系統設定', async ({ browser }) => {
