@@ -20,6 +20,9 @@ export function openZimaReveal(): void {
   dialog.addEventListener('click', onClick);
   dialog.addEventListener('close', onClose, { once: true });
   dialog.showModal();
+  // 對話框在最上層（top layer），原生游標又已隱藏，自訂游標的圓點要移進對話框才看得到
+  const cursor = document.querySelector('.chroma-cursor');
+  if (cursor) dialog.append(cursor);
 
   // 方形放大到能蓋住整個畫面（含對角線）
   const cover = (Math.hypot(window.innerWidth, window.innerHeight) / square.offsetWidth) * 1.05;
@@ -51,6 +54,8 @@ function onClick(event: MouseEvent): void {
 
 function onClose(this: HTMLDialogElement): void {
   this.removeEventListener('click', onClick);
+  const cursor = this.querySelector('.chroma-cursor');
+  if (cursor) document.body.append(cursor);
   timeline?.kill();
   timeline = null;
   returnFocus?.focus();

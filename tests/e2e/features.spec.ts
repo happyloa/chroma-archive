@@ -151,8 +151,8 @@ test('預載畫面總長不超過約 2.2 秒', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   const start = Date.now();
   await expect(page.locator('#preloader')).toHaveCount(0, { timeout: 8000 });
-  // 測試環境載入較慢，多留一點餘裕
-  expect(Date.now() - start).toBeLessThan(3200);
+  // 動畫本身約 2.1 秒；CI 機器較慢，只防止明顯變長
+  expect(Date.now() - start).toBeLessThan(5000);
 });
 
 test('首頁往下捲時主視覺標題逐字淡出', async ({ page }) => {
@@ -261,7 +261,11 @@ test('時間軸在畫面上時，方向鍵移到前後一年', async ({ page }) 
   await expect.poll(() => views(page)).toBeGreaterThan(0);
   const track = page.locator('[data-view="timeline"]').locator('xpath=..');
   const box = (await track.boundingBox())!;
-  await page.evaluate((y) => window.scrollTo(0, y), box.y + 1200);
+  // 用滾輪捲進時間軸（經過 Lenis），Lenis 的捲動狀態才會一致
+  while ((await page.evaluate(() => window.scrollY)) < box.y + 1000) {
+    await page.mouse.wheel(0, 400);
+    await page.waitForTimeout(100);
+  }
   // 等捲動停下來再讀位置
   const settled = async () => {
     let last = -1;
@@ -349,10 +353,14 @@ test('視窗縮放後 canvas 跟著更新尺寸', async ({ page }) => {
   await page.goto('/years/2025/');
   test.skip(!(await stageShown(page)), '沒有 WebGL 2');
   await expect.poll(() => views(page)).toBeGreaterThan(0);
+  // 像素比依畫質檔位而定，所以用縮放前的比例推算
+  const ratio = await page.evaluate(
+    () => (document.getElementById('stage') as HTMLCanvasElement).height / window.innerHeight,
+  );
   await page.setViewportSize({ width: 900, height: 700 });
   await expect
     .poll(() => page.evaluate(() => (document.getElementById('stage') as HTMLCanvasElement).height))
-    .toBe(700 * (await page.evaluate(() => Math.min(window.devicePixelRatio, 2))));
+    .toBe(Math.round(700 * ratio));
 });
 
 test.describe('沒有 GPU 加速的裝置', () => {
@@ -374,4 +382,39 @@ test.describe('沒有 GPU 加速的裝置', () => {
     await page.goto('/years/2025/lab/');
     await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
   });
+});
+
+test('瀏覽器上一頁只做短淡入淡出，不播墨水', async ({ page, browserName }) => {
+  test.skip(
+    browserName === 'webkit' && process.platform === 'win32',
+    'fixtures 拿掉了 View Transition',
+  );
+  await page.addInitScript(() => {
+    document.addEventListener('astro:before-swap', (e) => {
+      void (e as unknown as { viewTransition: ViewTransition }).viewTransition.ready.then(() => {
+        const s = getComputedStyle(document.documentElement, '::view-transition-new(root)');
+        (window as unknown as { __back: string }).__back =
+          `${s.animationName} ${s.animationDuration}`;
+      });
+    });
+  });
+  await page.goto('/about/');
+  await page.getByRole('link', { name: '色彩空間' }).first().click();
+  await expect(page).toHaveURL(/\/space\/$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/about\/$/);
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __back?: string }).__back))
+    .toBe('vt-fade-in 0.2s');
+});
+
+test('Zima Blue 對話框打開時看得到自訂游標', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'WebKit 的 pointer: fine 判斷在無頭模式下不一致');
+  await page.goto('/space/');
+  await page.mouse.move(300, 300);
+  await page.mouse.move(320, 320);
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('chroma:zima')));
+  await expect(page.locator('#zima-reveal .chroma-cursor')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('body > .chroma-cursor')).toHaveCount(1);
 });

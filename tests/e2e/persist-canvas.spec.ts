@@ -9,7 +9,7 @@ async function settle(page: Page): Promise<Debug> {
   // 視窗捲近畫面才建立（Stage.mount），所以比對已經建立好的數量
   await expect(page.locator('main [data-view]').first()).toHaveAttribute('data-stage-ready', '');
   const ready = page.locator('main [data-stage-ready]');
-  await expect.poll(async () => (await readDebug(page)).views).toBe(await ready.count());
+  await expect.poll(async () => (await readDebug(page)).views === (await ready.count())).toBe(true);
   const frames = (await readDebug(page)).frames;
   await expect.poll(async () => (await readDebug(page)).frames).toBeGreaterThan(frames + 10);
   return readDebug(page);

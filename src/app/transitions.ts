@@ -5,7 +5,7 @@ import type { TransitionDirectionalAnimations } from 'astro';
  * - 目的頁的年度色從點擊位置以液態邊緣擴散蓋滿畫面，再退開露出新頁，約 1 秒（樣式在 global.css）
  * - 色票卡片：典藏頁與年度頁的色票用同一個 transition:name，瀏覽器自動做共享元素轉場
  * - 3D 時間軸的色卡：點擊時在色塊位置放一塊同色方塊，和年度頁主視覺配成一組，放大成主視覺
- * 減少動態效果時改為 200 毫秒淡入淡出。
+ * 減少動態效果，或瀏覽器的上一頁、下一頁時，改為 200 毫秒淡入淡出。
  */
 const reveal = {
   old: { name: 'vt-root-out', duration: '1s', easing: 'linear', fillMode: 'both' },
@@ -18,6 +18,8 @@ export const rootTransition: TransitionDirectionalAnimations = {
 };
 
 let origin = { x: '50%', y: '50%' };
+/** 這次換頁是不是瀏覽器的上一頁、下一頁 */
+let traverse = false;
 /** 下一次換頁要讓主視覺接手的轉場名稱（見 morphIntoHero） */
 let pendingHero: string | null = null;
 
@@ -61,10 +63,16 @@ export function initTransitions(): void {
   document.addEventListener('keydown', () => (origin = { x: '50%', y: '50%' }), { capture: true });
   window.addEventListener('popstate', () => (origin = { x: '50%', y: '50%' }));
   const apply = () => {
-    document.documentElement.style.setProperty('--vt-x', origin.x);
-    document.documentElement.style.setProperty('--vt-y', origin.y);
+    const root = document.documentElement;
+    root.style.setProperty('--vt-x', origin.x);
+    root.style.setProperty('--vt-y', origin.y);
+    if (traverse) root.dataset.vt = 'traverse';
+    else delete root.dataset.vt;
   };
-  document.addEventListener('astro:before-preparation', apply);
+  document.addEventListener('astro:before-preparation', (event) => {
+    traverse = event.navigationType === 'traverse';
+    apply();
+  });
   document.addEventListener('astro:after-swap', apply);
 
   // 新頁面的主視覺只在這一次換頁接手色卡方塊，轉場結束就拿掉名稱，避免之後換頁時單獨成組

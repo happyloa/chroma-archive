@@ -465,6 +465,17 @@
     opacity: 0;
   }
 }
+/* 瀏覽器的上一頁、下一頁：不播墨水，200 毫秒淡入淡出（src/app/transitions.ts 設定 data-vt） */
+:root[data-vt='traverse']::view-transition-new(vt-ink) {
+  animation: none;
+  opacity: 0;
+}
+:root[data-vt='traverse']::view-transition-old(root) {
+  animation: vt-fade-out 0.2s ease both;
+}
+:root[data-vt='traverse']::view-transition-new(root) {
+  animation: vt-fade-in 0.2s ease both;
+}
 /* 減少動態效果：200 毫秒淡入淡出（US-07-4）。Astro 內建的樣式會用 !important 關掉所有轉場動畫，所以加上 :root 提高權重 */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
