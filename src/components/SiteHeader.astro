@@ -1,0 +1,44 @@
+---
+interface Props {
+  /** 頁首下方第一個區塊的背景：決定文字用哪個顏色 */
+  tone?: 'paper' | 'coty' | 'ink';
+}
+
+const { tone = 'paper' } = Astro.props;
+const toneClass = { paper: 'text-ink', coty: 'text-coty-ink', ink: 'text-paper' }[tone];
+
+const links = [
+  { href: '/archive/', label: '典藏' },
+  { href: '/space/', label: '色彩空間' },
+  { href: '/about/', label: '關於' },
+];
+
+const path = Astro.url.pathname;
+---
+
+<!-- 疊在第一個區塊上方，隨頁面捲走；文字色依該區塊背景決定 -->
+<header
+  class:list={[
+    'absolute inset-x-0 top-0 z-30 flex items-baseline justify-between gap-6 px-gutter py-5',
+    toneClass,
+  ]}
+>
+  <a href="/" class="eyebrow tracking-[0.22em]" aria-current={path === '/' ? 'page' : undefined}>
+    Chroma Archive
+  </a>
+  <nav aria-label="主要導覽">
+    <ul class="flex gap-5 text-sm sm:gap-8">
+      {links.map((l) => (
+        <li>
+          <a
+            href={l.href}
+            class="underline-offset-4 hover:underline aria-[current=page]:underline"
+            aria-current={path.startsWith(l.href) ? 'page' : undefined}
+          >
+            {l.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>

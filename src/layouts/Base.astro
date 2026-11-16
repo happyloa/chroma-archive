@@ -1,7 +1,13 @@
 ---
 import { ClientRouter } from 'astro:transitions';
-import { pickInk } from '../lib/color';
+import '@fontsource-variable/fraunces/full.css';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/noto-serif-tc';
+import '@fontsource-variable/noto-sans-tc';
 import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { pickInk } from '../lib/color';
 
 interface Props {
   title: string;
@@ -10,6 +16,8 @@ interface Props {
   scene?: string;
   /** 這一頁的年度色，寫入 --coty */
   color?: string;
+  /** 第一個區塊的背景，決定頁首文字色 */
+  headerTone?: 'paper' | 'coty' | 'ink';
 }
 
 const {
@@ -17,9 +25,11 @@ const {
   description = 'Pantone 歷年年度代表色與產品設計發想。',
   scene = 'none',
   color = '#F0EEE9',
+  headerTone = 'paper',
 } = Astro.props;
 
 const { ink } = pickInk(color);
+const fullTitle = title === 'Chroma Archive' ? title : `${title}｜Chroma Archive`;
 ---
 
 <html lang="zh-Hant-TW" style={`--coty: ${color}; --coty-ink: ${ink}`}>
@@ -27,25 +37,32 @@ const { ink } = pickInk(color);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content={color} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
+    <title>{fullTitle}</title>
     <ClientRouter />
   </head>
-  <body>
+  <body class="min-h-screen">
+    <a
+      href="#content"
+      class="sr-only z-50 bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+    >
+      跳到主要內容
+    </a>
     <canvas
       id="stage"
       class="pointer-events-none fixed inset-0 z-0 block h-screen w-screen"
       transition:persist="stage"
       aria-hidden="true"
     ></canvas>
-    <main class="relative z-10 min-h-screen p-[4vw]" data-scene={scene} data-color={color}>
+    <SiteHeader tone={headerTone} />
+    <main id="content" class="relative z-10" data-scene={scene} data-color={color}>
       <slot />
     </main>
-    <footer class="relative z-10 px-[4vw] py-8 text-xs opacity-70">
-      本站為個人作品，與 Pantone LLC 無關。色值皆為螢幕近似值，非官方色彩標準。PANTONE® 為 Pantone
-      LLC 的註冊商標。
-    </footer>
+    <SiteFooter />
+    <p id="announcer" class="sr-only" aria-live="polite"></p>
     <script>
       import '../app/boot';
     </script>

@@ -1,0 +1,40 @@
+---
+import { getYears } from '../lib/data';
+
+const years = await getYears();
+---
+
+<footer class="relative z-10 mt-section border-t border-ink/10">
+  <div class="page-grid gap-y-10 py-12">
+    <div class="col-span-4 md:col-span-5">
+      <p class="font-display text-title">Chroma Archive</p>
+      <p class="mt-3 max-w-[32ch] text-sm text-smoke">
+        收錄 {years[0]!.year} 到 {years.at(-1)!.year} 年的 Pantone
+        年度代表色，以及每個顏色的產品設計參考。
+      </p>
+    </div>
+    <nav aria-label="頁尾導覽" class="col-span-2 md:col-span-3">
+      <ul class="space-y-1 text-sm">
+        <li>
+          <a href="/archive/" class="hover:underline">
+            典藏
+          </a>
+        </li>
+        <li>
+          <a href="/space/" class="hover:underline">
+            色彩空間
+          </a>
+        </li>
+        <li>
+          <a href="/about/" class="hover:underline">
+            關於本站
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <p class="col-span-4 text-xs leading-relaxed text-smoke md:col-span-4">
+      本站為個人作品，與 Pantone LLC 無關。色值皆為螢幕近似值，非官方色彩標準。PANTONE® 為 Pantone
+      LLC 的註冊商標。
+    </p>
+  </div>
+</footer>

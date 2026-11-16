@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+  // 與 wrangler.jsonc 的 auto-trailing-slash 一致，站內連結一律帶尾斜線
+  trailingSlash: 'always',
   // 正式網域確定後改成實際網址（tasks.md T076）
   site: 'https://chroma-archive.example.com',
   prefetch: { prefetchAll: true },

@@ -1,4 +1,5 @@
 import type { Stage } from '../stage/Stage';
+import { initCopy } from './copy';
 import { initTicker, tickerCallbackCount } from './ticker';
 
 /**
@@ -6,6 +7,7 @@ import { initTicker, tickerCallbackCount } from './ticker';
  * 所以這裡的初始化只跑一次；每次換頁的工作放在 astro:page-load。
  */
 initTicker();
+initCopy();
 
 let stage: Stage | null = null;
 let StageClass: typeof Stage | null = null;
