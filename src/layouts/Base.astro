@@ -42,6 +42,28 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}｜Chroma Archiv
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
+    <!-- 首次繪製前套用深淺色，避免閃爍；換頁後 <html> 屬性會被換掉，所以在 after-swap 再套一次 -->
+    <script is:inline>
+      (() => {
+        const apply = () => {
+          let theme = null;
+          try {
+            theme = localStorage.getItem('chroma-theme');
+          } catch {
+            // 儲存空間被封鎖時改用系統設定
+          }
+          if (theme !== 'light' && theme !== 'dark') {
+            theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.dataset.theme = theme;
+        };
+        apply();
+        if (!window.__chromaThemeInit) {
+          window.__chromaThemeInit = true;
+          document.addEventListener('astro:after-swap', apply);
+        }
+      })();
+    </script>
     <ClientRouter />
   </head>
   <body class="min-h-screen">

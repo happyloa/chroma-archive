@@ -2,6 +2,7 @@ import type { Stage } from '../stage/Stage';
 import { initCopy } from './copy';
 import { initLab } from './lab';
 import { initMotion, onMotionChange, prefersReducedMotion, webglAvailable } from './motion';
+import { initTheme, setCanvasSnapshotProvider } from './theme';
 import { initTicker, tickerCallbackCount } from './ticker';
 
 /**
@@ -11,6 +12,8 @@ import { initTicker, tickerCallbackCount } from './ticker';
 initMotion();
 initTicker();
 initCopy();
+initTheme();
+setCanvasSnapshotProvider(() => stage?.snapshot());
 
 let stage: Stage | null = null;
 let StageClass: typeof Stage | null = null;

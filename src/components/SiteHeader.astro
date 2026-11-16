@@ -1,5 +1,6 @@
 ---
 import { REPO_URL } from '../lib/site';
+import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
   /** 頁首下方第一個區塊的背景：決定文字用哪個顏色 */
@@ -7,7 +8,7 @@ interface Props {
 }
 
 const { tone = 'paper' } = Astro.props;
-const toneClass = { paper: 'text-ink', coty: 'text-coty-ink', ink: 'text-paper' }[tone];
+const toneClass = { paper: 'text-ink', coty: 'text-coty-ink', ink: 'text-day' }[tone];
 
 const links = [
   { href: '/archive/', label: '典藏' },
@@ -21,7 +22,7 @@ const path = Astro.url.pathname;
 <!-- 疊在第一個區塊上方，隨頁面捲走；文字色依該區塊背景決定 -->
 <header
   class:list={[
-    'absolute inset-x-0 top-0 z-30 flex items-baseline justify-between gap-6 px-gutter py-5',
+    'absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-6 px-gutter py-4',
     toneClass,
   ]}
 >
@@ -29,7 +30,7 @@ const path = Astro.url.pathname;
     Chroma Archive
   </a>
   <nav aria-label="主要導覽">
-    <ul class="flex gap-5 text-sm sm:gap-8">
+    <ul class="flex items-center gap-4 text-sm sm:gap-8">
       {links.map((l) => (
         <li>
           <a
@@ -41,7 +42,7 @@ const path = Astro.url.pathname;
           </a>
         </li>
       ))}
-      <li>
+      <li class="max-sm:hidden">
         <a
           href={REPO_URL}
           target="_blank"
@@ -51,6 +52,9 @@ const path = Astro.url.pathname;
         >
           GitHub<span aria-hidden="true">↗</span>
         </a>
+      </li>
+      <li>
+        <ThemeToggle />
       </li>
     </ul>
   </nav>

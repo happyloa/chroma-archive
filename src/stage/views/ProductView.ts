@@ -18,7 +18,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import { LIGHT_LOOK, getEnvironment, type LightPreset } from '../environment';
+import { LIGHT_LOOK, backgroundFor, getEnvironment, type LightPreset } from '../environment';
 import {
   PRODUCTS,
   applyFinish,
@@ -135,7 +135,13 @@ export class ProductView implements StageView {
 
     this.setLight(this.state.light);
     this.setProduct(this.state.product);
+    window.addEventListener('themechange', this.onThemeChange);
   }
+
+  /** 網站切換深淺色時，背景跟著換 */
+  private onThemeChange = (): void => {
+    this.setLight(this.state.light);
+  };
 
   getState(): ProductState {
     return { ...this.state };
@@ -185,7 +191,7 @@ export class ProductView implements StageView {
     const look = LIGHT_LOOK[preset];
     this.scene.environment = getEnvironment(this.ctx.renderer, preset);
     this.scene.environmentIntensity = look.envIntensity;
-    this.scene.background = this.transparent ? null : new Color(look.background);
+    this.scene.background = this.transparent ? null : new Color(backgroundFor(preset));
     this.key.intensity = preset === 'night' ? 0.3 : preset === 'daylight' ? 1 : 0.6;
     this.shadow.material.opacity = preset === 'night' ? 0.9 : 0.7;
     this.exposure = look.exposure;
@@ -226,7 +232,7 @@ export class ProductView implements StageView {
     const pass = new OutputPass();
 
     const prevBackground = this.scene.background;
-    if (!prevBackground) this.scene.background = new Color(LIGHT_LOOK[this.state.light].background);
+    if (!prevBackground) this.scene.background = new Color(backgroundFor(this.state.light));
     const prevTarget = r.getRenderTarget();
     const prevExposure = r.toneMappingExposure;
     r.toneMappingExposure = this.exposure;
@@ -270,6 +276,7 @@ export class ProductView implements StageView {
   }
 
   dispose(): void {
+    window.removeEventListener('themechange', this.onThemeChange);
     this.controls.dispose();
     this.primaryMat.dispose();
     this.accentMat.dispose();
