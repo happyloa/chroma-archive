@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "chroma-archive",
+  "compatibility_date": "2026-11-16",
+  // 純靜態站：沒有 main，請求直接由 Static Assets 回應
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash",
+  },
+}
