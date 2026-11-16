@@ -20,7 +20,6 @@ export const ColorsFileSchema = z.object({
 });
 
 export type ColorEntry = z.infer<typeof ColorSchema>;
-export type YearColorsEntry = z.infer<typeof YearSchema>;
 
 /** src/content/years/*.md 的 frontmatter（data-model.md 第 2 節） */
 export const FINISHES = ['matte', 'satin', 'gloss', 'metallic', 'velvet', 'translucent'] as const;

@@ -15,10 +15,6 @@ export function getYears(): Promise<YearEntry[]> {
   return cache;
 }
 
-export async function getYear(year: number): Promise<YearEntry | undefined> {
-  return (await getYears()).find((y) => y.year === year);
-}
-
 /** 最新一年（首頁 Hero 使用） */
 export async function getLatestYear(): Promise<YearEntry> {
   const years = await getYears();

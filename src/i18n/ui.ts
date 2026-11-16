@@ -4,7 +4,6 @@
  */
 export const LANGS = ['zh-tw', 'en'] as const;
 export type Lang = (typeof LANGS)[number];
-export const DEFAULT_LANG: Lang = 'zh-tw';
 
 export const HTML_LANG: Record<Lang, string> = { 'zh-tw': 'zh-Hant-TW', en: 'en' };
 export const OG_LOCALE: Record<Lang, string> = { 'zh-tw': 'zh_TW', en: 'en_US' };
