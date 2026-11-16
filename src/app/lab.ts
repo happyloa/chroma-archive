@@ -42,6 +42,8 @@ function applyParams(form: HTMLFormElement): void {
       (i) => i.value.toLowerCase() === value.toLowerCase(),
     );
     if (input) input.checked = true;
+    else if (name === 'c2' && /^#[0-9a-f]{6}$/i.test(value))
+      addAccentChoice(form, value.toUpperCase());
   }
   const photo = form.querySelector<HTMLInputElement>('input[name="q"]');
   if (photo && params.get('q') === 'photo') photo.checked = true;
@@ -53,6 +55,22 @@ function applyParams(form: HTMLFormElement): void {
       spin.checked = false;
     }
   }
+}
+
+/** 從年度頁設計發想帶來的輔色不在預設選項裡時，補一個選項 */
+function addAccentChoice(form: HTMLFormElement, hex: string): void {
+  const list = form.querySelector('fieldset[data-slot="accent"] .flex');
+  const template = list?.querySelector('label');
+  if (!list || !template) return;
+  const label = template.cloneNode(true) as HTMLLabelElement;
+  label.style.background = hex;
+  label.title = hex;
+  const input = label.querySelector('input')!;
+  input.value = hex;
+  input.checked = true;
+  const text = label.querySelector('.sr-only:not(input)');
+  if (text) text.textContent = hex;
+  list.prepend(label);
 }
 
 function writeParams(form: HTMLFormElement): void {

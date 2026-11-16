@@ -9,6 +9,8 @@ import type { YearEntry } from '../lib/data';
 import type { PaletteKind } from '../lib/color';
 import { formatDate, getLang, localePath, useT, type UiKey } from '../i18n/ui';
 import { colorNames, localizedContent } from '../i18n/content';
+import { parseColorRef } from '../lib/color';
+import ProductFallback from '../components/ProductFallback.astro';
 
 interface Props {
   entry: YearEntry;
@@ -25,7 +27,28 @@ const { summary, keywords } = localizedContent(entry, lang);
 // 色彩故事目前只有中文
 const doc = zh ? await getEntry('years', String(year)) : undefined;
 const { Content } = doc ? await render(doc) : { Content: null };
-const reviewed = content.status === 'reviewed';
+// 有設計發想就顯示；status 只記錄是否已經人工審稿（見 data-model.md）
+const hasIdeas = content.concepts.length > 0;
+const resolve = (ref: string) =>
+  parseColorRef(
+    ref,
+    years.map((y) => ({ year: y.year, colors: y.colors })),
+  ).hex;
+const ideas = content.concepts.map((c) => ({
+  ...c,
+  primaryHex: resolve(c.cmf.primary),
+  accentHex: c.cmf.accent ? resolve(c.cmf.accent) : main!.palettes.complementary[1]!,
+  text:
+    zh || !c.en
+      ? { title: c.title, pitch: c.pitch, audience: c.audience, material: c.cmf.material }
+      : c.en,
+}));
+const materialText = (m: {
+  material: string;
+  reason: string;
+  en?: { material: string; reason: string };
+}) => (zh || !m.en ? m : m.en);
+const enStory = !zh ? content.en?.story?.trim() : undefined;
 const { names, namesZh } = colorNames(entry);
 const paletteKinds: PaletteKind[] = ['complementary', 'analogous', 'triadic', 'split', 'mono'];
 const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
@@ -41,11 +64,16 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
   scene="year"
   color={main!.hex}
   headerTone={main!.isLight ? 'ink' : 'coty'}
+  ogImage={`/og/${year}.png`}
 >
   {/* 色塊 Hero */}
   <section
     class:list={['pt-28 pb-gutter', main!.isLight ? 'bg-night text-day' : 'bg-coty text-coty-ink']}
     aria-labelledby="year-title"
+    data-view="hero"
+    data-color={main!.hex}
+    data-mode={main!.isLight ? 'cloud' : 'liquid'}
+    data-background="#0E0E0E"
   >
     <div class="page-grid gap-y-8">
       <p class="eyebrow col-span-2 md:col-span-6">
@@ -66,11 +94,13 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
         class="col-span-3 md:col-span-4 md:col-start-9 md:row-span-2 md:row-start-2 md:self-center"
         aria-hidden="true"
       >
-        <Swatch entry={entry} class="rotate-[-2deg]" />
+        <Swatch entry={entry} class="rotate-[-2deg]" transitionName={`swatch-${year}`} />
       </div>
       <h1 id="year-title" class="col-span-4 self-end md:col-span-6 md:row-start-2">
         <span class="block font-display text-mega font-light tabular-nums">{year}</span>
-        <span class="mt-6 block font-display text-headline italic">{names}</span>
+        <span class="mt-6 block font-display text-headline italic" data-split lang="en">
+          {names}
+        </span>
         {zh && <span class="mt-2 block font-serif-tc text-title">{namesZh}</span>}
       </h1>
       <p class="col-span-4 max-w-[30ch] self-end text-lead md:col-span-5 md:row-start-3">
@@ -115,7 +145,13 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
           <li class="rounded-full border border-ink/15 px-3 py-1 text-sm">{k}</li>
         ))}
       </ul>
-      {entry.hasStory && Content ? (
+      {enStory ? (
+        <div class="space-y-6 font-display text-lead leading-[1.8]">
+          {enStory.split(/\n\s*\n/).map((p) => (
+            <p>{p}</p>
+          ))}
+        </div>
+      ) : entry.hasStory && Content ? (
         <div class="space-y-6 font-serif-tc text-lead leading-[1.9]">
           <Content />
         </div>
@@ -130,9 +166,19 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
 
   {/* 配色 */}
   <section class="page-grid mt-section gap-y-10" aria-labelledby="palette-title">
-    <h2 id="palette-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
-      {t('year.palettes')}
-    </h2>
+    <div class="col-span-4 space-y-4 md:col-span-3">
+      <h2 id="palette-title" class="eyebrow text-smoke">
+        {t('year.palettes')}
+      </h2>
+      <a
+        href={`/ase/${year}.ase`}
+        download={`chroma-archive-${year}.ase`}
+        class="eyebrow inline-flex items-center gap-2 border-b border-current pb-1"
+      >
+        {t('year.downloadAse')} <span aria-hidden="true">↓</span>
+      </a>
+      <p class="text-xs text-smoke">{t('year.downloadAseNote')}</p>
+    </div>
     <div class="col-span-4 space-y-16 md:col-span-9">
       {colors.map((c) => (
         <div class="space-y-10">
@@ -153,26 +199,63 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
       {t('year.ideas')}
     </h2>
     <div class="col-span-4 md:col-span-9">
-      {reviewed ? (
+      {hasIdeas ? (
         <div class="space-y-16">
           <ul class="grid gap-x-col gap-y-12 md:grid-cols-3">
-            {content.concepts.map((concept) => (
-              <li class="flex flex-col gap-3 border-t border-ink/15 pt-5">
-                <p class="eyebrow text-smoke">{concept.category}</p>
-                <h3 class="font-serif-tc text-title">{concept.title}</h3>
-                <p>{concept.pitch}</p>
+            {ideas.map((concept, i) => (
+              <li class="flex flex-col gap-3">
+                {/* 3D 產品：透明視窗，捲到這段時依序進場 */}
+                <div
+                  class="relative flex aspect-square cursor-grab items-center justify-center bg-mist/60 active:cursor-grabbing"
+                  data-view="product"
+                  data-transparent
+                  data-reveal={i}
+                  data-product={concept.labPreset.product}
+                  data-finish={concept.cmf.finish}
+                  data-primary={concept.primaryHex}
+                  data-accent={concept.accentHex}
+                  data-light={concept.labPreset.light}
+                  data-room="studio"
+                  role="img"
+                  aria-label={`${concept.text.title}：${t(`product.${concept.labPreset.product}` as UiKey)}`}
+                >
+                  <ProductFallback
+                    product={concept.labPreset.product}
+                    primary={concept.primaryHex}
+                    accent={concept.accentHex}
+                  />
+                </div>
+                <p class="eyebrow mt-2 text-smoke">
+                  {t(`product.${concept.labPreset.product}` as UiKey)}
+                </p>
+                <h3 class:list={['text-title', zh ? 'font-serif-tc' : 'font-display']}>
+                  {concept.text.title}
+                </h3>
+                <p>{concept.text.pitch}</p>
                 <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                   <dt class="text-smoke">{t('year.audience')}</dt>
-                  <dd>{concept.audience}</dd>
+                  <dd>{concept.text.audience}</dd>
                   <dt class="text-smoke">{t('year.material')}</dt>
-                  <dd>{concept.cmf.material}</dd>
+                  <dd>{concept.text.material}</dd>
                   <dt class="text-smoke">{t('year.finish')}</dt>
-                  <dd>{t(`finish.${concept.cmf.finish}` as UiKey)}</dd>
+                  <dd class="flex items-center gap-2">
+                    {t(`finish.${concept.cmf.finish}` as UiKey)}
+                    <span class="inline-flex" aria-hidden="true">
+                      <span
+                        class="size-3 rounded-full"
+                        style={`background:${concept.primaryHex}`}
+                      />
+                      <span
+                        class="-ml-1 size-3 rounded-full ring-1 ring-paper"
+                        style={`background:${concept.accentHex}`}
+                      />
+                    </span>
+                  </dd>
                 </dl>
                 <a
                   href={localePath(
                     lang,
-                    `/years/${year}/lab/?p=${concept.labPreset.product}&f=${concept.cmf.finish}&c1=${encodeURIComponent(concept.cmf.primary)}${concept.cmf.accent ? `&c2=${encodeURIComponent(concept.cmf.accent)}` : ''}&l=${concept.labPreset.light}`,
+                    `/years/${year}/lab/?p=${concept.labPreset.product}&f=${concept.cmf.finish}&c1=${encodeURIComponent(concept.cmf.primary)}&c2=${encodeURIComponent(concept.accentHex)}&l=${concept.labPreset.light}`,
                   )}
                   class="eyebrow mt-auto self-start border-b border-current pb-1"
                 >
@@ -191,8 +274,8 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
                   <ul class="divide-y divide-ink/10 border-y border-ink/10">
                     {content.materials![k].map((m) => (
                       <li class="py-3">
-                        <span class="font-medium">{m.material}</span>
-                        <span class="block text-sm text-smoke">{m.reason}</span>
+                        <span class="font-medium">{materialText(m).material}</span>
+                        <span class="block text-sm text-smoke">{materialText(m).reason}</span>
                       </li>
                     ))}
                   </ul>

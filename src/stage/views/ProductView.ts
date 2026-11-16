@@ -155,6 +155,30 @@ export class ProductView implements StageView {
   private custom: ProductModel | null = null;
   private productToken = 0;
   private disposed = false;
+  /** data-reveal：捲到畫面時才進場，數字是第幾個（用來錯開時間） */
+  private readonly revealIndex: number | null;
+  private revealed = false;
+
+  onFirstVisible(): void {
+    if (this.revealIndex === null || this.revealed) return;
+    this.revealed = true;
+    if (this.reducedMotion) {
+      this.turntable.scale.setScalar(1);
+      return;
+    }
+    const delay = this.revealIndex * 0.15;
+    gsap.fromTo(
+      this.turntable.position,
+      { y: 0.25 },
+      { y: 0, duration: 1.1, delay, ease: 'bounce.out' },
+    );
+    gsap.fromTo(
+      this.turntable.scale,
+      { x: 0, y: 0, z: 0 },
+      { x: 1, y: 1, z: 1, duration: 0.8, delay, ease: 'back.out(1.6)' },
+    );
+  }
+
   /** 軟體算繪（低畫質檔位）跑不動路徑追蹤 */
   get supportsPhoto(): boolean {
     return this.ctx.tier !== 'low';
@@ -180,6 +204,9 @@ export class ProductView implements StageView {
     this.reducedMotion = ctx.reducedMotion;
     this.transparent = 'transparent' in el.dataset;
     this.interactive = 'interactive' in el.dataset;
+    this.revealIndex = el.dataset.reveal !== undefined ? Number(el.dataset.reveal) : null;
+    // 等到捲進畫面才進場
+    if (this.revealIndex !== null && !ctx.reducedMotion) this.turntable.scale.setScalar(0);
     const d = el.dataset;
     this.state = {
       product: (d.product as ProductId) ?? DEFAULT_STATE.product,

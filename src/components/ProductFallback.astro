@@ -1,0 +1,90 @@
+---
+import type { PRODUCTS } from '../lib/schema';
+
+/**
+ * 不支援 WebGL 時的產品剪影（T050、T062）。以年度色填色的簡化 SVG，3D 視窗就緒後隱藏。
+ */
+interface Props {
+  product: (typeof PRODUCTS)[number];
+  primary: string;
+  accent?: string;
+  class?: string;
+}
+
+const { product, primary, accent = '#d9d3c8', class: className } = Astro.props;
+---
+
+<svg
+  viewBox="0 0 200 200"
+  class:list={['h-auto w-1/2', className]}
+  data-fallback
+  aria-hidden="true"
+>
+  <ellipse cx="100" cy="182" rx="62" ry="7" fill="rgb(0 0 0 / 0.12)"></ellipse>
+  {product === 'chair' && (
+    <g>
+      <rect x="52" y="50" width="96" height="70" rx="14" fill={primary} />
+      <rect x="44" y="104" width="112" height="34" rx="12" fill={primary} />
+      <rect x="58" y="108" width="84" height="18" rx="8" fill={accent} />
+      <path
+        d="M60 138 54 180M140 138l6 42M84 138l-2 30M116 138l2 30"
+        stroke="#5a3e2b"
+        stroke-width="6"
+        stroke-linecap="round"
+      />
+    </g>
+  )}
+  {product === 'headphones' && (
+    <g fill="none">
+      <path
+        d="M46 120V96a54 54 0 0 1 108 0v24"
+        stroke={primary}
+        stroke-width="12"
+        stroke-linecap="round"
+      />
+      <rect x="32" y="104" width="34" height="56" rx="16" fill={primary} />
+      <rect x="134" y="104" width="34" height="56" rx="16" fill={primary} />
+      <rect x="58" y="112" width="12" height="40" rx="6" fill={accent} />
+      <rect x="130" y="112" width="12" height="40" rx="6" fill={accent} />
+    </g>
+  )}
+  {product === 'vase' && (
+    <g>
+      <path
+        d="M84 30h32c-2 14-6 22 4 38 18 28 22 60 8 92-6 12-16 18-28 18s-22-6-28-18c-14-32-10-64 8-92 10-16 6-24 4-38z"
+        fill={primary}
+      />
+      <rect x="80" y="26" width="40" height="8" rx="4" fill={accent} />
+    </g>
+  )}
+  {product === 'speaker' && (
+    <g>
+      <rect x="62" y="40" width="76" height="138" rx="22" fill={primary} />
+      <rect x="66" y="40" width="68" height="14" rx="7" fill={accent} />
+      <ellipse cx="100" cy="47" rx="18" ry="3" fill="rgb(255 255 255 / 0.7)" />
+    </g>
+  )}
+  {product === 'lamp' && (
+    <g>
+      <path d="M44 92a56 46 0 0 1 112 0z" fill={primary} />
+      <rect x="97" y="92" width="6" height="74" fill="#c9c9c9" />
+      <ellipse cx="100" cy="172" rx="34" ry="8" fill={accent} />
+      <circle cx="100" cy="96" r="8" fill="#fff4dc" />
+    </g>
+  )}
+  {product === 'sneaker' && (
+    <g>
+      <path
+        d="M30 150c0-30 14-52 34-58 12 10 30 12 44 2 16 18 40 28 64 34 8 2 10 10 10 22H30z"
+        fill={primary}
+      />
+      <rect x="26" y="150" width="152" height="16" rx="8" fill="#f1efea" />
+      <path
+        d="M74 100l10 14M88 98l10 14M102 96l10 14"
+        stroke={accent}
+        stroke-width="4"
+        stroke-linecap="round"
+      />
+    </g>
+  )}
+</svg>
