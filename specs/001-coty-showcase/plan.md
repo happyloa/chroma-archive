@@ -6,12 +6,13 @@
 
 ## 1. 技術選型
 
-版本號是 2026-11-16 查詢 npm 的最新穩定版，初始化專案時再確認一次。
+所有套件一律使用最新穩定版，新增套件前先用 `npm view <套件> version` 確認。版本號是 2026-11-16 查詢的結果；因相容性無法用最新版的，在表格裡寫明原因。
 
 | 用途        | 套件                                                        | 版本     | 選用理由                                                                                                                                                  |
 | ----------- | ----------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 網站框架    | Astro                                                       | 7.x      | 預設輸出靜態 HTML，內容集合（content collections）適合一年一篇的資料；ClientRouter 支援 View Transitions 與 `transition:persist`，可以在換頁時保留 canvas |
-| 語言        | TypeScript                                                  | strict   | 資料 schema 與場景介面都需要型別                                                                                                                          |
+| 語言        | TypeScript                                                  | 6.0.x    | 資料 schema 與場景介面都需要型別。最新版是 7.x，但 typescript-eslint 與 @astrojs/check 還不支援，等兩者支援後再升級                                       |
+| CSS         | Tailwind CSS（@tailwindcss/vite）                           | 4.3.x    | 設計 token 寫在 `src/styles/global.css` 的 `@theme`，元件用 utility class；`--coty` 等執行期變數也透過 `@theme` 對應成 `bg-coty` 這類 class               |
 | 3D          | three                                                       | 0.187.x  | 生態成熟、文件與範例多；先用 WebGLRenderer，WebGPU 不列入第一版                                                                                           |
 | 後製        | postprocessing（pmndrs）                                    | 6.x      | 把 bloom、noise、色差合併成單一 pass，比 three 內建 EffectComposer 省效能                                                                                 |
 | 動畫        | gsap                                                        | 3.15.x   | 含 ScrollTrigger、SplitText、Flip、CustomEase，3.13 起全部外掛免費                                                                                        |
@@ -177,8 +178,7 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 │  │  ├─ 404.astro
 │  │  └─ years/[year]/index.astro, lab.astro
 │  └─ styles/
-│     ├─ tokens.css             中性色、字級、間距
-│     └─ global.css
+│     └─ global.css             Tailwind 進入點與 @theme 設計 token
 ├─ tests/
 │  ├─ unit/
 │  └─ e2e/
@@ -203,7 +203,9 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 | 單色                 | 固定色相，明度 0.25 到 0.95 取 5 階                                       |
 | 相鄰年份差距         | CIEDE2000（culori `differenceCiede2000`）                                 |
 
-在 OKLCH 調整色相後，結果可能超出 sRGB 色域，用 culori `toGamut('rgb', 'oklch')` 降彩度拉回色域內。
+在 OKLCH 調整色相後，結果可能超出 sRGB 色域，用 culori `clampChroma(color, 'oklch')` 降彩度拉回色域內。
+
+白色、灰色這類彩度低於 0.02 的顏色，轉色相不會產生可分辨的顏色，所以互補、類似、三角、分裂互補四組配色改用 0.06 的彩度產生淡色；單色配色維持原彩度。
 
 ## 5. 部署
 

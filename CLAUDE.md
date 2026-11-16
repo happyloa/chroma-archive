@@ -18,7 +18,8 @@
 
 ## 規則
 
-- 元件裡不寫死顏色，只用 `tokens.css` 的中性色和 `--coty`、`--coty-ink`。
+- 樣式用 Tailwind CSS 4。元件裡不寫死顏色，只用 `src/styles/global.css` 的 `@theme` 定義的 `ink`、`paper`、`coty`、`coty-ink`（例如 `bg-coty text-coty-ink`）。
+- 套件一律用最新穩定版，新增前先 `npm view <套件> version`；有相容性問題無法升級時，寫進 plan.md 的選型表。
 - 每個動畫都要處理 `prefers-reduced-motion`。
 - 文字內容一律輸出成 HTML，WebGL 只做視覺。
 - 色彩衍生值用 `src/lib/color/` 計算，不手寫。

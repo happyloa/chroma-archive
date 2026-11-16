@@ -28,11 +28,12 @@ const ColorsFileSchema = z.object({
 });
 ```
 
-額外檢查（寫在 `src/lib/data.ts`，失敗就中斷建置）：
+schema 實際定義在 `src/lib/schema.ts`。額外檢查寫在 `src/lib/entries.ts`，失敗就中斷建置，錯誤訊息會列出年份與欄位：
 
 1. `year` 不可重複，且依年份遞增排列。
 2. 每個 `year` 都要有對應的 Markdown；反之亦然。
-3. `hex` 轉成 OKLCH 後要落在 sRGB 色域內（防止打錯字）。
+3. Markdown 檔名要等於 frontmatter 的 `year`。
+4. 設計發想裡的顏色引用（`cmf.primary`、`cmf.accent`）都要能解析。
 
 ## 2. `src/content/years/[year].md`
 
@@ -79,16 +80,19 @@ const YearContentSchema = z.object({
   year: z.number().int(),
   summary: z.string().max(120), // 卡片與 meta description 用
   keywords: z.array(z.string()).min(4).max(6), // 情緒關鍵字
-  concepts: z.array(ConceptSchema).min(3),
-  materials: z.object({
-    good: z.array(MaterialNoteSchema).length(3),
-    avoid: z.array(MaterialNoteSchema).length(3),
-  }),
+  concepts: z.array(ConceptSchema).default([]),
+  materials: z
+    .object({
+      good: z.array(MaterialNoteSchema).length(3),
+      avoid: z.array(MaterialNoteSchema).length(3),
+    })
+    .optional(),
   status: z.enum(['draft', 'reviewed']).default('draft'),
 });
+// 另以 superRefine 檢查：status 為 reviewed 時，concepts 至少 3 個且必須有 materials
 ```
 
-Markdown 內文是 300 到 500 字的色彩故事。`status: draft` 的年份在正式建置時仍會出現，但頁面上不顯示設計發想段落，只顯示色值與故事；上線前要把要顯示的年份改為 `reviewed`。
+草稿可以只填 `summary` 和 `keywords`。Markdown 內文是 300 到 500 字的色彩故事，可以先留空。`status: draft` 的年份在正式建置時仍會出現，但頁面上不顯示設計發想段落，只顯示色值與故事；上線前要把要顯示的年份改為 `reviewed`。
 
 範例：
 

@@ -16,15 +16,15 @@
 ## 階段 1：資料與色彩工具
 
 - [ ] T010 逐筆核對 `data/colors.json` 的色號、英文名、HEX，補上 `announced` 日期；中文譯名定稿
-- [ ] T011 `src/lib/color/`：HEX 轉 RGB、HSL、OKLCH、LAB；對比文字色；五種配色；色域修正；CIEDE2000。附單元測試
-- [ ] T012 [P] `src/lib/color/ref.ts`：解析 `YYYY-N` 與 `#RRGGBB` 引用格式，附單元測試
-- [ ] T013 `src/content.config.ts`：依 data-model.md 定義 years collection schema
-- [ ] T014 `src/lib/data.ts`：合併 JSON 與 Markdown、產生 `YearEntry`、執行額外檢查
-- [ ] T015 [P] 建立 `src/content/years/_template.md` 與 2000 到 2026 年的 Markdown（先放 summary 與 keywords，`status: draft`）
+- [x] T011 `src/lib/color/`：HEX 轉 RGB、HSL、OKLCH、LAB；對比文字色；五種配色；色域修正；CIEDE2000。附單元測試
+- [x] T012 [P] `src/lib/color/ref.ts`：解析 `YYYY-N` 與 `#RRGGBB` 引用格式，附單元測試
+- [x] T013 `src/content.config.ts`：依 data-model.md 定義 years collection schema
+- [x] T014 `src/lib/data.ts`：合併 JSON 與 Markdown、產生 `YearEntry`、執行額外檢查
+- [x] T015 [P] 建立 `src/content/years/_template.md` 與 2000 到 2026 年的 Markdown（先放 summary 與 keywords，`status: draft`）
 
 ## 階段 2：設計系統與靜態版面
 
-- [ ] T020 `src/styles/tokens.css`：中性色、字級（clamp 流體字級）、間距、網格、`--coty` 與 `--coty-ink`
+- [ ] T020 `src/styles/global.css` 的 Tailwind `@theme`：字級（clamp 流體字級）、間距、網格；中性色與 `--coty`、`--coty-ink` 已在階段 1 建好
 - [ ] T021 [P] 字型：選定拉丁與中文字型，寫 `scripts/subset-fonts.ts` 依建置後 HTML 用字產生子集
 - [ ] T022 `layouts/Base.astro`：ClientRouter、persist canvas、頁首導覽、頁尾非官方聲明
 - [ ] T023 [P] 元件：`Swatch`（實體色票造型）、`ColorValue`（含複製）、`Palette`、`YearNav`（2D 年份刻度列）
