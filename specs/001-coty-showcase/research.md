@@ -156,3 +156,15 @@ spec.md 要求的是行動版，但 CI 一直用 desktop preset 量。2026-11-16
 E2E 測試在無頭瀏覽器裡也是軟體算繪，所以 `tests/e2e/fixtures.ts` 預設設定 `__chromaForceFull`，強制完整 3D；另有一項測試用 `fullGraphics: false` 確認靜態模式。
 
 `lighthouserc.json` 改用行動版設定。Performance 仍然只發警告。
+
+## 換頁轉場閃一下、色票卡飛到一半消失
+
+2026-11-16 使用者回報從典藏頁點色票換到年度頁時卡卡的、會閃一下。用 CDP screencast 逐格錄下換頁，量每格的平均亮度：轉場進行到一半時，亮度從 200 直接掉到 55，飛行中的色票卡也在落地前消失。
+
+原因是 `<html>` 用了 Astro 的 `transition:animate`。Astro 會給 `<html>` 一個依頁面而不同的 view-transition 名稱（典藏頁 `astro-gyrtbwwo-28`、年度頁 `astro-gyrtbwwo-2`），瀏覽器把新舊頁面當成兩個無關的群組。只出現在新頁面的群組排在最上層，於是：
+
+- 新頁面淡入時蓋住墨水，墨水在一半突然不見，看起來是硬切。
+- 新頁面淡入時也蓋住飛行中的色票卡。
+- 針對 `::view-transition-old(root)`、`::view-transition-new(root)` 寫的樣式全部沒有作用，包括上一頁、減少動態效果的 200 毫秒淡入淡出。先前的測試讀的是這兩個虛擬元素的計算樣式，虛擬元素即使不存在也讀得到值，所以沒有抓到。
+
+修正：拿掉 `<html>` 的 `transition:animate`，名稱回到預設的 `root`，整頁動畫直接寫在 global.css。另外，點色票卡、3D 色卡這類有共享元素的換頁不播墨水，新舊頁面 0.5 秒交叉淡化，色票卡 0.7 秒飛到新位置；一般換頁的新舊頁面也從 50% 瞬間切換改成在 35% 到 65% 之間交叉淡化。修正後相鄰兩格的亮度差最多 5（原本 145）。`tests/e2e/features.spec.ts` 檢查 `<html>` 的名稱是 `root`。
