@@ -36,10 +36,10 @@
 3D 產品展示是網站的核心，所以 T031 到 T034 完成後，先做階段 4 的 T047、T048、T046、T049、T050，再回來做 T035 之後的轉場與 Hero。
 
 - [ ] T030 `src/app/ticker.ts`、`scroll.ts`：GSAP ticker 驅動 Lenis 與 ScrollTrigger
-- [ ] T031 `src/app/motion.ts`：reduced-motion 偵測（含執行中切換）、WebGL 可用性偵測
-- [ ] T032 `src/stage/quality.ts`：detect-gpu 分級與執行期自動降級
-- [ ] T033 `src/stage/Stage.ts`：renderer、composer、resize、visibility 暫停、SceneRegistry
-- [ ] T034 [P] `src/stage/loader.ts`：GLTFLoader、KTX2Loader、Meshopt decoder、HDRI，含快取與載入進度
+- [x] T031 `src/app/motion.ts`：reduced-motion 偵測（含執行中切換）、WebGL 可用性偵測
+- [x] T032 `src/stage/quality.ts`：依裝置資訊分級與執行期自動降級（不用 detect-gpu，見 plan.md 2.3）
+- [x] T033 `src/stage/Stage.ts`：renderer、composer、resize、visibility 暫停、SceneRegistry
+- [x] T034 [P] `src/stage/loader.ts`：GLTFLoader、KTX2Loader、Meshopt decoder、HDRI，含快取與載入進度
 - [ ] T035 `src/app/transition.ts`：換頁液態擴散轉場，串 Astro 路由事件
 - [ ] T036 [P] `src/app/cursor.ts`：自訂游標與吸色效果
 - [ ] T037 [P] SplitText 文字出場的共用工具，支援中文逐字
@@ -53,9 +53,9 @@
 - [ ] T044 時間軸到年度頁的共享元素轉場（US-02-5）
 - [x] T045 年度頁：色值、故事、配色、相鄰年份比較（US-03）
 - [ ] T046 年度頁：設計發想段落以 3D 產品模型展示，每個概念一個可旋轉的模型，捲動進場、畫面外暫停 render（US-04）
-- [ ] T047 [P] 準備 6 個產品模型：取得或製作、拆分材質區、Meshopt 壓縮、KTX2 貼圖、低面數版本、授權記錄
-- [ ] T048 LabScene：換色、六種表面處理、三種燈光、軌道控制（US-05-1 到 5-4）
-- [ ] T049 產品實驗室：網址參數同步與 PNG 匯出（US-05-5、5-6）
+- [x] T047 [P] 6 個產品模型：第一版以程式產生幾何，依畫質檔位調整曲面分段
+- [x] T048 LabScene：換色、六種表面處理、三種燈光、軌道控制（US-05-1 到 5-4）
+- [x] T049 產品實驗室：網址參數同步與 PNG 匯出（US-05-5、5-6）
 - [ ] T050 [P] 產品實驗室的無 WebGL 靜態圖（US-05-7）
 - [ ] T051 SpaceScene 與對應 HTML 表格（US-06，P2）
 - [x] T052 [P] 404 頁、about 頁

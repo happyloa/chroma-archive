@@ -14,11 +14,10 @@
 | 語言        | TypeScript                                                  | 6.0.x    | 資料 schema 與場景介面都需要型別。最新版是 7.x，但 typescript-eslint 與 @astrojs/check 還不支援，等兩者支援後再升級                                       |
 | CSS         | Tailwind CSS（@tailwindcss/vite）                           | 4.3.x    | 設計 token 寫在 `src/styles/global.css` 的 `@theme`，元件用 utility class；`--coty` 等執行期變數也透過 `@theme` 對應成 `bg-coty` 這類 class               |
 | 3D          | three                                                       | 0.187.x  | 生態成熟、文件與範例多；先用 WebGLRenderer，WebGPU 不列入第一版                                                                                           |
-| 後製        | postprocessing（pmndrs）                                    | 6.x      | 把 bloom、noise、色差合併成單一 pass，比 three 內建 EffectComposer 省效能                                                                                 |
+| 後製        | postprocessing（pmndrs）                                    | 6.x      | Hero 與時間軸的全畫面特效（bloom、顆粒）需要時再安裝；產品視窗不做後製                                                                                    |
 | 動畫        | gsap                                                        | 3.15.x   | 含 ScrollTrigger、SplitText、Flip、CustomEase，3.13 起全部外掛免費                                                                                        |
 | 平滑捲動    | lenis                                                       | 1.3.x    | 與 ScrollTrigger 整合簡單，原生捲動條仍可用                                                                                                               |
 | 色彩計算    | culori                                                      | 4.x      | 支援 OKLCH、LAB、WCAG 對比，能在建置時與瀏覽器兩邊執行                                                                                                    |
-| GPU 分級    | detect-gpu                                                  | 5.x      | 用 GPU 名稱查基準分數，決定畫質檔位                                                                                                                       |
 | Shader 載入 | vite-plugin-glsl                                            | 最新     | 支援 `#include`，shader 拆檔管理                                                                                                                          |
 | 資料驗證    | zod（Astro 內建）                                           | 隨 Astro | content collection schema                                                                                                                                 |
 | OG 圖       | satori + @resvg/resvg-js                                    | 最新     | 建置時把 JSX 版面轉 PNG                                                                                                                                   |
@@ -94,13 +93,13 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 
 ### 2.3 畫質檔位
 
-| 檔位 | 判定                         | DPR 上限 | 後製               | 陰影 | 模型   |
-| ---- | ---------------------------- | -------- | ------------------ | ---- | ------ |
-| 高   | detect-gpu tier 3            | 2        | bloom、noise、色差 | 有   | 原始   |
-| 中   | tier 2                       | 1.5      | noise              | 有   | 原始   |
-| 低   | tier 0、1 或行動裝置省電模式 | 1        | 無                 | 無   | 低面數 |
+| 檔位 | 判定                                                     | DPR 上限 | 陰影 | 模型曲面分段 |
+| ---- | -------------------------------------------------------- | -------- | ---- | ------------ |
+| 高   | 以上皆非                                                 | 2        | 有   | 100%         |
+| 中   | 觸控裝置、CPU 4 核以下或記憶體 4 GB 以下                 | 1.5      | 有   | 75%          |
+| 低   | 軟體算繪（SwiftShader 等）、省流量模式或記憶體 2 GB 以下 | 1        | 無   | 50%          |
 
-執行期再加一層保護：連續 2 秒平均幀率低於 40，自動降一檔。
+不用 detect-gpu：它執行時會向外部 CDN 下載 GPU 跑分資料。初始檔位用上表的裝置資訊估計（`src/stage/quality.ts`），執行期再加一層保護：連續 2 秒平均幀率低於 40，自動降一檔。
 
 ### 2.4 Shader 清單
 
@@ -114,8 +113,9 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 
 ### 2.5 產品實驗室
 
-- 模型格式：glTF Binary（`.glb`），幾何用 Meshopt 壓縮，貼圖轉 KTX2（Basis Universal）。
-- 每個模型的網格依「主色區」「輔色區」「固定材質區」命名（`mat_primary`、`mat_accent`、`mat_fixed_*`），換色時只改前兩者。
+- 單一 canvas、多個視窗：每個 3D 產品是一個帶 `data-view="product"` 的 DOM 元素，Stage 每幀讀取元素位置，用 scissor 把對應場景畫在那個位置。元素本身透明，拖曳事件直接掛在元素上（OrbitControls）。畫面外的視窗由 IntersectionObserver 排除，不算繪。
+- 模型：第一版用程式產生幾何（`src/stage/products/`），不需要下載模型檔、沒有授權問題。每個模型回傳主色零件、輔色零件，其餘零件用共用的固定材質（木頭、金屬、橡膠等）。幾何依畫質檔位快取共用。之後要換成 Blender 製作的 `.glb` 時，用 `src/stage/loader.ts`（GLTFLoader、Meshopt、KTX2）。
+- 色彩：tone mapping 用 Khronos PBR Neutral，盡量保留產品原色，避免 ACES 把年度色洗淡。
 - 六種表面處理用同一個 `MeshPhysicalMaterial`，切換參數：
 
 | 表面處理 | roughness | metalness | 其他                                |
@@ -127,8 +127,8 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 | 絨布     | 1         | 0         | `sheen` 1，`sheenColor` 取主色提亮  |
 | 半透明   | 0.2       | 0         | `transmission` 0.9，`thickness` 0.5 |
 
-- 燈光預設用三張 HDRI（攝影棚、戶外、夜間），以 PMREMGenerator 預先處理，低檔位改用 RoomEnvironment。
-- 匯出：建立 2048 × 2048 的 WebGLRenderTarget，渲染一次後讀回像素，在 2D canvas 疊上浮水印，再轉 Blob 下載。
+- 燈光預設（攝影棚、自然光、夜間）不下載 HDRI，改用程式產生的燈箱場景，以 PMREMGenerator 烘成環境貼圖，每種只烘一次（`src/stage/environment.ts`）。
+- 匯出：建立 2048 × 2048 的 WebGLRenderTarget，渲染一次後經 OutputPass 套用 tone mapping 與 sRGB 轉換，讀回像素，在 2D canvas 疊上浮水印，再轉 Blob 下載。
 - 網址參數：`?p=chair&f=satin&c1=2025-0&c2=2019-0&l=studio`，`c1`、`c2` 用「年份-色序」引用年度色，也接受 `hex`。
 
 ## 3. 目錄結構
@@ -141,9 +141,7 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 │  └─ constitution.md
 ├─ specs/001-coty-showcase/     本規格
 ├─ public/
-│  ├─ models/                   .glb 與 LICENSES.md
-│  ├─ hdri/
-│  ├─ fonts/                    子集化後的字型
+│  ├─ models/                   之後換成 .glb 模型時使用，附 LICENSES.md
 │  └─ _headers                  Cloudflare 快取標頭
 ├─ scripts/
 │  ├─ subset-fonts.ts           依頁面用字產生中文字型子集
