@@ -38,6 +38,10 @@ export class Stage {
   private reducedMotion = false;
   private mountToken = 0;
   private readonly fps = new FpsGuard(() => this.downgrade());
+  /** 上一次繪製時各視窗的位置；位置變了（捲動、版面改變）就要重畫 */
+  private drawn = new Map<StageView, DOMRect>();
+  /** canvas 尺寸改變、換頁等情況，下一格一定要重畫 */
+  private forceDraw = true;
   /** canvas 尺寸變化時更新 renderer，節流 100 毫秒（spec.md 第 8 節） */
   private resizeTimer = 0;
   private readonly resizeObserver = new ResizeObserver(() => {
@@ -182,6 +186,7 @@ export class Stage {
     this.views.clear();
     this.visible.clear();
     this.renderer.clear();
+    this.forceDraw = true;
   }
 
   private applyTier(): void {
@@ -202,48 +207,79 @@ export class Stage {
   private resize = (): void => {
     const { innerWidth: w, innerHeight: h } = window;
     this.renderer.setSize(w, h, false);
+    this.forceDraw = true;
   };
 
   private onVisibility = (): void => {
     this.running = document.visibilityState === 'visible';
     this.fps.reset();
+    this.forceDraw = true;
   };
 
+  /**
+   * 每一格：先更新看得到的視窗，再決定要不要重畫。
+   * 沒有任何變化時整格跳過，連清除都不做：WebGL canvas 這一格沒有被畫過，瀏覽器就繼續顯示上一格，
+   * 例如實驗室關掉自轉後放著不動、或換到沒有 3D 的頁面時，GPU 不必每秒清 60 次全螢幕。
+   * 只要有一個視窗要重畫，就清掉整個 canvas、全部重畫（preserveDrawingBuffer 為 false，
+   * 上一格的內容在畫新的一格時不保證還在）。
+   */
   private render = (time: number, delta: number): void => {
     if (!this.running) return;
+    this.frames += 1;
     const r = this.renderer;
     const h = window.innerHeight;
 
+    const targets: { view: StageView; rect: DOMRect }[] = [];
+    let dirty = this.forceDraw;
+    for (const el of this.visible) {
+      const view = this.views.get(el);
+      if (!view) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > h || rect.width === 0 || rect.height === 0) continue;
+      view.resize(rect.width, rect.height);
+      view.update(time, delta);
+      const last = this.drawn.get(view);
+      if (
+        (view.needsRender?.() ?? true) ||
+        !last ||
+        last.left !== rect.left ||
+        last.top !== rect.top ||
+        last.width !== rect.width ||
+        last.height !== rect.height
+      ) {
+        dirty = true;
+      }
+      targets.push({ view, rect });
+    }
+    // 有視窗離開畫面：它上一格的內容要清掉
+    if (targets.length !== this.drawn.size) dirty = true;
+    if (!dirty) return;
+
+    this.forceDraw = false;
+    this.drawn = new Map();
     r.setScissorTest(false);
     r.setClearColor(0x000000, 0);
     r.clear();
+    if (!targets.length) return;
 
-    if (this.visible.size) {
+    r.setScissorTest(true);
+    for (const { view, rect } of targets) {
+      const y = h - rect.bottom;
+      r.setViewport(rect.left, y, rect.width, rect.height);
+      r.setScissor(rect.left, y, rect.width, rect.height);
       r.setScissorTest(true);
-      for (const el of this.visible) {
-        const view = this.views.get(el);
-        if (!view) continue;
-        const rect = el.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > h || rect.width === 0 || rect.height === 0) continue;
-        view.resize(rect.width, rect.height);
-        view.update(time, delta);
-        const y = h - rect.bottom;
-        r.setViewport(rect.left, y, rect.width, rect.height);
-        r.setScissor(rect.left, y, rect.width, rect.height);
-        r.setScissorTest(true);
-        if (view.clearColor) {
-          r.setClearColor(view.clearColor, 1);
-          r.clear();
-        } else {
-          r.clearDepth();
-        }
-        view.beforeRender?.(r);
-        r.render(view.scene, view.camera);
+      if (view.clearColor) {
+        r.setClearColor(view.clearColor, 1);
+        r.clear();
+      } else {
+        r.clearDepth();
       }
-      r.setScissorTest(false);
-      this.fps.sample(delta);
+      view.beforeRender?.(r);
+      r.render(view.scene, view.camera);
+      this.drawn.set(view, rect);
     }
-    this.frames += 1;
+    r.setScissorTest(false);
+    this.fps.sample(delta);
   };
 
   private dispose(): void {

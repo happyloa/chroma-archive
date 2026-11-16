@@ -32,6 +32,8 @@ async function applyPage(): Promise<void> {
   const canvas = document.getElementById('stage');
   const main = document.querySelector('main');
   if (!(canvas instanceof HTMLCanvasElement) || !main) return;
+  // 這一頁沒有 3D 視窗（例如 about、404），而且還沒建立過舞台：不必下載 three.js、建立 WebGL
+  if (!StageClass && !main.querySelector('[data-view]')) return;
 
   // three.js 延遲載入，不算進首頁初始 JS 預算（憲章第 3 條）
   if (!StageClass) {
@@ -88,6 +90,8 @@ declare global {
       geometries: number;
       textures: number;
       programs: number;
+      /** renderer 實際畫過幾次（畫面沒變化時 Stage 不畫） */
+      draws: number;
     };
   }
 }
@@ -103,4 +107,5 @@ window.__chroma = () => ({
   geometries: stage?.renderer.info.memory.geometries ?? 0,
   textures: stage?.renderer.info.memory.textures ?? 0,
   programs: stage?.renderer.info.programs?.length ?? 0,
+  draws: stage?.renderer.info.render.frame ?? 0,
 });

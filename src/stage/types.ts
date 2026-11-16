@@ -17,6 +17,11 @@ export interface StageView {
   readonly scene: Scene;
   readonly camera: Camera;
   update(time: number, delta: number): void;
+  /**
+   * 這一格畫面有沒有變化（在 update 之後呼叫）。沒有實作的視窗視為每一格都在動。
+   * 所有看得到的視窗都回報沒有變化、位置也沒變時，Stage 這一格完全不畫，canvas 保留上一格的內容。
+   */
+  needsRender?(): boolean;
   /** 每次 render 前呼叫，用來設定 tone mapping 曝光這類 renderer 層級的參數 */
   beforeRender?(renderer: WebGLRenderer): void;
   /**

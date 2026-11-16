@@ -160,10 +160,13 @@ export class ProductView implements StageView {
   /** data-reveal：捲到畫面時才進場，數字是第幾個（用來錯開時間） */
   private readonly revealIndex: number | null;
   private revealed = false;
+  /** 下一格要重畫（狀態改變、載入完成、鏡頭移動） */
+  private dirty = true;
 
   onFirstVisible(): void {
     if (this.revealIndex === null || this.revealed) return;
     this.revealed = true;
+    this.dirty = true;
     if (this.reducedMotion) {
       this.turntable.scale.setScalar(1);
       return;
@@ -253,6 +256,8 @@ export class ProductView implements StageView {
       this.interacting = false;
       this.idleSince = performance.now();
     });
+    // 拖曳、慣性減速、縮放都會發出 change
+    this.controls.addEventListener('change', () => (this.dirty = true));
     // 小卡片在觸控裝置上不攔截垂直滑動，讓頁面可以正常捲動
     if (!this.interactive && window.matchMedia('(pointer: coarse)').matches) {
       this.controls.enabled = false;
@@ -279,6 +284,7 @@ export class ProductView implements StageView {
     const prev = this.state;
     const motion = animate && !this.reducedMotion;
     this.state = { ...prev, ...next };
+    this.dirty = true;
     let reframe = false;
 
     // 場景準備好才換上去並取景（見 setRoom）
@@ -401,6 +407,7 @@ export class ProductView implements StageView {
     model.root.position.y -= box.min.y;
     this.modelBox = new Box3().setFromObject(model.root);
     this.turntable.add(model.root);
+    this.dirty = true;
     this.model = model;
     this.state.product = id;
     this.hasAccent = model.accent.length > 0;
@@ -534,6 +541,7 @@ export class ProductView implements StageView {
     this.room = room;
     if (room) this.scene.add(room.group);
     this.el.removeAttribute('aria-busy');
+    this.dirty = true;
     this.setLight(this.state.light);
     this.placeModel();
     this.frame(motion);
@@ -559,6 +567,7 @@ export class ProductView implements StageView {
             return;
           this.scene.environment = texture;
           this.scene.environmentIntensity = HDRI_INTENSITY[hdri];
+          this.dirty = true;
         },
         (e) => console.warn('HDRI 載入失敗，沿用程式產生的環境光', e),
       );
@@ -651,6 +660,7 @@ export class ProductView implements StageView {
   private setHover(slot: PartSlot | null): void {
     if (slot === this.hovered) return;
     this.hovered = slot;
+    this.dirty = true;
     for (const [s, mat] of [
       ['primary', this.primaryMat],
       ['accent', this.accentMat],
@@ -702,6 +712,7 @@ export class ProductView implements StageView {
     to.push(mesh);
     const next: PartSlot = current === 'primary' ? 'accent' : 'primary';
     mesh.material = next === 'primary' ? this.primaryMat : this.accentMat;
+    this.dirty = true;
     return next;
   }
 
@@ -742,6 +753,7 @@ export class ProductView implements StageView {
   setReducedMotion(reduced: boolean): void {
     this.reducedMotion = reduced;
     if (reduced) this.state.spin = false;
+    this.dirty = true;
   }
 
   beforeRender(renderer: WebGLRenderer): void {
@@ -757,13 +769,38 @@ export class ProductView implements StageView {
       performance.now() - this.idleSince > 2000
     ) {
       this.turntable.rotation.y += delta * 0.25;
+      this.dirty = true;
     }
     this.controls.update(delta);
+  }
+
+  /** 自轉、鏡頭移動、GSAP 動畫進行中，或狀態剛改變時才需要重畫 */
+  needsRender(): boolean {
+    const changed = this.dirty || this.tweening();
+    this.dirty = false;
+    return changed;
+  }
+
+  /** 這個視窗的 GSAP 動畫（鏡頭、進場、換色、懸停高亮）是否還在進行 */
+  private tweening(): boolean {
+    return [
+      this.camera.position,
+      this.controls.target,
+      this.turntable.position,
+      this.turntable.scale,
+      this.primaryMat,
+      this.accentMat,
+      this.primaryMat.color,
+      this.accentMat.color,
+      this.primaryMat.emissive,
+      this.accentMat.emissive,
+    ].some((t) => gsap.isTweening(t));
   }
 
   resize(width: number, height: number): void {
     if (width === this.size.w && height === this.size.h) return;
     this.size = { w: width, h: height };
+    this.dirty = true;
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
