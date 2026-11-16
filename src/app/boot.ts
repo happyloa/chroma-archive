@@ -1,5 +1,8 @@
 import type { Stage } from '../stage/Stage';
 import { initCopy } from './copy';
+import { initCursor } from './cursor';
+import { cleanupReveal, initReveal } from './reveal';
+import { initTransitions } from './transitions';
 import { initLab } from './lab';
 import { initMotion, onMotionChange, prefersReducedMotion, webglAvailable } from './motion';
 import { initTheme, setCanvasSnapshotProvider } from './theme';
@@ -13,6 +16,8 @@ initMotion();
 initTicker();
 initCopy();
 initTheme();
+initCursor();
+initTransitions();
 setCanvasSnapshotProvider(() => stage?.snapshot());
 
 let stage: Stage | null = null;
@@ -35,7 +40,11 @@ async function applyPage(): Promise<void> {
   await stage.mount(main);
 }
 
-document.addEventListener('astro:page-load', () => void applyPage());
+document.addEventListener('astro:page-load', () => {
+  initReveal();
+  void applyPage();
+});
+document.addEventListener('astro:before-swap', cleanupReveal);
 document.addEventListener('astro:before-swap', () => stage?.unmount());
 onMotionChange((reduced) => stage?.setReducedMotion(reduced));
 

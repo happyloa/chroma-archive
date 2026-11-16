@@ -15,6 +15,8 @@
   /* 分隔線與淡底 */
   --color-mist: #e3e0da;
   --color-night: #0e0e0e;
+  /* 固定的次要文字色，用在不隨主題變動的白色色票標籤上 */
+  --color-stone: #5c5954;
   --color-day: #f4f2ee;
   /* 實體色票的白色標籤紙 */
   --color-chip: #fdfcfa;
@@ -166,5 +168,83 @@
   code,
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* 只在支援 WebGL、沒有減少動態效果時顯示的 3D 區塊（data 屬性由 Base layout 在首次繪製前設定） */
+.webgl-only {
+  display: none;
+}
+:root[data-webgl='on'][data-motion='full'] .webgl-only {
+  display: block;
+}
+
+/* 自訂游標（src/app/cursor.ts） */
+.chroma-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 70;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 9999px;
+  background: var(--color-ink);
+  pointer-events: none;
+  transition:
+    width 0.35s var(--ease-out-expo),
+    height 0.35s var(--ease-out-expo),
+    margin 0.35s var(--ease-out-expo),
+    background-color 0.25s,
+    opacity 0.2s;
+}
+.chroma-cursor[data-state='hover'] {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--color-ink);
+}
+.chroma-cursor[data-state='color'] {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  background: var(--cursor-fill);
+  box-shadow: 0 0 0 2px var(--color-paper);
+}
+
+/* 文字出場前先隱藏（Base layout 在首次繪製前加上 motion-pending，src/app/reveal.ts 設好動畫後移除） */
+.motion-pending [data-split],
+.motion-pending [data-reveal-up] {
+  visibility: hidden;
+}
+
+/* 換頁轉場：新頁面從點擊位置以圓形擴散出現（src/app/transitions.ts） */
+@keyframes vt-reveal {
+  from {
+    clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}
+@keyframes vt-hold {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+::view-transition-group(*) {
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.2s !important;
+    animation-name: none !important;
   }
 }

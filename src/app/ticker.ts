@@ -16,7 +16,9 @@ const callbacks = new Set<Callback>();
 export function initTicker(): Lenis {
   if (lenis) return lenis;
 
-  lenis = new Lenis({ autoRaf: false });
+  // 減少動態效果時保留原生捲動，不做平滑
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  lenis = new Lenis({ autoRaf: false, smoothWheel: !reduced });
   lenis.on('scroll', ScrollTrigger.update);
 
   gsap.ticker.add((time, deltaTime) => {
@@ -24,6 +26,11 @@ export function initTicker(): Lenis {
     for (const cb of callbacks) cb(time, deltaTime / 1000);
   });
   gsap.ticker.lagSmoothing(0);
+  // 換頁後內容高度改變，重新量測
+  document.addEventListener('astro:page-load', () => {
+    lenis?.resize();
+    ScrollTrigger.refresh();
+  });
 
   return lenis;
 }

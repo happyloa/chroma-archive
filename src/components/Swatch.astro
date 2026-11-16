@@ -1,33 +1,33 @@
 ---
 import type { YearEntry } from '../lib/data';
-import { getLang, useT } from '../i18n/ui';
+import { getLang } from '../i18n/ui';
 
 interface Props {
   entry: YearEntry;
   /** 有 href 時整張色票是連結 */
   href?: string;
   class?: string;
+  /** 共享元素轉場的名稱（典藏頁與年度頁用同一個） */
+  transitionName?: string;
 }
 
-const { entry, href, class: className } = Astro.props;
+const { entry, href, class: className, transitionName } = Astro.props;
 const lang = getLang(Astro.currentLocale);
-const t = useT(lang);
 const names = entry.colors.map((c) => c.name).join(' & ');
 const namesZh = entry.colors.map((c) => c.nameZh).join('、');
 const codes = entry.colors.map((c) => c.code).join(' / ');
 const Tag = href ? 'a' : 'div';
-const baseLabel = t('year.swatchLabel', { year: entry.year, names });
-const label = lang === 'en' ? baseLabel : `${baseLabel}（${namesZh}）`;
 ---
 
 <Tag
   href={href}
+  transition:name={transitionName}
+  data-cursor-color={entry.colors[0]!.hex}
   class:list={[
     'group block bg-chip p-[6%] pb-[5%] text-night shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-12px_rgb(0_0_0/0.18)] transition-transform duration-500 ease-out-expo',
     href && 'hover:-translate-y-1 focus-visible:-translate-y-1',
     className,
   ]}
-  aria-label={href ? label : undefined}
 >
   <div class="flex aspect-[5/4] overflow-hidden" aria-hidden="true">
     {entry.colors.map((c) => (
@@ -41,8 +41,8 @@ const label = lang === 'en' ? baseLabel : `${baseLabel}（${namesZh}）`;
     <p class="font-display text-[clamp(1.25rem,2vw,1.75rem)] leading-none tabular-nums">
       {entry.year}
     </p>
-    <p class="font-mono text-[0.625rem] tracking-wide text-smoke">{codes}</p>
+    <p class="font-mono text-[0.625rem] tracking-wide text-stone">{codes}</p>
   </div>
   <p class="mt-2 truncate text-sm font-medium">{names}</p>
-  {lang === 'zh-tw' && <p class="truncate text-xs text-smoke">{namesZh}</p>}
+  {lang === 'zh-tw' && <p class="truncate text-xs text-stone">{namesZh}</p>}
 </Tag>

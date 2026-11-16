@@ -9,6 +9,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { pickInk, scrollbarColors } from '../lib/color';
 import { getLatestYear } from '../lib/data';
+import { rootTransition } from '../app/transitions';
 import { HTML_LANG, OG_LOCALE, getLang, localePath, stripLocale, useT } from '../i18n/ui';
 
 interface Props {
@@ -50,6 +51,7 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
 ---
 
 <html
+  transition:animate={rootTransition}
   lang={HTML_LANG[lang]}
   style={`--coty: ${color}; --coty-ink: ${ink}; --scroll-thumb: ${color}; --scroll-track: ${scrollTrack}`}
 >
@@ -81,7 +83,25 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
           if (theme !== 'light' && theme !== 'dark') {
             theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           }
-          document.documentElement.dataset.theme = theme;
+          const root = document.documentElement;
+          root.dataset.theme = theme;
+          // 動態偏好與 WebGL 可用性也在首次繪製前決定，依此顯示或隱藏 3D 區塊才不會造成版面跳動
+          root.dataset.motion = matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'reduce'
+            : 'full';
+          if (window.__chromaWebgl === undefined) {
+            try {
+              window.__chromaWebgl = !!document.createElement('canvas').getContext('webgl2');
+            } catch {
+              window.__chromaWebgl = false;
+            }
+          }
+          root.dataset.webgl = window.__chromaWebgl ? 'on' : 'off';
+          // 文字出場動畫設好前先隱藏；萬一腳本沒載入，2.5 秒後一定顯示
+          if (root.dataset.motion === 'full') {
+            root.classList.add('motion-pending');
+            setTimeout(() => root.classList.remove('motion-pending'), 2500);
+          }
         };
         apply();
         if (!window.__chromaThemeInit) {
