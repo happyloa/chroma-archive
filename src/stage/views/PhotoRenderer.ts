@@ -24,7 +24,17 @@ import type { WebGLPathTracer } from 'three-gpu-pathtracer';
  * 路徑追蹤需要「等距柱狀」的環境貼圖（HDRI），程式產生的 PMREM 燈箱不能用，
  * 所以呼叫端要在 HDRI 載入完成後才 rebuild。
  */
-export type PhotoProgress = { samples: number; building: boolean };
+/**
+ * compiling：路徑追蹤的 shader 還在編譯。這段 shader 很大，第一次使用時（瀏覽器還沒快取）
+ * 在 Windows 的 Chrome 上可能要一分鐘以上；編譯在 GPU 程序裡進行，不會卡住頁面，即時畫面照常顯示。
+ */
+export type PhotoProgress = {
+  samples: number;
+  building: boolean;
+  compiling?: boolean;
+  /** 已經編譯了幾秒 */
+  compileSeconds?: number;
+};
 
 /** 攝影棚用的無接縫背景（cyc）：地板以圓弧接到後牆，路徑追蹤時才有真實的落地陰影 */
 function createCyc(): Mesh<ExtrudeGeometry, MeshStandardMaterial> {
@@ -74,6 +84,7 @@ export class PhotoRenderer {
   private tracer: WebGLPathTracer | null = null;
   private loading: Promise<void> | null = null;
   private building = false;
+  private compileStart: number | null = null;
   private exporting = false;
   private buildToken = 0;
   private readonly cyc = createCyc();
@@ -213,7 +224,16 @@ export class PhotoRenderer {
     this.renderer.getScissor(this.scissor);
     t.renderSample();
     this.restoreViewport();
-    this.onProgress({ samples: Math.floor(t.samples), building: false });
+    // isCompiling 有實作，但套件的型別宣告沒有列出
+    const compiling = (t as unknown as { isCompiling?: boolean }).isCompiling ?? false;
+    if (compiling) this.compileStart ??= performance.now();
+    else this.compileStart = null;
+    this.onProgress({
+      samples: Math.floor(t.samples),
+      building: false,
+      compiling,
+      compileSeconds: compiling ? Math.floor((performance.now() - this.compileStart!) / 1000) : 0,
+    });
     return true;
   }
 

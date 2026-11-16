@@ -11,6 +11,7 @@ const zh = {
   photoUnsupported: '這台裝置沒有可用的 GPU 加速，無法使用相片級渲染。',
   photoBuilding: '相片級渲染準備中…',
   photoSamples: '相片級渲染・{samples} 次取樣',
+  photoCompiling: '第一次使用相片級渲染要先編譯著色器，約需數十秒（{seconds} 秒）',
   viewNotReady: '3D 預覽還沒準備好，請稍候再試',
   reading: '正在讀取 {name}…',
   myModel: '我的模型：{name}',
@@ -38,6 +39,8 @@ const en: Record<ClientKey, string> = {
   photoUnsupported: 'This device has no GPU acceleration available, so photo mode is unavailable.',
   photoBuilding: 'Preparing photo mode…',
   photoSamples: 'Photo mode · {samples} samples',
+  photoCompiling:
+    'Compiling shaders for first use of photo mode, this can take up to a minute ({seconds}s)',
   viewNotReady: 'The 3D preview isn’t ready yet. Try again in a moment.',
   reading: 'Reading {name}…',
   myModel: 'My model: {name}',

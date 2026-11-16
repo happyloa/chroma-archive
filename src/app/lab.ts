@@ -168,12 +168,17 @@ export function initLab(): void {
   const photoStatus = document.getElementById('lab-photo-status');
   viewport.addEventListener('photo:progress', (event) => {
     if (!photoStatus) return;
-    const { samples, building } = (event as CustomEvent<PhotoProgress>).detail;
+    const { samples, building, compiling, compileSeconds } = (event as CustomEvent<PhotoProgress>)
+      .detail;
     const on = !!checked(form, 'q');
     photoStatus.hidden = !on;
     photoStatus.classList.toggle('hidden', !on);
     if (!on) return;
-    const text = building ? ct('photoBuilding') : ct('photoSamples', { samples });
+    const text = building
+      ? ct('photoBuilding')
+      : compiling
+        ? ct('photoCompiling', { seconds: compileSeconds ?? 0 })
+        : ct('photoSamples', { samples });
     if (photoStatus.textContent !== text) photoStatus.textContent = text;
   });
 
