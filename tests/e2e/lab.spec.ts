@@ -147,3 +147,14 @@ test('換頁離開實驗室時釋放 3D 視窗', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.__chroma!().views)).toBe(ready);
   await expect(page.locator('#lab-viewport')).toHaveCount(0);
 });
+
+test('上傳損壞的 STL 顯示在地化的錯誤訊息', async ({ page }) => {
+  await page.goto('/years/2025/lab/');
+  await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
+  await page.locator('#lab-upload').setInputFiles({
+    name: 'broken.stl',
+    mimeType: 'model/stl',
+    buffer: Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+  });
+  await expect(page.locator('#lab-upload-status')).toHaveText(/無法讀取|讀不到|無法/);
+});

@@ -418,3 +418,13 @@ test('Zima Blue 對話框打開時看得到自訂游標', async ({ page, browser
   await page.keyboard.press('Escape');
   await expect(page.locator('body > .chroma-cursor')).toHaveCount(1);
 });
+
+test('瀏覽中途開啟減少動態效果，靜態替代內容會回來', async ({ page }) => {
+  await page.goto('/years/2025/');
+  test.skip(!(await stageShown(page)), '沒有 WebGL 2');
+  const hero = page.locator('section[data-view="hero"]');
+  await expect(hero).toHaveAttribute('data-stage-ready', '');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(hero).not.toHaveAttribute('data-stage-ready', '');
+  await expect(hero).toHaveCSS('background-image', /radial-gradient/);
+});
