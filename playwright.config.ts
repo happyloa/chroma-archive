@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
   // WebGL 測試在軟體算繪下很吃 CPU，同時跑太多會互相拖慢而逾時
-  workers: 3,
+  workers: process.env.CI ? 2 : 3,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   // 3D 視窗在軟體算繪（無 GPU）下初始化較慢，平行跑多個瀏覽器時需要較長的等待

@@ -465,16 +465,20 @@ export class ProductView implements StageView {
     this.scene.environment = getEnvironment(this.ctx.renderer, preset);
     this.scene.environmentIntensity = look.envIntensity * (inRoom ? 0.8 : 1);
     const hdri = hdriFor(preset, inRoom);
-    this.hdriTask = loadHDRI(hdri).then(
-      (texture) => {
-        if (this.disposed || hdriFor(this.state.light, this.state.room !== 'studio') !== hdri)
-          return;
-        this.scene.environment = texture;
-        this.scene.environmentIntensity = HDRI_INTENSITY[hdri];
-        this.photo.updateEnvironment();
-      },
-      (e) => console.warn('HDRI 載入失敗，沿用程式產生的環境光', e),
-    );
+    // 低畫質檔位（軟體算繪、低記憶體裝置）不下載 HDRI：1.4 MB 的檔案轉環境貼圖會卡住主執行緒好幾秒
+    this.hdriTask =
+      this.ctx.tier === 'low'
+        ? Promise.resolve()
+        : loadHDRI(hdri).then(
+            (texture) => {
+              if (this.disposed || hdriFor(this.state.light, this.state.room !== 'studio') !== hdri)
+                return;
+              this.scene.environment = texture;
+              this.scene.environmentIntensity = HDRI_INTENSITY[hdri];
+              this.photo.updateEnvironment();
+            },
+            (e) => console.warn('HDRI 載入失敗，沿用程式產生的環境光', e),
+          );
     this.clearColor = this.transparent ? null : new Color(backgroundFor(preset));
     this.photo.setCycColor(new Color(backgroundFor(preset)));
     this.exposure = look.exposure;
