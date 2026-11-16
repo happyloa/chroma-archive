@@ -6,12 +6,12 @@
 
 ## 階段 0：專案初始化
 
-- [ ] T001 用 `npm create astro@latest` 建立 Astro 7 專案（TypeScript strict、空白樣板），設定 `output: 'static'`
-- [ ] T002 [P] 安裝並設定 ESLint、Prettier、`@astrojs/check`，加上 `lint`、`format`、`check` 指令
-- [ ] T003 [P] 安裝 Vitest、Playwright，各寫一個會通過的範例測試
-- [ ] T004 [P] 建立 `wrangler.jsonc` 與 `public/_headers`（內容見 plan.md 5.1），本機跑 `npx wrangler dev` 確認能開
-- [ ] T005 技術驗證：Base layout 放一個 `transition:persist` 的 canvas，跑一個旋轉立方體，兩頁之間切換 20 次，確認 renderer 沒有重建、記憶體不增長、ticker 不重複註冊。結果寫進 `specs/001-coty-showcase/research.md`；失敗則依 plan.md 第 1 節改走單頁應用方案，並更新 plan.md
-- [ ] T006 [P] GitHub Actions：lint、check、test、build 四個步驟
+- [x] T001 用 `npm create astro@latest` 建立 Astro 7 專案（TypeScript strict、空白樣板），設定 `output: 'static'`
+- [x] T002 [P] 安裝並設定 ESLint、Prettier、`@astrojs/check`，加上 `lint`、`format`、`check` 指令
+- [x] T003 [P] 安裝 Vitest、Playwright，各寫一個會通過的範例測試
+- [x] T004 [P] 建立 `wrangler.jsonc` 與 `public/_headers`（內容見 plan.md 5.1），本機跑 `npx wrangler dev` 確認能開
+- [x] T005 技術驗證：Base layout 放一個 `transition:persist` 的 canvas，跑一個旋轉立方體，兩頁之間切換 20 次，確認 renderer 沒有重建、記憶體不增長、ticker 不重複註冊。結果寫進 `specs/001-coty-showcase/research.md`；失敗則依 plan.md 第 1 節改走單頁應用方案，並更新 plan.md
+- [x] T006 [P] GitHub Actions：lint、check、test、build 四個步驟
 
 ## 階段 1：資料與色彩工具
 
