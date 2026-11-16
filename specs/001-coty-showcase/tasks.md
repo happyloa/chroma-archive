@@ -67,6 +67,9 @@
 - [ ] T091 草稿年份是否顯示設計發想（data-model.md 第 2 節）：規格寫 draft 不顯示，目前有概念就顯示，待決定
 - [x] T092 拿掉全畫面底片顆粒（使用者決定，spec.md 第 7 節）
 - [x] T093 拿掉相片級渲染：開關、`PhotoRenderer.ts`、three-gpu-pathtracer 與 three-mesh-bvh（使用者決定，spec.md US-12，原因見 research.md）
+- [x] T094 沒有 3D 的頁面不載入 three.js；Stage 改成畫面有變化才重畫（plan.md 2.2，research.md「閒置時不重畫」）
+- [x] T095 Fraunces 改用 opsz 子集（只含 wght 與 opsz 軸），拉丁字檔 121 KB 降為 67 KB
+- [x] T096 移除沒用到的 `@gltf-transform/cli` 與 3 個沒有引用的 export
 - [x] T054 產品實驗室情境場景：客廳、臥室、辦公室（US-05-8）
 - [x] T055 產品實驗室互動：點選零件換色、懸停高亮、鏡頭預設、自轉開關、換產品與換色動畫（US-05-9、5-10）
 - [x] T056 運動鞋模型改良：目前輪廓太圓鈍，鞋頭、鞋口與鞋帶要更清楚

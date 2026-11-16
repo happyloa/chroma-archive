@@ -179,3 +179,14 @@ E2E 測試在無頭瀏覽器裡也是軟體算繪，所以 `tests/e2e/fixtures.t
 - 即時畫面已經有實拍 HDRI、PBR 材質與 VSM 柔和陰影。
 
 拿掉之後少了路徑追蹤才有的全域光照、物體間的互相反射，以及攝影棚背景板上的真實落地陰影，匯出圖片改用即時算繪（原本開啟時是 128 次取樣）。
+
+## 閒置時不重畫、沒有 3D 的頁面不載入 three.js
+
+2026-11-16 用 Playwright 量正式站：
+
+- 直接開 about 頁會下載 `Stage` 與 `three.core`（gzip 後約 155 KB），並建立 WebGL context，但這一頁沒有任何 3D 視窗。改成頁面上沒有 `[data-view]`、也還沒建立過舞台時不載入。
+- Stage 原本每一格都清除整個 canvas、重畫所有看得到的視窗。實驗室關掉自轉、放著不動時，或從 3D 頁換到 about 頁後，GPU 仍然每秒清 60 次全螢幕。
+
+改法：視窗新增可選的 `needsRender()`，產品視窗在自轉、鏡頭移動（OrbitControls 的 change，包含慣性減速）、GSAP 動畫進行中、狀態改變或載入完成時回報要重畫。看得到的視窗都沒有變化、位置與尺寸也和上一次畫的一樣時，Stage 整格跳過，連清除都不做；WebGL canvas 那一格沒被畫過，瀏覽器就繼續顯示上一格。只要有一個視窗要重畫就清掉整個 canvas、全部重畫，因為 `preserveDrawingBuffer` 為 false，畫新的一格時不能假設上一格的內容還在。主視覺、時間軸、色彩空間一直在動，沒有實作 `needsRender()`，行為和原本一樣。
+
+Fraunces 原本引入 `full.css`（wght、opsz、SOFT、WONK 四個軸），程式只用到 wght，SOFT、WONK 維持預設值。改用 `opsz.css`（wght 與 opsz），拉丁字檔從 121 KB 降到 67 KB，瀏覽器的自動光學尺寸照常有效。

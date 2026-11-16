@@ -91,6 +91,8 @@ interface StageScene {
 
 GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrigger 透過 `lenis.on('scroll', ScrollTrigger.update)` 同步，Stage 的 render 也掛在同一個 ticker 上，避免三個 requestAnimationFrame 互相錯拍。分頁切到背景時 ticker 會自動降頻，Stage 另外在 `visibilitychange` 時停止 render。
 
+Stage 只在畫面有變化時才畫：每一格先更新看得到的視窗，視窗可以用 `needsRender()` 回報沒有變化（目前產品視窗有實作：自轉、鏡頭移動、GSAP 動畫、狀態改變時才重畫）。全部沒有變化、位置也沒變時整格跳過，canvas 保留上一格。頁面上沒有任何 `[data-view]`、而且還沒建立過舞台時（例如直接開 about、404），不載入 three.js。
+
 ### 2.3 畫質檔位
 
 | 檔位 | 判定                                                     | DPR 上限 | 陰影 | 模型曲面分段 |
