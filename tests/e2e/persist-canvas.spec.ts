@@ -1,13 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
-type Debug = Awaited<ReturnType<NonNullable<Window['__chroma']>>>;
+type Debug = ReturnType<NonNullable<Window['__chroma']>>;
 
-const readDebug = (page: import('@playwright/test').Page) =>
-  page.evaluate(() => window.__chroma!()) as Promise<Debug>;
+const readDebug = (page: Page) => page.evaluate(() => window.__chroma!()) as Promise<Debug>;
 
 // T005：canvas 跨頁保留、renderer 不重建、ticker 不重複註冊、GPU 資源不增長
-test('換頁 20 次後 WebGL 舞台仍是同一個', async ({ page }) => {
-  await page.goto('/spike/a/');
+test('在年度頁之間換頁 20 次後 WebGL 舞台仍是同一個', async ({ page }) => {
+  await page.goto('/years/2010/');
   await expect.poll(async () => (await readDebug(page)).frames).toBeGreaterThan(5);
 
   const before = await readDebug(page);
@@ -16,9 +15,10 @@ test('換頁 20 次後 WebGL 舞台仍是同一個', async ({ page }) => {
   });
 
   for (let i = 0; i < 20; i++) {
-    const nextTitle = i % 2 === 0 ? 'Spike B' : 'Spike A';
-    await page.getByTestId('next').click();
-    await expect(page).toHaveTitle(nextTitle);
+    const testId = i % 2 === 0 ? 'next-year' : 'prev-year';
+    const expected = i % 2 === 0 ? '2011' : '2010';
+    await page.getByTestId(testId).click();
+    await expect(page).toHaveURL(new RegExp(`/years/${expected}/$`));
   }
 
   const after = await readDebug(page);
@@ -38,12 +38,11 @@ test('換頁 20 次後 WebGL 舞台仍是同一個', async ({ page }) => {
 });
 
 test('瀏覽器上一頁也保留舞台', async ({ page }) => {
-  await page.goto('/spike/a/');
-  await page.getByTestId('next').click();
-  await expect(page).toHaveTitle('Spike B');
+  await page.goto('/years/2010/');
+  await page.getByTestId('next-year').click();
+  await expect(page).toHaveURL(/\/years\/2011\/$/);
   await page.goBack();
-  await expect(page).toHaveTitle('Spike A');
-  const debug = await readDebug(page);
-  expect(debug.stageInstances).toBe(1);
-  expect(debug.sameCanvas).toBe(true);
+  await expect(page).toHaveURL(/\/years\/2010\/$/);
+  await expect.poll(async () => (await readDebug(page)).stageInstances).toBe(1);
+  expect((await readDebug(page)).sameCanvas).toBe(true);
 });

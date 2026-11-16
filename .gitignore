@@ -13,3 +13,6 @@ test-results/
 .DS_Store
 Thumbs.db
 *.log
+
+# Claude 桌面 app 的預覽設定（個人環境）
+.claude/launch.json
