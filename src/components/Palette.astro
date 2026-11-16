@@ -1,6 +1,6 @@
 ---
 import type { PaletteKind } from '../lib/color';
-import { pickInk } from '../lib/color';
+import { paletteVar, pickInk } from '../lib/color';
 import { getLang, useT } from '../i18n/ui';
 import CopyButton from './CopyButton.astro';
 
@@ -24,7 +24,7 @@ const lang = getLang(Astro.currentLocale);
 const t = useT(lang);
 const name = t(`palette.${kind}`);
 const note = t(`palette.${kind}.note`);
-const cssVars = colors.map((hex, i) => `--${slug}-${kind}-${i + 1}: ${hex};`).join('\n');
+const cssVars = colors.map((hex, i) => `${paletteVar(slug, kind, i)}: ${hex};`).join('\n');
 ---
 
 <figure class="space-y-3">

@@ -6,10 +6,9 @@ import Palette from '../components/Palette.astro';
 import YearNav from '../components/YearNav.astro';
 import Swatch from '../components/Swatch.astro';
 import type { YearEntry } from '../lib/data';
-import type { PaletteKind } from '../lib/color';
 import { formatDate, getLang, localePath, useT, type UiKey } from '../i18n/ui';
 import { colorNames, localizedContent } from '../i18n/content';
-import { parseColorRef } from '../lib/color';
+import { PALETTE_KINDS, cssVarSlug, parseColorRef } from '../lib/color';
 import ProductFallback from '../components/ProductFallback.astro';
 
 interface Props {
@@ -50,8 +49,6 @@ const materialText = (m: {
 }) => (zh || !m.en ? m : m.en);
 const enStory = !zh ? content.en?.story?.trim() : undefined;
 const { names, namesZh } = colorNames(entry);
-const paletteKinds: PaletteKind[] = ['complementary', 'analogous', 'triadic', 'split', 'mono'];
-const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
 ---
 
 <Base
@@ -196,8 +193,8 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
         <div class="space-y-10">
           {colors.length > 1 && <h3 class="font-display text-title italic">{c.name}</h3>}
           <div class="grid gap-x-col gap-y-12 md:grid-cols-2">
-            {paletteKinds.map((kind) => (
-              <Palette kind={kind} colors={c.palettes[kind]} slug={slug(c.name)} />
+            {PALETTE_KINDS.map((kind) => (
+              <Palette kind={kind} colors={c.palettes[kind]} slug={cssVarSlug(c.name)} />
             ))}
           </div>
         </div>

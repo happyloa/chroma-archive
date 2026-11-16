@@ -1,6 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getYears, type YearEntry } from '../../lib/data';
-import type { PaletteKind } from '../../lib/color';
+import { PALETTE_KINDS, cssVarSlug, paletteVar } from '../../lib/color';
 
 /**
  * 年度色與五組配色的 CSS 變數檔（US-03-4）。變數名稱和配色區塊「複製」按鈕的一樣：
@@ -11,9 +11,6 @@ export const getStaticPaths = (async () => {
   return years.map((entry) => ({ params: { year: String(entry.year) }, props: { entry } }));
 }) satisfies GetStaticPaths;
 
-const KINDS: PaletteKind[] = ['complementary', 'analogous', 'triadic', 'split', 'mono'];
-const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
-
 export const GET: APIRoute = ({ props }) => {
   const { entry } = props as { entry: YearEntry };
   const lines = [
@@ -22,10 +19,10 @@ export const GET: APIRoute = ({ props }) => {
     ':root {',
   ];
   for (const c of entry.colors) {
-    const s = slug(c.name);
+    const s = cssVarSlug(c.name);
     lines.push(`  --${s}: ${c.hex};`);
-    for (const kind of KINDS) {
-      c.palettes[kind].forEach((hex, i) => lines.push(`  --${s}-${kind}-${i + 1}: ${hex};`));
+    for (const kind of PALETTE_KINDS) {
+      c.palettes[kind].forEach((hex, i) => lines.push(`  ${paletteVar(s, kind, i)}: ${hex};`));
     }
   }
   lines.push('}', '');

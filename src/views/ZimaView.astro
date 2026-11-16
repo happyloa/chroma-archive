@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import ColorValues from '../components/ColorValues.astro';
 import Palette from '../components/Palette.astro';
-import type { PaletteKind } from '../lib/color';
+import { PALETTE_KINDS, cssVarSlug } from '../lib/color';
 import { zima } from '../lib/zima';
 import { getLang, useT } from '../i18n/ui';
 
@@ -14,7 +14,6 @@ const lang = getLang(Astro.currentLocale);
 const t = useT(lang);
 const key = lang === 'zh-tw' ? 'zh' : 'en';
 const zh = key === 'zh';
-const paletteKinds: PaletteKind[] = ['complementary', 'analogous', 'triadic', 'split', 'mono'];
 ---
 
 <Base
@@ -97,8 +96,8 @@ const paletteKinds: PaletteKind[] = ['complementary', 'analogous', 'triadic', 's
       {t('zima.palettes')}
     </h2>
     <div class="col-span-4 grid gap-x-col gap-y-12 md:col-span-9 md:grid-cols-2">
-      {paletteKinds.map((kind) => (
-        <Palette kind={kind} colors={zima.palettes[kind]} slug="zima-blue" />
+      {PALETTE_KINDS.map((kind) => (
+        <Palette kind={kind} colors={zima.palettes[kind]} slug={cssVarSlug(zima.name)} />
       ))}
     </div>
   </section>
