@@ -203,6 +203,19 @@ Pantone 從 2000 年開始每年公布一個「年度代表色」（Color of the
 5. 沒有 GPU 加速的裝置（低畫質檔位）停用開關並說明原因。
 6. 路徑追蹤套件只在第一次開啟時載入，不計入一般頁面的 JS。
 
+### US-13 中英雙語（P1）
+
+身為不讀中文的訪客，我想用英文瀏覽整個網站。
+
+驗收條件：
+
+1. 繁體中文是預設語系，網址不加前綴；英文版在 /en/ 底下，頁面一一對應。
+2. 頁首有語言切換連結，切換後停留在同一頁；產品實驗室切換時保留目前的設定（網址參數）。
+3. 介面文字集中在 src/i18n/ui.ts（伺服器端）與 src/i18n/client.ts（瀏覽器端）；年度內容的英文摘要與關鍵字寫在各年 Markdown 的 en 欄位，缺漏時退回中文。
+4. 英文頁不顯示中文譯名；色彩故事目前只有中文，英文頁顯示摘要。
+5. <html lang> 依語系設定，每頁輸出 hreflang（zh-Hant-TW、en、x-default）與 og:locale。
+6. 404 只有一頁，中英並列。
+
 ## 5. 功能需求
 
 | 編號  | 需求                                                                 | 對應故事     |
@@ -229,7 +242,7 @@ Pantone 從 2000 年開始每年公布一個「年度代表色」（Color of the
 | 效能   | 依憲章第 3 條的預算；Lighthouse 行動版 Performance 85 分以上 |
 | 可及性 | WCAG 2.2 AA；Lighthouse Accessibility 95 分以上              |
 | 瀏覽器 | 最新兩版的 Chrome、Edge、Firefox、Safari；iOS Safari 17 以上 |
-| 語系   | 第一版只做繁體中文；英文版列 P2，路由與文案結構先預留        |
+| 語系   | 繁體中文與英文（US-13）                                      |
 | SEO    | 全部頁面靜態預渲染；sitemap.xml、robots.txt                  |
 | 部署   | Cloudflare Workers Static Assets，純靜態，不需要 Worker 程式 |
 | 隱私   | 不使用追蹤 cookie；分析工具用 Cloudflare Web Analytics       |
