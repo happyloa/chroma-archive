@@ -4,6 +4,7 @@ import {
   CanvasTexture,
   Color,
   DirectionalLight,
+  FrontSide,
   Group,
   HalfFloatType,
   Mesh,
@@ -18,6 +19,7 @@ import {
   Vector3,
   WebGLRenderTarget,
   type MeshPhysicalMaterial,
+  type MeshStandardMaterial,
   type Object3D,
   type WebGLRenderer,
 } from 'three';
@@ -25,12 +27,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { LIGHT_LOOK, backgroundFor, getEnvironment, type LightPreset } from '../environment';
 import {
-  PRODUCTS,
+  loadProduct,
   applyFinish,
   createFinishMaterial,
   type Finish,
   type ProductId,
 } from '../products';
+import type { LoadedProduct } from '../products';
 import type { ProductModel } from '../products/shared';
 import { REAL_HEIGHT, createRoom, setRoomLight, type Room, type RoomId } from '../rooms';
 import type { StageContext, StageView } from '../types';
@@ -50,6 +53,11 @@ export interface ProductState {
   room: RoomId;
   camera: CameraPreset;
   spin: boolean;
+}
+
+export interface ProductChangedDetail {
+  product: ProductChoice;
+  hasAccent: boolean;
 }
 
 export interface PickDetail {
@@ -127,6 +135,10 @@ export class ProductView implements StageView {
   private model: ProductModel | null = null;
   /** 使用者上傳的模型，切到其他產品時保留，換新檔或視窗釋放時才釋放 */
   private custom: ProductModel | null = null;
+  private productToken = 0;
+  private disposed = false;
+  /** 目前的產品有沒有輔色零件 */
+  hasAccent = true;
   private room: Room | null = null;
   private state: ProductState;
   private reducedMotion: boolean;
@@ -203,8 +215,7 @@ export class ProductView implements StageView {
 
     this.setRoom(this.state.room);
     this.setLight(this.state.light);
-    this.setProduct(this.state.product, false);
-    this.frame(false);
+    void this.setProduct(this.state.product, false);
     window.addEventListener('themechange', this.onThemeChange);
   }
 
@@ -224,14 +235,14 @@ export class ProductView implements StageView {
       reframe = true;
     }
     if (next.light && next.light !== prev.light) this.setLight(next.light);
+    if (next.camera && next.camera !== prev.camera) reframe = true;
     if (next.product && next.product !== prev.product) {
-      this.setProduct(next.product, motion);
-      reframe = true;
+      // 載入完成後才取景（見 setProduct）
+      void this.setProduct(next.product, motion);
     } else if (reframe) {
       this.placeModel();
+      this.frame(motion);
     }
-    if (next.camera && next.camera !== prev.camera) reframe = true;
-    if (reframe) this.frame(motion);
 
     if (next.finish !== undefined || next.primary !== undefined || next.accent !== undefined) {
       this.applyMaterial(this.primaryMat, this.state.finish, this.state.primary, motion);
@@ -269,11 +280,45 @@ export class ProductView implements StageView {
     gsap.to(mat, { ...to, duration: 0.4, ease: 'power2.out' });
   }
 
-  private setProduct(id: ProductChoice, animate: boolean): void {
+  /** 載入產品模型（glTF 需要下載），完成後掛上並取景；載入期間舊模型繼續顯示 */
+  private async setProduct(id: ProductChoice, animate: boolean): Promise<void> {
     if (id === 'custom' && !this.custom) id = 'chair';
+    const token = ++this.productToken;
+    const model: LoadedProduct =
+      id === 'custom' ? this.custom! : await loadProduct(id, this.ctx.settings.detail);
+    // 載入期間又換了產品，或視窗已經釋放
+    if (token !== this.productToken || this.disposed) return;
+    this.mountModel(model, id, animate);
+    this.frame(animate);
+    this.el.dispatchEvent(
+      new CustomEvent<ProductChangedDetail>('product:changed', {
+        detail: { product: id, hasAccent: model.accent.length > 0 },
+        bubbles: true,
+      }),
+    );
+  }
+
+  /**
+   * glTF 模型的主色材質貼圖（灰階細節圖、法線、粗糙度）接到視窗自己的主色材質上；
+   * 程式產生的模型沒有貼圖，全部清空。金屬度貼圖不接，讓「金屬」表面處理維持有效。
+   */
+  private bindPrimaryMaps(source?: MeshStandardMaterial): void {
+    const m = this.primaryMat;
+    m.map = source?.map ?? null;
+    m.normalMap = source?.normalMap ?? null;
+    if (source?.normalMap) m.normalScale.copy(source.normalScale);
+    m.roughnessMap = source?.roughnessMap ?? null;
+    // 沿用原模型的單雙面設定，有些模型（例如桌燈燈罩）只靠雙面材質才看得到外側
+    m.side = source?.side ?? FrontSide;
+    // AO 貼圖不接：公開模型的 AO 多半烘在整張貼圖上，乘上年度色後局部會過暗
+    m.aoMap = null;
+    m.needsUpdate = true;
+  }
+
+  private mountModel(model: LoadedProduct, id: ProductChoice, animate: boolean): void {
     if (this.model) this.turntable.remove(this.model.root);
     this.bulbLight.removeFromParent();
-    const model = id === 'custom' ? this.custom! : PRODUCTS[id](this.ctx.settings.detail);
+    this.bindPrimaryMaps(model.primarySource);
     for (const m of model.primary) m.material = this.primaryMat;
     for (const m of model.accent) m.material = this.accentMat;
     model.root.traverse((o) => {
@@ -290,6 +335,7 @@ export class ProductView implements StageView {
     this.turntable.add(model.root);
     this.model = model;
     this.state.product = id;
+    this.hasAccent = model.accent.length > 0;
 
     // 桌燈附一盞真的點光源，夜間場景特別明顯
     if (id === 'lamp') {
@@ -520,8 +566,15 @@ export class ProductView implements StageView {
     const old = this.custom;
     this.custom = { root: wrapper, primary, accent: [] };
     this.state.product = 'custom';
-    this.setProduct('custom', !this.reducedMotion);
+    this.productToken += 1;
+    this.mountModel(this.custom, 'custom', !this.reducedMotion);
     this.frame(!this.reducedMotion);
+    this.el.dispatchEvent(
+      new CustomEvent<ProductChangedDetail>('product:changed', {
+        detail: { product: 'custom', hasAccent: true },
+        bubbles: true,
+      }),
+    );
     if (old) disposeGeometries(old.root);
   }
 
@@ -615,6 +668,7 @@ export class ProductView implements StageView {
   }
 
   dispose(): void {
+    this.disposed = true;
     window.removeEventListener('themechange', this.onThemeChange);
     this.el.removeEventListener('pointermove', this.onPointerMove);
     this.el.removeEventListener('pointerleave', this.onPointerLeave);

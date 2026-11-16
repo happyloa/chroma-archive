@@ -241,6 +241,9 @@ const accentChoices = [
         class="-m-2 rounded p-2 transition-shadow data-[picked]:ring-2 data-[picked]:ring-ink"
       >
         <legend class="eyebrow mb-3 text-smoke">輔色</legend>
+        <p data-accent-note hidden class="mb-3 text-xs text-smoke">
+          這個產品沒有獨立的輔色部位，換主色就會改變整件產品。
+        </p>
         <div class="flex flex-wrap gap-2">
           {accentChoices.map((hex, i) => (
             <label

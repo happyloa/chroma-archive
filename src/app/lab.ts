@@ -1,5 +1,10 @@
 import type { ViewReadyDetail } from '../stage/types';
-import type { PickDetail, ProductState, ProductView } from '../stage/views/ProductView';
+import type {
+  PickDetail,
+  ProductChangedDetail,
+  ProductState,
+  ProductView,
+} from '../stage/views/ProductView';
 
 /**
  * 產品實驗室頁的表單控制（US-05、T049、T055）：
@@ -102,6 +107,17 @@ export function initLab(): void {
     // 網址帶進來的設定直接套用，不播進場動畫
     view.set(readState(form), false);
     exportButton.disabled = false;
+  });
+
+  // 沒有輔色零件的產品（公開模型多半只有一種可換色材質）停用輔色欄位
+  viewport.addEventListener('product:changed', (event) => {
+    const { hasAccent } = (event as CustomEvent<ProductChangedDetail>).detail;
+    const fieldset = form.querySelector<HTMLFieldSetElement>('fieldset[data-slot="accent"]');
+    if (!fieldset) return;
+    fieldset.disabled = !hasAccent;
+    fieldset.classList.toggle('opacity-50', !hasAccent);
+    const note = fieldset.querySelector<HTMLElement>('[data-accent-note]');
+    if (note) note.hidden = hasAccent;
   });
 
   viewport.addEventListener('product:pick', (event) => {
