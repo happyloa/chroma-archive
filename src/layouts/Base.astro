@@ -1,5 +1,6 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import { pickInk } from '../lib/color';
 import '../styles/global.css';
 
 interface Props {
@@ -17,9 +18,11 @@ const {
   scene = 'none',
   color = '#F0EEE9',
 } = Astro.props;
+
+const { ink } = pickInk(color);
 ---
 
-<html lang="zh-Hant-TW" style={`--coty: ${color}`}>
+<html lang="zh-Hant-TW" style={`--coty: ${color}; --coty-ink: ${ink}`}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,11 +33,16 @@ const {
     <ClientRouter />
   </head>
   <body>
-    <canvas id="stage" class="stage" transition:persist="stage" aria-hidden="true"></canvas>
-    <main data-scene={scene} data-color={color}>
+    <canvas
+      id="stage"
+      class="pointer-events-none fixed inset-0 z-0 block h-screen w-screen"
+      transition:persist="stage"
+      aria-hidden="true"
+    ></canvas>
+    <main class="relative z-10 min-h-screen p-[4vw]" data-scene={scene} data-color={color}>
       <slot />
     </main>
-    <footer class="disclaimer">
+    <footer class="relative z-10 px-[4vw] py-8 text-xs opacity-70">
       本站為個人作品，與 Pantone LLC 無關。色值皆為螢幕近似值，非官方色彩標準。PANTONE® 為 Pantone
       LLC 的註冊商標。
     </footer>
