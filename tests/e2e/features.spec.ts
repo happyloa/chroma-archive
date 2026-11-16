@@ -132,3 +132,48 @@ test('預載畫面只在同一個分頁第一次進站時播放', async ({ page 
   await page.reload();
   await expect(preloader).toHaveCount(0);
 });
+
+test.describe('減少動態效果的靜態替代內容', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test('主視覺改成靜態漸層，設計發想顯示靜態圖，不建立 3D 視窗', async ({ page }) => {
+    await page.goto('/years/2025/');
+    const hero = page.locator('section[data-view="hero"]');
+    await expect(hero).toHaveCSS('background-image', /radial-gradient/);
+    await expect(hero).not.toHaveAttribute('data-stage-ready', '');
+    await expect(page.locator('[data-view="product"] [data-fallback]').first()).toBeVisible();
+    await page.waitForTimeout(1000);
+    expect(await views(page)).toBe(0);
+  });
+});
+
+test('預載畫面總長不超過約 2.2 秒', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  const start = Date.now();
+  await expect(page.locator('#preloader')).toHaveCount(0, { timeout: 8000 });
+  // 測試環境載入較慢，多留一點餘裕
+  expect(Date.now() - start).toBeLessThan(3200);
+});
+
+test('首頁往下捲時主視覺標題逐字淡出', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#preloader')).toHaveCount(0, { timeout: 8000 });
+  const title = page.locator('#hero-title [data-split-exit]').first();
+  // SplitText 會把每個字包一層遮罩，取所有字裡最低的不透明度
+  const minOpacity = () =>
+    title.evaluate((el) =>
+      Math.min(...[...el.querySelectorAll('div')].map((d) => Number(getComputedStyle(d).opacity))),
+    );
+  await expect.poll(minOpacity, { timeout: 5000 }).toBe(1);
+  await page.mouse.wheel(0, 900);
+  await expect.poll(minOpacity).toBeLessThan(0.5);
+});
+
+test('年度頁的大年份隨捲動變粗', async ({ page }) => {
+  await page.goto('/years/2025/');
+  const year = page.locator('#year-title [data-weight]');
+  await page.mouse.wheel(0, 700);
+  await expect
+    .poll(async () => year.evaluate((e) => getComputedStyle(e).fontVariationSettings))
+    .toMatch(/"wght" (?!300)\d+/);
+});

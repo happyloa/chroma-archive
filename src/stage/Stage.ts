@@ -116,6 +116,8 @@ export class Stage {
     );
 
     for (const el of els) {
+      // 只在完整動態效果時建立的視窗（主視覺、設計發想、時間軸、色彩空間），減少動態效果時保留靜態替代內容
+      if (this.reducedMotion && el.hasAttribute('data-motion-only')) continue;
       const kind = el.dataset.view as ViewKind;
       const load = REGISTRY[kind];
       if (!load) continue;

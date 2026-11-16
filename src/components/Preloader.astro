@@ -2,7 +2,7 @@
 import type { YearEntry } from '../lib/data';
 
 /**
- * 首頁預載畫面（T040、US-01-1）：年份從第一年數到今年，色塊跟著換成各年度色，約 1.8 秒後往上滑開。
+ * 首頁預載畫面（T040、US-01-1）：年份從第一年數到今年，色塊跟著換成各年度色，數到今年後往上滑開，總長約 2.1 秒（US-01-1 上限 2.2 秒）。
  * 同一個分頁只播一次（sessionStorage），減少動態效果時不播。用 inline script 在首次繪製前決定要不要顯示。
  */
 interface Props {
@@ -47,7 +47,7 @@ const frames = years.map((y) => [y.year, y.colors[0]!.hex]);
     const frames = JSON.parse(el.dataset.frames || '[]');
     const yearEl = el.querySelector('[data-preloader-year]');
     const swatch = el.querySelector('[data-preloader-swatch]');
-    const total = 1500;
+    const total = 1200;
     const start = performance.now();
     const tick = (now) => {
       const t = Math.min(1, (now - start) / total);
@@ -61,7 +61,7 @@ const frames = years.map((y) => [y.year, y.colors[0]!.hex]);
         setTimeout(() => {
           el.style.transform = 'translateY(-100%)';
           setTimeout(() => el.remove(), 750);
-        }, 250);
+        }, 150);
     };
     requestAnimationFrame(tick);
     try {

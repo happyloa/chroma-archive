@@ -34,6 +34,7 @@ const { summary } = localizedContent(latest, lang);
     ]}
     aria-labelledby="hero-title"
     data-view="hero"
+    data-motion-only
     data-color={main!.hex}
     data-mode={dark ? 'cloud' : 'liquid'}
     data-background="#0E0E0E"
@@ -55,10 +56,19 @@ const { summary } = localizedContent(latest, lang);
       )}
 
       <h1 id="hero-title" class="col-span-4 md:col-span-12">
-        <span class="block font-display text-mega font-light tabular-nums" data-split>
+        <span
+          class="block font-display text-mega font-light tabular-nums"
+          data-split
+          data-split-exit
+        >
           {latest.year}
         </span>
-        <span class="mt-6 block font-display text-display font-normal italic" data-split lang="en">
+        <span
+          class="mt-6 block font-display text-display font-normal italic"
+          data-split
+          data-split-exit
+          lang="en"
+        >
           {main!.name}
         </span>
         {lang === 'zh-tw' && (

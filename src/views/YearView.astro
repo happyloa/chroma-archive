@@ -71,6 +71,7 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
     class:list={['pt-28 pb-gutter', main!.isLight ? 'bg-night text-day' : 'bg-coty text-coty-ink']}
     aria-labelledby="year-title"
     data-view="hero"
+    data-motion-only
     data-color={main!.hex}
     data-mode={main!.isLight ? 'cloud' : 'liquid'}
     data-background="#0E0E0E"
@@ -97,7 +98,9 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
         <Swatch entry={entry} class="rotate-[-2deg]" transitionName={`swatch-${year}`} />
       </div>
       <h1 id="year-title" class="col-span-4 self-end md:col-span-6 md:row-start-2">
-        <span class="block font-display text-mega font-light tabular-nums">{year}</span>
+        <span class="block font-display text-mega font-light tabular-nums" data-weight>
+          {year}
+        </span>
         <span class="mt-6 block font-display text-headline italic" data-split lang="en">
           {names}
         </span>
@@ -208,6 +211,7 @@ const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
                 <div
                   class="relative flex aspect-square cursor-grab items-center justify-center bg-mist/60 active:cursor-grabbing"
                   data-view="product"
+                  data-motion-only
                   data-transparent
                   data-reveal={i}
                   data-product={concept.labPreset.product}

@@ -50,7 +50,14 @@ document.addEventListener('astro:page-load', () => {
 });
 document.addEventListener('astro:before-swap', cleanupReveal);
 document.addEventListener('astro:before-swap', () => stage?.unmount());
-onMotionChange((reduced) => stage?.setReducedMotion(reduced));
+// 瀏覽中途切換動態偏好：重建這一頁的 3D 視窗，靜態替代內容與 3D 互換
+onMotionChange((reduced) => {
+  if (!stage) return;
+  const main = document.querySelector('main');
+  stage.unmount();
+  stage.setReducedMotion(reduced);
+  if (main) void stage.mount(main);
+});
 
 declare global {
   interface Window {
