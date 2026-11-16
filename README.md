@@ -1,14 +1,18 @@
-# CHROMA ARCHIVE（暫定名稱）
+# Chroma Archive
 
-展示 Pantone 歷年年度代表色（Color of the Year，2000 至今）的網站，每個顏色附有產品設計發想與可即時換色的 3D 產品預覽。
+展示 Pantone 歷年年度代表色（Color of the Year，2000 至今）的網站，每個顏色附有色值、配色組合，以及用 3D 產品模型呈現的設計發想。
 
-技術：Astro、three.js、GSAP、Lenis，部署在 Cloudflare Workers Static Assets。
+網站：https://chroma-archive.piafyoyo06.workers.dev
+
+技術：Astro、three.js、GSAP、Lenis、Tailwind CSS，部署在 Cloudflare Workers Static Assets。
 
 > 本站為個人作品，與 Pantone LLC 無關。網站上的色值皆為螢幕近似值，不是官方色彩標準。PANTONE® 為 Pantone LLC 的註冊商標。
 
 ## 目前狀態
 
-規格階段，還沒有程式碼。開發依照規格驅動流程（Spec-Driven Development）：先寫規格，再寫計畫與任務，最後實作。
+全站頁面的靜態版已上線，包括首頁、典藏、27 個年度頁、產品實驗室、色彩空間。正在做 3D 產品展示（階段 3）。進度見 [tasks.md](specs/001-coty-showcase/tasks.md)。
+
+開發依照規格驅動流程（Spec-Driven Development）：先寫規格，再寫計畫與任務，最後實作。
 
 | 文件                                                                           | 內容                                     |
 | ------------------------------------------------------------------------------ | ---------------------------------------- |
@@ -17,15 +21,28 @@
 | [specs/001-coty-showcase/plan.md](specs/001-coty-showcase/plan.md)             | 技術計畫：選型、架構、部署               |
 | [specs/001-coty-showcase/data-model.md](specs/001-coty-showcase/data-model.md) | 資料模型與新增年度色的流程               |
 | [specs/001-coty-showcase/tasks.md](specs/001-coty-showcase/tasks.md)           | 任務清單                                 |
-| [data/colors.json](data/colors.json)                                           | 2000 到 2026 年年度色資料（待核對）      |
+| [data/colors.json](data/colors.json)                                           | 2000 到 2026 年年度色資料                |
 
 ## 開發
 
-專案初始化後（tasks.md T001）會補上以下指令：
+需要 Node.js 22.23.4 以上。
 
 ```bash
 npm install
-npm run dev
-npm run build
-npx wrangler deploy
+npm run dev          # 開發伺服器 http://localhost:4321
+npm run build        # 建置到 dist/
+npm run preview      # 用 wrangler 在本機模擬 Cloudflare 環境
+npm run deploy       # 建置並部署到 Cloudflare Workers
 ```
+
+檢查與測試：
+
+```bash
+npm run lint
+npm run check        # 型別檢查
+npm test             # 單元測試
+npm run test:e2e     # Playwright e2e（Chromium、WebKit）
+npm run test:visual  # 截圖比對，只在本機跑
+```
+
+新增年度色的流程見 [data-model.md 第 5 節](specs/001-coty-showcase/data-model.md)。
