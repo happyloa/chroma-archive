@@ -1,4 +1,4 @@
-import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { Color, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { Tier, TierSettings } from './quality';
 
 export interface StageContext {
@@ -19,6 +19,11 @@ export interface StageView {
   update(time: number, delta: number): void;
   /** 每次 render 前呼叫，用來設定 tone mapping 曝光這類 renderer 層級的參數 */
   beforeRender?(renderer: WebGLRenderer): void;
+  /**
+   * 視窗背景色；null 表示透明。由 Stage 在視窗範圍內清除，不用 scene.background，
+   * 因為 three.js 算陰影時會關閉 scissor，scene.background 會蓋滿整個 canvas。
+   */
+  readonly clearColor: Color | null;
   resize(width: number, height: number): void;
   setReducedMotion(reduced: boolean): void;
   dispose(): void;

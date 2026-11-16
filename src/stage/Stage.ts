@@ -50,6 +50,8 @@ export class Stage {
     // Khronos PBR Neutral：盡量保留產品的原色，色票顏色才不會被洗淡
     this.renderer.toneMapping = NeutralToneMapping;
     this.renderer.setClearColor(0x000000, 0);
+    // 每個視窗的背景由下面的 render 自己清除（見 StageView.clearColor）
+    this.renderer.autoClear = false;
     this.tier = detectTier(this.renderer);
     this.applyTier();
 
@@ -157,6 +159,7 @@ export class Stage {
     const h = window.innerHeight;
 
     r.setScissorTest(false);
+    r.setClearColor(0x000000, 0);
     r.clear();
 
     if (this.visible.size) {
@@ -171,6 +174,13 @@ export class Stage {
         const y = h - rect.bottom;
         r.setViewport(rect.left, y, rect.width, rect.height);
         r.setScissor(rect.left, y, rect.width, rect.height);
+        r.setScissorTest(true);
+        if (view.clearColor) {
+          r.setClearColor(view.clearColor, 1);
+          r.clear();
+        } else {
+          r.clearDepth();
+        }
         view.beforeRender?.(r);
         r.render(view.scene, view.camera);
       }
