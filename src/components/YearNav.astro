@@ -20,20 +20,22 @@ const t = useT(lang);
           href={localePath(lang, `/years/${y.year}/`)}
           class="group flex w-10 flex-col items-center gap-2 py-2 text-[0.6875rem] tabular-nums text-smoke hover:text-ink aria-[current=page]:text-ink md:w-12"
           aria-current={y.year === current ? 'page' : undefined}
-          aria-label={t('year.swatchLabel', {
-            year: y.year,
-            names: y.colors.map((c) => c.name).join(' & '),
-          })}
         >
           <span
             class="flex h-8 w-full overflow-hidden transition-[height] duration-300 group-hover:h-12 group-aria-[current=page]:h-12"
             aria-hidden="true"
           >
             {y.colors.map((c) => (
-              <span class="flex-1" style={`background:${c.hex}`} />
+              <span class="flex-1" style={`background:${c.hex}`} data-cursor-color={c.hex} />
             ))}
           </span>
-          <span>{String(y.year).slice(2)}</span>
+          <span aria-hidden="true">{String(y.year).slice(2)}</span>
+          <span class="sr-only">
+            {t('year.swatchLabel', {
+              year: y.year,
+              names: y.colors.map((c) => c.name).join(' & '),
+            })}
+          </span>
         </a>
       </li>
     ))}

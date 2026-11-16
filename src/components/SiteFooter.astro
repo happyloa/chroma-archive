@@ -34,15 +34,10 @@ const t = useT(lang);
           </a>
         </li>
         <li>
-          <a
-            href={REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="hover:underline"
-            aria-label={t('nav.github')}
-          >
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" class="hover:underline">
             {t('nav.githubShort')}
             <span aria-hidden="true"> ↗</span>
+            <span class="sr-only">{t('nav.newTab')}</span>
           </a>
         </li>
       </ul>

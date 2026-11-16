@@ -57,9 +57,9 @@ const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center gap-1 underline-offset-4 hover:underline"
-          aria-label={t('nav.github')}
         >
           GitHub<span aria-hidden="true">↗</span>
+          <span class="sr-only">{t('nav.newTab')}</span>
         </a>
       </li>
       <li>
@@ -68,10 +68,10 @@ const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
           hreflang={otherHtmlLang}
           lang={otherHtmlLang}
           class="underline-offset-4 hover:underline"
-          aria-label={t('lang.switchLabel')}
           data-lang-switch
         >
           {t('lang.switch')}
+          <span class="sr-only">{t('lang.switchHint')}</span>
         </a>
       </li>
       <li>

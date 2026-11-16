@@ -39,11 +39,13 @@ const zh = {
   'nav.aboutSite': '關於本站',
   'nav.github': 'GitHub 原始碼（另開新視窗）',
   'nav.githubShort': 'GitHub 原始碼',
+  'nav.newTab': '（另開新視窗）',
   'nav.years': '年份',
   'nav.adjacent': '相鄰年份',
   'theme.toggle': '切換深淺色',
   'lang.switch': 'English',
   'lang.switchLabel': '切換為英文版',
+  'lang.switchHint': '（切換為英文版）',
 
   'copy.button': '複製',
   'copy.label': '複製 {label}',
@@ -75,6 +77,8 @@ const zh = {
   'year.keywords': '情緒關鍵字',
   'year.storyPending': '完整的色彩故事還在撰寫中。',
   'year.palettes': '配色',
+  'year.downloadAse': '下載 .ase 色票',
+  'year.downloadAseNote': '年度色與五組配色，可匯入 Illustrator、Photoshop、InDesign。',
   'year.ideas': '設計發想',
   'year.ideasPending':
     '這個顏色的產品概念與材質建議還在整理中。可以先到產品實驗室，把 {names} 套到 3D 產品上試試看。',
@@ -165,6 +169,10 @@ const zh = {
   'space.l': 'L 明度',
   'space.c': 'C 彩度',
   'space.h': 'H 色相',
+  'space.layoutSpace': 'OKLCH 色彩空間',
+  'space.layoutSpiral': '時間螺旋',
+  'space.layoutWheel': '色相環',
+  'space.sortHint': '點欄位名稱可以排序',
 
   'about.metaTitle': '關於',
   'about.description': '關於 Chroma Archive、資料來源與非官方聲明。',
@@ -214,11 +222,13 @@ const en: Record<UiKey, string> = {
   'nav.aboutSite': 'About this site',
   'nav.github': 'Source code on GitHub (opens in a new tab)',
   'nav.githubShort': 'Source on GitHub',
+  'nav.newTab': ' (opens in a new tab)',
   'nav.years': 'Years',
   'nav.adjacent': 'Adjacent years',
   'theme.toggle': 'Toggle dark mode',
   'lang.switch': '中文',
   'lang.switchLabel': 'Switch to Traditional Chinese',
+  'lang.switchHint': ' (switch to Traditional Chinese)',
 
   'copy.button': 'Copy',
   'copy.label': 'Copy {label}',
@@ -252,6 +262,9 @@ const en: Record<UiKey, string> = {
   'year.keywords': 'Mood keywords',
   'year.storyPending': 'The full story for this color is still being written.',
   'year.palettes': 'Palettes',
+  'year.downloadAse': 'Download .ase swatches',
+  'year.downloadAseNote':
+    'The color and all five palettes, ready for Illustrator, Photoshop and InDesign.',
   'year.ideas': 'Design ideas',
   'year.ideasPending':
     'Product concepts and material notes for this color are on the way. In the meantime, try {names} on 3D products in the lab.',
@@ -345,6 +358,10 @@ const en: Record<UiKey, string> = {
   'space.l': 'L lightness',
   'space.c': 'C chroma',
   'space.h': 'H hue',
+  'space.layoutSpace': 'OKLCH space',
+  'space.layoutSpiral': 'Timeline spiral',
+  'space.layoutWheel': 'Hue wheel',
+  'space.sortHint': 'Select a column name to sort',
 
   'about.metaTitle': 'About',
   'about.description': 'About Chroma Archive, its sources and the non-affiliation notice.',
