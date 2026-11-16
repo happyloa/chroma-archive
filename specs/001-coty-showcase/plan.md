@@ -127,14 +127,8 @@ GSAP ticker 是唯一的時鐘。Lenis 在 ticker 裡呼叫 `raf()`，ScrollTrig
 | 絨布     | 1         | 0         | `sheen` 1，`sheenColor` 取主色提亮  |
 | 半透明   | 0.2       | 0         | `transmission` 0.9，`thickness` 0.5 |
 
-- 燈光預設（攝影棚、自然光、夜間）使用 Poly Haven 的 1k HDRI（`public/hdri/`），直接當 `scene.environment`：即時算繪時 three.js 自動轉成 PMREM，路徑追蹤需要原始的等距柱狀貼圖。HDRI 載入前，先用程式產生的燈箱場景烘成的環境貼圖（`src/stage/environment.ts`）。
+- 燈光預設（攝影棚、自然光、夜間）使用 Poly Haven 的 1k HDRI（`public/hdri/`），直接當 `scene.environment`，three.js 會自動轉成 PMREM。HDRI 載入前，先用程式產生的燈箱場景烘成的環境貼圖（`src/stage/environment.ts`）。
 - 情境場景（`src/stage/rooms.ts`）：地板、牆面用 PBR 貼圖（diff、nor、arm），家具用 Poly Haven 模型非同步載入；陰影用 VSM 柔和陰影。素材由 `scripts/optimize-scene-assets.mjs` 轉換。
-- 相片級渲染（`src/stage/views/PhotoRenderer.ts`）：three-gpu-pathtracer 的 WebGLPathTracer 與即時算繪共用 renderer。注意事項：
-  - 它分塊算繪時會改掉 renderer 的全域 viewport 與 scissor，貼回畫面前要還原成視窗範圍；低解析度預覽不經過 callback，所以關掉。
-  - Meshopt 壓縮的 glTF 頂點屬性是量化整數，建立場景前要轉回 Float32。
-  - Box、Cylinder、Extrude 等幾何自帶多個 group，單一材質時要先清掉，否則材質索引會錯。
-  - `setSceneAsync` 需要 BVH Worker，目前用同步的 `setScene`。
-  - 匯出時用內部的 `_pathTracer.setSize` 設定 2048 輸出尺寸。
 - 匯出：建立 2048 × 2048 的 WebGLRenderTarget，渲染一次後經 OutputPass 套用 tone mapping 與 sRGB 轉換，讀回像素，在 2D canvas 疊上浮水印，再轉 Blob 下載。
 - 網址參數：`?p=chair&f=satin&c1=2025-0&c2=2019-0&l=studio`，`c1`、`c2` 用「年份-色序」引用年度色，也接受 `hex`。
 

@@ -168,3 +168,14 @@ E2E 測試在無頭瀏覽器裡也是軟體算繪，所以 `tests/e2e/fixtures.t
 - 針對 `::view-transition-old(root)`、`::view-transition-new(root)` 寫的樣式全部沒有作用，包括上一頁、減少動態效果的 200 毫秒淡入淡出。先前的測試讀的是這兩個虛擬元素的計算樣式，虛擬元素即使不存在也讀得到值，所以沒有抓到。
 
 修正：拿掉 `<html>` 的 `transition:animate`，名稱回到預設的 `root`，整頁動畫直接寫在 global.css。另外，點色票卡、3D 色卡這類有共享元素的換頁不播墨水，新舊頁面 0.5 秒交叉淡化，色票卡 0.7 秒飛到新位置；一般換頁的新舊頁面也從 50% 瞬間切換改成在 35% 到 65% 之間交叉淡化。修正後相鄰兩格的亮度差最多 5（原本 145）。`tests/e2e/features.spec.ts` 檢查 `<html>` 的名稱是 `root`。
+
+## 拿掉相片級渲染
+
+2026-11-16 使用者決定拿掉產品實驗室的「相片級渲染」開關（原本的 US-12 第 3 到 6 項、T063）。理由：
+
+- 路徑追蹤的 shader 很大。在 Windows 的 Chrome（ANGLE D3D11）上，第一次開啟要編譯約 77 秒，期間取樣數一直是 0。
+- three-gpu-pathtracer 的 `WebGLPathTracer` 已經標為 deprecated，作者改做 WebGPU 版本。專案規定套件用最新版，之後升級很可能要整段重寫。
+- 和即時算繪共用 renderer 要處理不少細節：分塊算繪會改掉全域 viewport 與 scissor、Meshopt 量化的頂點屬性要先轉回 Float32、多 group 的幾何要先清掉 group，匯出 2048 尺寸還得呼叫套件內部的 `_pathTracer.setSize`。這段程式約 300 行，前幾輪修過的 bug 有好幾個出在這裡。
+- 即時畫面已經有實拍 HDRI、PBR 材質與 VSM 柔和陰影。
+
+拿掉之後少了路徑追蹤才有的全域光照、物體間的互相反射，以及攝影棚背景板上的真實落地陰影，匯出圖片改用即時算繪（原本開啟時是 128 次取樣）。
