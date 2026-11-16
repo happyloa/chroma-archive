@@ -1,0 +1,45 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** 這一頁要用的 WebGL 場景（見 plan.md 2.1） */
+  scene?: string;
+  /** 這一頁的年度色，寫入 --coty */
+  color?: string;
+}
+
+const {
+  title,
+  description = 'Pantone 歷年年度代表色與產品設計發想。',
+  scene = 'none',
+  color = '#F0EEE9',
+} = Astro.props;
+---
+
+<html lang="zh-Hant-TW" style={`--coty: ${color}`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <canvas id="stage" class="stage" transition:persist="stage" aria-hidden="true"></canvas>
+    <main data-scene={scene} data-color={color}>
+      <slot />
+    </main>
+    <footer class="disclaimer">
+      本站為個人作品，與 Pantone LLC 無關。色值皆為螢幕近似值，非官方色彩標準。PANTONE® 為 Pantone
+      LLC 的註冊商標。
+    </footer>
+    <script>
+      import '../app/boot';
+    </script>
+  </body>
+</html>
