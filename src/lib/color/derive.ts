@@ -107,3 +107,26 @@ const ciede2000 = differenceCiede2000();
 export function deltaE(a: string, b: string): number {
   return round(ciede2000(a, b), 1);
 }
+
+/**
+ * 捲軸配色：滑塊是年度色，軌道取互補色相，再調整明度直到兩者對比至少 3:1
+ * （WCAG 1.4.11 非文字元件）。淺色年份的軌道會變深，深色年份的軌道會變淺。
+ */
+export function scrollbarColors(hex: string, minContrast = 3): { thumb: string; track: string } {
+  const thumb = normalizeHex(hex);
+  const { l, c, h } = toOklch(thumb);
+  // 軌道降低彩度，避免互補色太刺眼；無彩色也給一點彩度，看得出冷暖
+  const chroma = Math.max(c * 0.6, ACHROMATIC_CHROMA * 2);
+  const hue = h + 180;
+  const original = oklchToHex(l, chroma, hue);
+  if (wcagContrast(thumb, original) >= minContrast) return { thumb, track: original };
+
+  // 往對比較大的方向調整明度：滑塊亮就把軌道調暗，反之調亮
+  const direction = wcagContrast(thumb, '#000000') >= wcagContrast(thumb, '#FFFFFF') ? -1 : 1;
+  for (let step = 1; step <= 40; step++) {
+    const nl = Math.min(0.99, Math.max(0.02, l + direction * step * 0.025));
+    const track = oklchToHex(nl, chroma, hue);
+    if (wcagContrast(thumb, track) >= minContrast) return { thumb, track };
+  }
+  return { thumb, track: direction < 0 ? INK : PAPER };
+}

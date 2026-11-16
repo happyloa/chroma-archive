@@ -7,7 +7,7 @@ import '@fontsource-variable/noto-sans-tc';
 import '../styles/global.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
-import { buildPalettes, pickInk } from '../lib/color';
+import { pickInk, scrollbarColors } from '../lib/color';
 import { getLatestYear } from '../lib/data';
 import { HTML_LANG, OG_LOCALE, getLang, localePath, stripLocale, useT } from '../i18n/ui';
 
@@ -43,8 +43,8 @@ const alternates = [
 // 沒指定顏色的頁面（關於、色彩空間等）用最新年度色
 const color = colorProp ?? (await getLatestYear()).colors[0]!.hex;
 const { ink } = pickInk(color);
-// 捲軸：滑塊是這一頁的年度色，軌道是它的互補色（首頁等總覽頁用最新年度色）
-const scrollTrack = buildPalettes(color).complementary[1];
+// 捲軸：滑塊是這一頁的年度色，軌道是互補色相並調整明度，對比至少 3:1（首頁等總覽頁用最新年度色）
+const { track: scrollTrack } = scrollbarColors(color);
 const separator = lang === 'en' ? ' | ' : '｜';
 const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chroma Archive`;
 ---
