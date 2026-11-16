@@ -105,3 +105,25 @@ Astro 7.4.12、three 0.187.0、gsap 3.15.1、lenis 1.3.27。Playwright 1.65 測 
 `tests/e2e/fixtures.ts` 只在「WebKit 加 Windows」這個組合拿掉 `startViewTransition`，其他測試照常進行。CI 在 Linux 上跑，WebKit 和 Chromium 都會測 View Transition。
 
 Safari 用的是另一套繪圖架構，這次無法驗證會不會有同樣的問題，T074 實機測試時要特別試站內換頁。
+
+## 產品實驗室切換場景卡頓
+
+2026-11-16 使用者回報切換場景時很卡。用 CPU profile 量測（Chromium、AMD Radeon 890M）第一次從攝影棚切到客廳：
+
+| 耗時   | 原因                                                                               |
+| ------ | ---------------------------------------------------------------------------------- |
+| 324 ms | 新材質第一次繪製時同步等 shader 編譯（`getProgramInfoLog`、`getProgramParameter`） |
+| 70 ms  | 貼圖上傳前的狀態查詢                                                               |
+| 64 ms  | 地板、牆面貼圖上傳（`texSubImage2D`）                                              |
+
+這些成本都發生在新場景加進畫面後的第一格，鏡頭過渡因此停住。HDRI 解析只花約 5 ms。
+
+改成先在背景準備好再換上去（`ProductView.prepareRoom`）：
+
+1. 等家具與貼圖載入，貼圖用 `initTexture` 分幾格上傳。
+2. 用 `compileAsync` 平行編譯 shader。編譯時要先套上換上去之後的狀態：場景的 HDRI（環境貼圖尺寸會影響 shader），以及主光投射陰影（攝影棚不投射，情境場景會）。少了任何一項，換上去後還是會整批重編。
+3. 每個 shader 第一次讀取 uniform 時要和 GPU 程序同步查詢，也在準備階段分幾格先做。
+4. HDRI 已經載入時直接套用，不先經過程式產生的燈箱。
+5. 正式環境關閉 `renderer.debug.checkShaderErrors`。
+
+結果：第一次切到客廳，最長停頓從 183 ms（3 格超過 50 ms）降到 133 ms（1 格，發生在準備階段，舊場景還在畫面上），之後的切換在 66 到 151 ms 內開始過渡，沒有掉格。

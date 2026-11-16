@@ -126,6 +126,12 @@ export const HDRI_INTENSITY: Record<HdriId, number> = {
 };
 
 const hdriCache = new Map<HdriId, Promise<Texture>>();
+const hdriLoaded = new Map<HdriId, Texture>();
+
+/** 已經載入完成的 HDRI；還沒好就回傳 undefined */
+export function peekHDRI(id: HdriId): Texture | undefined {
+  return hdriLoaded.get(id);
+}
 
 /**
  * 載入等距柱狀投影的 HDRI。直接當 scene.environment 使用：
@@ -136,6 +142,7 @@ export function loadHDRI(id: HdriId): Promise<Texture> {
   if (!task) {
     task = new HDRLoader().loadAsync(`/hdri/${id}.hdr`).then((t) => {
       t.mapping = EquirectangularReflectionMapping;
+      hdriLoaded.set(id, t);
       return t;
     });
     hdriCache.set(id, task);

@@ -42,7 +42,7 @@ export interface Placement {
 
 export interface Room {
   group: Group;
-  /** 家具全部載入完成 */
+  /** 家具與貼圖全部載入完成 */
   ready: Promise<void>;
   place(product: ProductId): Placement;
   dispose(): void;
@@ -54,17 +54,29 @@ const textureLoader = new TextureLoader();
 /** 低畫質檔位：只用底色貼圖，不用法線與 ARM 貼圖 */
 let lite = false;
 const textureCache = new Map<string, Texture>();
+const textureLoaded = new Map<string, Promise<void>>();
+/** 建立場景期間收集用到的貼圖載入進度（見 createRoom） */
+let pendingTextures: Promise<void>[] | null = null;
 function tex(url: string, repeat: Vector2, srgb = false): Texture {
   const key = `${url}@${repeat.x}x${repeat.y}${lite ? '-lite' : ''}`;
   let t = textureCache.get(key);
   if (!t) {
-    t = textureLoader.load(url);
+    let loaded!: () => void;
+    textureLoaded.set(key, new Promise<void>((resolve) => (loaded = resolve)));
+    // 載入失敗也算完成，場景照樣顯示（只是少了貼圖）
+    t = textureLoader.load(
+      url,
+      () => loaded(),
+      undefined,
+      () => loaded(),
+    );
     t.wrapS = t.wrapT = RepeatWrapping;
     t.repeat.copy(repeat);
     t.anisotropy = lite ? 1 : 8;
     if (srgb) t.colorSpace = SRGBColorSpace;
     textureCache.set(key, t);
   }
+  pendingTextures?.push(textureLoaded.get(key)!);
   return t;
 }
 
@@ -341,5 +353,9 @@ function office(): Room {
 
 export function createRoom(id: Exclude<RoomId, 'studio'>, opts: { lite?: boolean } = {}): Room {
   lite = !!opts.lite;
-  return { living, bedroom, office }[id]();
+  pendingTextures = [];
+  const room = { living, bedroom, office }[id]();
+  const textures = Promise.all(pendingTextures);
+  pendingTextures = null;
+  return { ...room, ready: Promise.all([room.ready, textures]).then(() => undefined) };
 }

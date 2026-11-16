@@ -15,6 +15,7 @@ import {
   Raycaster,
   Scene,
   Sphere,
+  Texture,
   Vector2,
   Vector3,
   WebGLRenderTarget,
@@ -32,6 +33,7 @@ import {
   getEnvironment,
   hdriFor,
   loadHDRI,
+  peekHDRI,
   type LightPreset,
 } from '../environment';
 import { PhotoRenderer, type PhotoProgress } from './PhotoRenderer';
@@ -125,6 +127,16 @@ const shadowGeometry = new PlaneGeometry(1, 1);
  * data-product、data-finish、data-primary、data-accent、data-light、data-room，
  * data-interactive 允許縮放與點選零件，data-transparent 不畫背景（疊在頁面底色上）。
  */
+/** 這一格已經忙超過 8 毫秒就等下一格再繼續 */
+let sliceStart = 0;
+async function yieldIfBusy(): Promise<void> {
+  const now = performance.now();
+  if (sliceStart === 0) sliceStart = now;
+  if (now - sliceStart < 8) return;
+  await new Promise((r) => requestAnimationFrame(r));
+  sliceStart = performance.now();
+}
+
 export class ProductView implements StageView {
   readonly scene = new Scene();
   readonly camera = new PerspectiveCamera(28, 1, 0.02, 60);
@@ -187,6 +199,7 @@ export class ProductView implements StageView {
   /** 目前的產品有沒有輔色零件 */
   hasAccent = true;
   private room: Room | null = null;
+  private roomToken = 0;
   private state: ProductState;
   private reducedMotion: boolean;
   private interacting = false;
@@ -294,10 +307,8 @@ export class ProductView implements StageView {
     this.state = { ...prev, ...next };
     let reframe = false;
 
-    if (next.room && next.room !== prev.room) {
-      this.setRoom(next.room);
-      reframe = true;
-    }
+    // 場景準備好才換上去並取景（見 setRoom）
+    if (next.room && next.room !== prev.room) this.setRoom(next.room, motion);
     if (next.light && next.light !== prev.light) this.setLight(next.light);
     if (next.camera && next.camera !== prev.camera) reframe = true;
     if (next.product && next.product !== prev.product) {
@@ -469,18 +480,84 @@ export class ProductView implements StageView {
     this.shadow.visible = !this.ctx.settings.shadows && this.state.quality !== 'photo';
   }
 
-  private setRoom(id: RoomId): void {
+  /**
+   * 換場景：新場景先在背景載入家具與貼圖、上傳貼圖、平行編譯 shader，準備好才換上去。
+   * 直接加進畫面的話，第一次繪製會同步等 shader 編譯與貼圖上傳，鏡頭過渡會卡住半秒以上。
+   * 準備期間舊場景照常顯示；連續切換時只採用最後一次。
+   */
+  private setRoom(id: RoomId, motion = false): void {
+    const token = ++this.roomToken;
+    this.state.room = id;
+    if (id === 'studio') {
+      this.showRoom(null, motion);
+      return;
+    }
+    const room = createRoom(id, { lite: this.ctx.tier === 'low' });
+    this.el.setAttribute('aria-busy', 'true');
+    void this.prepareRoom(room).then(
+      () => {
+        if (token !== this.roomToken || this.disposed) room.dispose();
+        else this.showRoom(room, motion);
+      },
+      (e) => {
+        console.warn('場景準備失敗，直接顯示', e);
+        if (token === this.roomToken && !this.disposed) this.showRoom(room, motion);
+      },
+    );
+  }
+
+  private async prepareRoom(room: Room): Promise<void> {
+    const renderer = this.ctx.renderer;
+    const preset = this.state.light;
+    // 換上去之後要用的環境光；低畫質檔位不載 HDRI
+    const env =
+      this.ctx.tier === 'low'
+        ? getEnvironment(renderer, preset)
+        : await loadHDRI(hdriFor(preset, true)).catch(() => getEnvironment(renderer, preset));
+    await room.ready;
+    const textures = new Set<Texture>();
+    room.group.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      for (const m of [o.material].flat())
+        for (const v of Object.values(m)) if (v instanceof Texture) textures.add(v);
+    });
+    // 分幾格上傳貼圖，避免一次卡住太久；已經上傳過的貼圖幾乎不花時間
+    for (const t of textures) {
+      if (this.disposed) return;
+      renderer.initTexture(t);
+      await yieldIfBusy();
+    }
+    // 用換上去之後的環境光編譯整個場景：環境貼圖會影響 shader，HDRI 也在這時先轉成 PMREM
+    // 主光在情境場景會投射陰影（見 setLight），有沒有陰影也會影響 shader
+    const prevEnv = this.scene.environment;
+    const prevCast = this.key.castShadow;
+    this.scene.environment = env;
+    this.key.castShadow = this.ctx.settings.shadows;
+    this.scene.add(room.group);
+    const compiling = renderer.compileAsync(this.scene, this.camera);
+    this.scene.remove(room.group);
+    this.scene.environment = prevEnv;
+    this.key.castShadow = prevCast;
+    await compiling;
+    // 每個 shader 第一次使用時要向 GPU 同步查詢 uniform，分幾格先查好，避免全部擠在換上場景的那一格
+    for (const program of renderer.info.programs ?? []) {
+      if (this.disposed) return;
+      program.getUniforms();
+      await yieldIfBusy();
+    }
+  }
+
+  private showRoom(room: Room | null, motion: boolean): void {
     if (this.room) {
       this.scene.remove(this.room.group);
       this.room.dispose();
-      this.room = null;
     }
-    if (id !== 'studio') {
-      this.room = createRoom(id, { lite: this.ctx.tier === 'low' });
-      this.scene.add(this.room.group);
-    }
-    this.state.room = id;
+    this.room = room;
+    if (room) this.scene.add(room.group);
+    this.el.removeAttribute('aria-busy');
     this.setLight(this.state.light);
+    this.placeModel();
+    this.frame(motion);
     if (this.photo.enabled) void this.rebuildPhoto();
   }
 
@@ -491,9 +568,16 @@ export class ProductView implements StageView {
     this.scene.environment = getEnvironment(this.ctx.renderer, preset);
     this.scene.environmentIntensity = look.envIntensity * (inRoom ? 0.8 : 1);
     const hdri = hdriFor(preset, inRoom);
+    // HDRI 已經載好就直接套用：先換成燈箱再換 HDRI，環境貼圖尺寸不同，會多編一次 shader
+    const ready = this.ctx.tier === 'low' ? undefined : peekHDRI(hdri);
+    if (ready) {
+      this.scene.environment = ready;
+      this.scene.environmentIntensity = HDRI_INTENSITY[hdri];
+      this.photo.updateEnvironment();
+    }
     // 低畫質檔位（軟體算繪、低記憶體裝置）不下載 HDRI：1.4 MB 的檔案轉環境貼圖會卡住主執行緒好幾秒
     this.hdriTask =
-      this.ctx.tier === 'low'
+      this.ctx.tier === 'low' || ready
         ? Promise.resolve()
         : loadHDRI(hdri).then(
             (texture) => {

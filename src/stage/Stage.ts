@@ -57,6 +57,8 @@ export class Stage {
       preserveDrawingBuffer: false,
     });
     this.renderer.outputColorSpace = SRGBColorSpace;
+    // shader 錯誤檢查會同步等編譯結果，只在開發時開啟
+    this.renderer.debug.checkShaderErrors = import.meta.env.DEV;
     // Khronos PBR Neutral：盡量保留產品的原色，色票顏色才不會被洗淡
     this.renderer.toneMapping = NeutralToneMapping;
     this.renderer.setClearColor(0x000000, 0);
