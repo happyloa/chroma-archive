@@ -18,9 +18,10 @@ const links = [
   { path: '/space/', label: t('nav.space') },
   { path: '/about/', label: t('nav.about') },
 ];
-// 切換語言：同一頁的另一個語系版本
+// 切換語言：同一頁的另一個語系版本；404 只有一頁（中英並列），改連到另一個語系的首頁
 const otherLang = lang === 'en' ? 'zh-tw' : 'en';
 const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
+const otherPath = base.startsWith('/404') ? '/' : base;
 ---
 
 {/* 疊在第一個區塊上方，隨頁面捲走；文字色依該區塊背景決定 */}
@@ -64,7 +65,7 @@ const otherHtmlLang = otherLang === 'en' ? 'en' : 'zh-Hant-TW';
       </li>
       <li>
         <a
-          href={localePath(otherLang, base)}
+          href={localePath(otherLang, otherPath)}
           hreflang={otherHtmlLang}
           lang={otherHtmlLang}
           class="underline-offset-4 hover:underline"

@@ -40,11 +40,15 @@ const lang = getLang(Astro.currentLocale);
 const t = useT(lang);
 const description = descriptionProp ?? t('site.description');
 const basePath = stripLocale(Astro.url.pathname);
-const alternates = [
-  { hreflang: 'zh-Hant-TW', href: new URL(localePath('zh-tw', basePath), Astro.site) },
-  { hreflang: 'en', href: new URL(localePath('en', basePath), Astro.site) },
-  { hreflang: 'x-default', href: new URL(basePath, Astro.site) },
-];
+// 404 只有一頁（中英並列）：不輸出 canonical 與 hreflang，也不讓搜尋引擎收錄
+const isNotFound = basePath.startsWith('/404');
+const alternates = isNotFound
+  ? []
+  : [
+      { hreflang: 'zh-Hant-TW', href: new URL(localePath('zh-tw', basePath), Astro.site) },
+      { hreflang: 'en', href: new URL(localePath('en', basePath), Astro.site) },
+      { hreflang: 'x-default', href: new URL(basePath, Astro.site) },
+    ];
 
 // 沒指定顏色的頁面（關於、色彩空間等）用最新年度色
 const color = colorProp ?? (await getLatestYear()).colors[0]!.hex;
@@ -63,10 +67,10 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {(noindex || isNotFound) && <meta name="robots" content="noindex" />}
     <meta name="theme-color" content={color} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    {!isNotFound && <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />}
     {alternates.map((a) => (
       <link rel="alternate" hreflang={a.hreflang} href={a.href} />
     ))}
