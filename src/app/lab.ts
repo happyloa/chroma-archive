@@ -29,7 +29,7 @@ function applyParams(form: HTMLFormElement): void {
   const params = new URLSearchParams(location.search);
   for (const name of PARAMS) {
     const value = params.get(name);
-    if (!value) continue;
+    if (!value || (name === 'p' && value === 'custom')) continue;
     const input = [...form.querySelectorAll<HTMLInputElement>(`input[name="${name}"]`)].find(
       (i) => i.value.toLowerCase() === value.toLowerCase(),
     );
@@ -49,7 +49,8 @@ function writeParams(form: HTMLFormElement): void {
   const params = new URLSearchParams();
   for (const name of PARAMS) {
     const v = checked(form, name)?.value;
-    if (v) params.set(name, v);
+    // 上傳的模型沒有存在任何地方，分享網址時不帶 p=custom
+    if (v && !(name === 'p' && v === 'custom')) params.set(name, v);
   }
   if (!checked(form, 'spin')) params.set('spin', '0');
   // 保留 Astro router 放在 history.state 的資料
@@ -107,9 +108,39 @@ export function initLab(): void {
     focusSlot(form, (event as CustomEvent<PickDetail>).detail.slot);
   });
 
-  form.addEventListener('change', () => {
+  form.addEventListener('change', (event) => {
+    // 上傳欄位另外處理
+    if ((event.target as HTMLInputElement | null)?.type === 'file') return;
     view?.set(readState(form));
     writeParams(form);
+  });
+
+  // 上傳自己的模型：只在瀏覽器裡解析，不送出到任何地方
+  const upload = document.getElementById('lab-upload');
+  const status = document.getElementById('lab-upload-status');
+  const customOption = document.getElementById('lab-custom-option');
+  upload?.addEventListener('change', async () => {
+    const file = (upload as HTMLInputElement).files?.[0];
+    (upload as HTMLInputElement).value = '';
+    if (!file || !view || !status || !customOption) {
+      if (status && !view) status.textContent = '3D 預覽還沒準備好，請稍候再試';
+      return;
+    }
+    status.textContent = `正在讀取 ${file.name}…`;
+    try {
+      const { parseModelFile } = await import('../stage/upload');
+      const root = await parseModelFile(file);
+      view.setCustomModel(root);
+      customOption.hidden = false;
+      const name = customOption.querySelector('[data-custom-name]');
+      if (name) name.textContent = `我的模型：${file.name}`;
+      const radio = customOption.querySelector<HTMLInputElement>('input');
+      if (radio) radio.checked = true;
+      writeParams(form);
+      status.textContent = `已載入 ${file.name}。點模型的零件可以切換主色與輔色。`;
+    } catch (e) {
+      status.textContent = e instanceof Error ? e.message : '無法讀取這個檔案';
+    }
   });
 
   exportButton.addEventListener('click', async () => {

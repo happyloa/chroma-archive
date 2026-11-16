@@ -40,6 +40,70 @@ test('情境場景、鏡頭與自轉寫進網址並還原', async ({ page }) => 
   await expect(page.locator('input[name="spin"]')).not.toBeChecked();
 });
 
+const TETRA_STL = `solid t
+facet normal 0 0 -1
+outer loop
+vertex 0 0 0
+vertex 1 0 0
+vertex 0 1 0
+endloop
+endfacet
+facet normal 0 -1 0
+outer loop
+vertex 0 0 0
+vertex 0 0 1
+vertex 1 0 0
+endloop
+endfacet
+facet normal -1 0 0
+outer loop
+vertex 0 0 0
+vertex 0 1 0
+vertex 0 0 1
+endloop
+endfacet
+facet normal 1 1 1
+outer loop
+vertex 1 0 0
+vertex 0 0 1
+vertex 0 1 0
+endloop
+endfacet
+endsolid t`;
+
+test('上傳模型只在瀏覽器讀取，不送出任何請求', async ({ page }) => {
+  await page.goto('/years/2025/lab/');
+  await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
+  const outgoing: string[] = [];
+  page.on('request', (r) => {
+    if (r.method() !== 'GET') outgoing.push(`${r.method()} ${r.url()}`);
+  });
+
+  await page.locator('#lab-upload').setInputFiles({
+    name: 'tetra.stl',
+    mimeType: 'model/stl',
+    buffer: Buffer.from(TETRA_STL),
+  });
+  await expect(page.locator('#lab-upload-status')).toContainText('已載入 tetra.stl');
+  await expect(page.locator('#lab-custom-option')).toBeVisible();
+  await expect(page.locator('input[name="p"]:checked')).toHaveValue('custom');
+  // 分享網址不帶上傳的模型
+  await expect(page).not.toHaveURL(/p=custom/);
+  expect(outgoing).toEqual([]);
+});
+
+test('拒絕不支援的檔案類型', async ({ page }) => {
+  await page.goto('/years/2025/lab/');
+  await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
+  await page.locator('#lab-upload').setInputFiles({
+    name: 'model.fbx',
+    mimeType: 'application/octet-stream',
+    buffer: Buffer.from('not a model'),
+  });
+  await expect(page.locator('#lab-upload-status')).toContainText('不支援 .fbx');
+  await expect(page.locator('#lab-custom-option')).toBeHidden();
+});
+
 test('匯出 2048 × 2048 PNG', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', '下載事件只在 Chromium 驗證');
   await page.goto('/years/2025/lab/?p=vase&f=satin');

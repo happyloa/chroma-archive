@@ -34,12 +34,15 @@ import {
 import type { ProductModel } from '../products/shared';
 import { REAL_HEIGHT, createRoom, setRoomLight, type Room, type RoomId } from '../rooms';
 import type { StageContext, StageView } from '../types';
+import { disposeGeometries, releaseOriginalMaterials } from '../upload';
 
+export type ProductChoice = ProductId | 'custom';
 export type CameraPreset = 'hero' | 'front' | 'side' | 'top' | 'detail';
 export type PartSlot = 'primary' | 'accent';
 
 export interface ProductState {
-  product: ProductId;
+  /** custom 是使用者上傳的模型 */
+  product: ProductChoice;
   finish: Finish;
   primary: string;
   accent: string;
@@ -122,6 +125,8 @@ export class ProductView implements StageView {
   private readonly pointer = new Vector2();
   clearColor: Color | null = null;
   private model: ProductModel | null = null;
+  /** 使用者上傳的模型，切到其他產品時保留，換新檔或視窗釋放時才釋放 */
+  private custom: ProductModel | null = null;
   private room: Room | null = null;
   private state: ProductState;
   private reducedMotion: boolean;
@@ -264,10 +269,11 @@ export class ProductView implements StageView {
     gsap.to(mat, { ...to, duration: 0.4, ease: 'power2.out' });
   }
 
-  private setProduct(id: ProductId, animate: boolean): void {
+  private setProduct(id: ProductChoice, animate: boolean): void {
+    if (id === 'custom' && !this.custom) id = 'chair';
     if (this.model) this.turntable.remove(this.model.root);
     this.bulbLight.removeFromParent();
-    const model = PRODUCTS[id](this.ctx.settings.detail);
+    const model = id === 'custom' ? this.custom! : PRODUCTS[id](this.ctx.settings.detail);
     for (const m of model.primary) m.material = this.primaryMat;
     for (const m of model.accent) m.material = this.accentMat;
     model.root.traverse((o) => {
@@ -322,11 +328,12 @@ export class ProductView implements StageView {
       this.shadow.visible = true;
       return;
     }
-    const p = this.room.place(id);
+    // 上傳的模型尺寸未知，放在單椅的位置，高度當作 0.6 公尺
+    const p = this.room.place(id === 'custom' ? 'chair' : id);
     const nativeHeight = this.modelBox.max.y - this.modelBox.min.y;
     this.placement.position.copy(p.position);
     this.placement.rotation.set(0, p.rotationY, 0);
-    this.placement.scale.setScalar(REAL_HEIGHT[id] / nativeHeight);
+    this.placement.scale.setScalar((id === 'custom' ? 0.6 : REAL_HEIGHT[id]) / nativeHeight);
     // 場景裡用真的陰影
     this.shadow.visible = !this.ctx.settings.shadows;
   }
@@ -420,7 +427,7 @@ export class ProductView implements StageView {
 
   // —— 點選零件 ——
 
-  private hit(event: PointerEvent): PartSlot | null {
+  private hit(event: PointerEvent): { slot: PartSlot; mesh: Mesh } | null {
     if (!this.model) return null;
     const rect = this.el.getBoundingClientRect();
     this.pointer.set(
@@ -431,7 +438,8 @@ export class ProductView implements StageView {
     const targets: Object3D[] = [...this.model.primary, ...this.model.accent];
     const [first] = this.raycaster.intersectObjects(targets, false);
     if (!first) return null;
-    return this.model.primary.includes(first.object as Mesh) ? 'primary' : 'accent';
+    const mesh = first.object as Mesh;
+    return { slot: this.model.primary.includes(mesh) ? 'primary' : 'accent', mesh };
   }
 
   private setHover(slot: PartSlot | null): void {
@@ -453,7 +461,7 @@ export class ProductView implements StageView {
 
   private onPointerMove = (event: PointerEvent): void => {
     if (this.interacting) return;
-    this.setHover(this.hit(event));
+    this.setHover(this.hit(event)?.slot ?? null);
   };
 
   private onPointerLeave = (): void => this.setHover(null);
@@ -468,12 +476,54 @@ export class ProductView implements StageView {
     this.downAt = null;
     // 拖曳旋轉不算點選
     if (moved > 5) return;
-    const slot = this.hit(event);
-    if (!slot) return;
+    const result = this.hit(event);
+    if (!result) return;
+    let { slot } = result;
+    // 上傳的模型沒有預先分好主色、輔色零件：點一下就在兩者之間切換
+    if (this.state.product === 'custom' && this.model) {
+      slot = this.toggleSlot(result.mesh, slot);
+    }
     this.el.dispatchEvent(
       new CustomEvent<PickDetail>('product:pick', { detail: { slot }, bubbles: true }),
     );
   };
+
+  private toggleSlot(mesh: Mesh, current: PartSlot): PartSlot {
+    const model = this.model!;
+    const from = current === 'primary' ? model.primary : model.accent;
+    const to = current === 'primary' ? model.accent : model.primary;
+    from.splice(from.indexOf(mesh), 1);
+    to.push(mesh);
+    const next: PartSlot = current === 'primary' ? 'accent' : 'primary';
+    mesh.material = next === 'primary' ? this.primaryMat : this.accentMat;
+    return next;
+  }
+
+  /**
+   * 換上使用者上傳的模型：所有零件先套主色，點零件可切換成輔色。
+   * 原本的材質與貼圖會釋放，模型縮放到和內建產品差不多的大小。
+   */
+  setCustomModel(root: Group): void {
+    const primary: Mesh[] = [];
+    root.traverse((o) => {
+      if (!(o instanceof Mesh)) return;
+      releaseOriginalMaterials(o);
+      o.material = this.primaryMat;
+      o.castShadow = o.receiveShadow = true;
+      primary.push(o);
+    });
+    const size = new Box3().setFromObject(root).getSize(new Vector3());
+    root.scale.multiplyScalar(1.2 / Math.max(size.x, size.y, size.z, 1e-6));
+    const wrapper = new Group();
+    wrapper.add(root);
+
+    const old = this.custom;
+    this.custom = { root: wrapper, primary, accent: [] };
+    this.state.product = 'custom';
+    this.setProduct('custom', !this.reducedMotion);
+    this.frame(!this.reducedMotion);
+    if (old) disposeGeometries(old.root);
+  }
 
   /** 網站切換深淺色時，背景跟著換 */
   private onThemeChange = (): void => {
@@ -584,6 +634,7 @@ export class ProductView implements StageView {
     ]);
     this.controls.dispose();
     this.room?.dispose();
+    if (this.custom) disposeGeometries(this.custom.root);
     this.primaryMat.dispose();
     this.accentMat.dispose();
     this.shadow.material.dispose();
