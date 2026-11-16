@@ -1,0 +1,43 @@
+---
+import type { YearEntry } from '../lib/data';
+
+interface Props {
+  entry: YearEntry;
+  /** 有 href 時整張色票是連結 */
+  href?: string;
+  class?: string;
+}
+
+const { entry, href, class: className } = Astro.props;
+const names = entry.colors.map((c) => c.name).join(' & ');
+const namesZh = entry.colors.map((c) => c.nameZh).join('、');
+const codes = entry.colors.map((c) => c.code).join(' / ');
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag
+  href={href}
+  class:list={[
+    'group block bg-chip p-[6%] pb-[5%] text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-12px_rgb(0_0_0/0.18)] transition-transform duration-500 ease-out-expo',
+    href && 'hover:-translate-y-1 focus-visible:-translate-y-1',
+    className,
+  ]}
+  aria-label={href ? `${entry.year} 年 ${names}（${namesZh}）` : undefined}
+>
+  <div class="flex aspect-[5/4] overflow-hidden" aria-hidden="true">
+    {entry.colors.map((c) => (
+      <span
+        class:list={['flex-1', c.isLight && 'shadow-[inset_0_0_0_1px_rgb(0_0_0/0.06)]']}
+        style={`background:${c.hex}`}
+      />
+    ))}
+  </div>
+  <div class="mt-[6%] flex items-baseline justify-between gap-3">
+    <p class="font-display text-[clamp(1.25rem,2vw,1.75rem)] leading-none tabular-nums">
+      {entry.year}
+    </p>
+    <p class="font-mono text-[0.625rem] tracking-wide text-smoke">{codes}</p>
+  </div>
+  <p class="mt-2 truncate text-sm font-medium">{names}</p>
+  <p class="truncate text-xs text-smoke">{namesZh}</p>
+</Tag>
