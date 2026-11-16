@@ -1,0 +1,314 @@
+{
+  "$comment": "HEX 為螢幕近似值，非 Pantone 官方色彩標準。中文名稱為本站譯名。上線前依 tasks.md T010 逐筆核對。",
+  "years": [
+    {
+      "year": 2000,
+      "colors": [
+        {
+          "name": "Cerulean",
+          "nameZh": "蔚藍",
+          "code": "15-4020",
+          "hex": "#9BB7D4"
+        }
+      ]
+    },
+    {
+      "year": 2001,
+      "colors": [
+        {
+          "name": "Fuchsia Rose",
+          "nameZh": "紫紅玫瑰",
+          "code": "17-2031",
+          "hex": "#C74375"
+        }
+      ]
+    },
+    {
+      "year": 2002,
+      "colors": [
+        {
+          "name": "True Red",
+          "nameZh": "正紅",
+          "code": "19-1664",
+          "hex": "#BF1932"
+        }
+      ]
+    },
+    {
+      "year": 2003,
+      "colors": [
+        {
+          "name": "Aqua Sky",
+          "nameZh": "水色天空",
+          "code": "14-4811",
+          "hex": "#7BC4C4"
+        }
+      ]
+    },
+    {
+      "year": 2004,
+      "colors": [
+        {
+          "name": "Tigerlily",
+          "nameZh": "虎皮百合",
+          "code": "17-1456",
+          "hex": "#E2583E"
+        }
+      ]
+    },
+    {
+      "year": 2005,
+      "colors": [
+        {
+          "name": "Blue Turquoise",
+          "nameZh": "藍綠松石",
+          "code": "15-5217",
+          "hex": "#53B0AE"
+        }
+      ]
+    },
+    {
+      "year": 2006,
+      "colors": [
+        {
+          "name": "Sand Dollar",
+          "nameZh": "沙錢",
+          "code": "13-1106",
+          "hex": "#DECDBE"
+        }
+      ]
+    },
+    {
+      "year": 2007,
+      "colors": [
+        {
+          "name": "Chili Pepper",
+          "nameZh": "辣椒紅",
+          "code": "19-1557",
+          "hex": "#9B1B30"
+        }
+      ]
+    },
+    {
+      "year": 2008,
+      "colors": [
+        {
+          "name": "Blue Iris",
+          "nameZh": "藍鳶尾",
+          "code": "18-3943",
+          "hex": "#5A5B9F"
+        }
+      ]
+    },
+    {
+      "year": 2009,
+      "colors": [
+        {
+          "name": "Mimosa",
+          "nameZh": "含羞草黃",
+          "code": "14-0848",
+          "hex": "#F0C05A"
+        }
+      ]
+    },
+    {
+      "year": 2010,
+      "colors": [
+        {
+          "name": "Turquoise",
+          "nameZh": "綠松石",
+          "code": "15-5519",
+          "hex": "#45B5AA"
+        }
+      ]
+    },
+    {
+      "year": 2011,
+      "colors": [
+        {
+          "name": "Honeysuckle",
+          "nameZh": "忍冬紅",
+          "code": "18-2120",
+          "hex": "#D94F70"
+        }
+      ]
+    },
+    {
+      "year": 2012,
+      "colors": [
+        {
+          "name": "Tangerine Tango",
+          "nameZh": "探戈橘",
+          "code": "17-1463",
+          "hex": "#DD4124"
+        }
+      ]
+    },
+    {
+      "year": 2013,
+      "colors": [
+        {
+          "name": "Emerald",
+          "nameZh": "翡翠綠",
+          "code": "17-5641",
+          "hex": "#009473"
+        }
+      ]
+    },
+    {
+      "year": 2014,
+      "colors": [
+        {
+          "name": "Radiant Orchid",
+          "nameZh": "璀璨紫蘭",
+          "code": "18-3224",
+          "hex": "#B163A3"
+        }
+      ]
+    },
+    {
+      "year": 2015,
+      "colors": [
+        {
+          "name": "Marsala",
+          "nameZh": "瑪莎拉酒紅",
+          "code": "18-1438",
+          "hex": "#955251"
+        }
+      ]
+    },
+    {
+      "year": 2016,
+      "colors": [
+        {
+          "name": "Rose Quartz",
+          "nameZh": "粉晶",
+          "code": "13-1520",
+          "hex": "#F7CAC9"
+        },
+        {
+          "name": "Serenity",
+          "nameZh": "寧靜藍",
+          "code": "15-3919",
+          "hex": "#92A8D1"
+        }
+      ]
+    },
+    {
+      "year": 2017,
+      "colors": [
+        {
+          "name": "Greenery",
+          "nameZh": "草木綠",
+          "code": "15-0343",
+          "hex": "#88B04B"
+        }
+      ]
+    },
+    {
+      "year": 2018,
+      "colors": [
+        {
+          "name": "Ultra Violet",
+          "nameZh": "紫外光",
+          "code": "18-3838",
+          "hex": "#5F4B8B"
+        }
+      ]
+    },
+    {
+      "year": 2019,
+      "colors": [
+        {
+          "name": "Living Coral",
+          "nameZh": "活珊瑚橘",
+          "code": "16-1546",
+          "hex": "#FF6F61"
+        }
+      ]
+    },
+    {
+      "year": 2020,
+      "colors": [
+        {
+          "name": "Classic Blue",
+          "nameZh": "經典藍",
+          "code": "19-4052",
+          "hex": "#0F4C81"
+        }
+      ]
+    },
+    {
+      "year": 2021,
+      "colors": [
+        {
+          "name": "Ultimate Gray",
+          "nameZh": "極致灰",
+          "code": "17-5104",
+          "hex": "#939597"
+        },
+        {
+          "name": "Illuminating",
+          "nameZh": "亮麗黃",
+          "code": "13-0647",
+          "hex": "#F5DF4D"
+        }
+      ]
+    },
+    {
+      "year": 2022,
+      "colors": [
+        {
+          "name": "Very Peri",
+          "nameZh": "長春花藍",
+          "code": "17-3938",
+          "hex": "#6667AB"
+        }
+      ]
+    },
+    {
+      "year": 2023,
+      "colors": [
+        {
+          "name": "Viva Magenta",
+          "nameZh": "非凡洋紅",
+          "code": "18-1750",
+          "hex": "#BB2649"
+        }
+      ]
+    },
+    {
+      "year": 2024,
+      "colors": [
+        {
+          "name": "Peach Fuzz",
+          "nameZh": "柔和桃",
+          "code": "13-1023",
+          "hex": "#FFBE98"
+        }
+      ]
+    },
+    {
+      "year": 2025,
+      "colors": [
+        {
+          "name": "Mocha Mousse",
+          "nameZh": "摩卡慕斯",
+          "code": "17-1230",
+          "hex": "#A47864"
+        }
+      ]
+    },
+    {
+      "year": 2026,
+      "colors": [
+        {
+          "name": "Cloud Dancer",
+          "nameZh": "雲上舞白",
+          "code": "11-4201",
+          "hex": "#F0EEE9"
+        }
+      ]
+    }
+  ]
+}
