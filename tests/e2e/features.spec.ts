@@ -428,3 +428,20 @@ test('瀏覽中途開啟減少動態效果，靜態替代內容會回來', async
   await expect(hero).not.toHaveAttribute('data-stage-ready', '');
   await expect(hero).toHaveCSS('background-image', /radial-gradient/);
 });
+
+test.describe('手機寬度', () => {
+  test.use({ viewport: { width: 360, height: 780 }, isMobile: true, hasTouch: true });
+
+  test('頁面不會被撐寬，頁首選單不在字中間折行', async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', 'WebKit 不支援 isMobile 模擬');
+    for (const path of ['/', '/archive/', '/years/2021/', '/years/2025/lab/', '/space/', '/en/']) {
+      await page.goto(path);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), path).toBe(360);
+      // 每個選單項目都只有一行
+      const heights = await page
+        .locator('header nav li a')
+        .evaluateAll((as) => as.map((a) => Math.round(a.getBoundingClientRect().height)));
+      expect(Math.max(...heights), path).toBeLessThan(30);
+    }
+  });
+});
