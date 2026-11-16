@@ -342,9 +342,9 @@ test.describe('規格補做：下載、404、雙色、質感', () => {
     await expect(page.locator('[data-view="hero"]')).toHaveAttribute('data-color2', '#93A9D1');
   });
 
-  test('全畫面有底片顆粒層，色塊有紙張纖維', async ({ page }) => {
+  test('色塊有紙張纖維，沒有全畫面顆粒層', async ({ page }) => {
     await page.goto('/years/2025/');
-    await expect(page.locator('.film-grain')).toHaveCount(1);
+    await expect(page.locator('.film-grain')).toHaveCount(0);
     await expect(page.locator('.paper-fiber').first()).toBeVisible();
   });
 });
