@@ -12,3 +12,25 @@
 CC BY 4.0 的兩個模型經過修改（重新上色、壓縮、移除材質變體），網站「關於」頁也有標註。
 
 耳罩式耳機與智慧音箱沒有合適的公開模型，由 `src/stage/products/` 以程式產生。
+
+## 情境場景素材
+
+產品實驗室的客廳、臥室、辦公室與燈光使用下列 Poly Haven 素材，授權皆為 [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)。由 `scripts/optimize-scene-assets.mjs` 轉換：HDRI 原樣使用 1k 版本，貼圖轉成 1024 WebP，家具貼圖縮到 512 並以 Meshopt 壓縮。
+
+| 檔案                                      | 素材                                                                       | 作者             |
+| ----------------------------------------- | -------------------------------------------------------------------------- | ---------------- |
+| `public/hdri/studio_small_08.hdr`         | [Studio Small 08](https://polyhaven.com/a/studio_small_08)                 | Sergej Majboroda |
+| `public/hdri/lythwood_room.hdr`           | [Lythwood Room](https://polyhaven.com/a/lythwood_room)                     | Greg Zaal        |
+| `public/hdri/unfinished_office_night.hdr` | [Unfinished Office Night](https://polyhaven.com/a/unfinished_office_night) | Sergej Majboroda |
+| `public/textures/wood_floor/`             | [Wood Floor](https://polyhaven.com/a/wood_floor)                           | Dimitrios Savva  |
+| `public/textures/smooth_concrete_floor/`  | [Smooth Concrete Floor](https://polyhaven.com/a/smooth_concrete_floor)     | Dimitrios Savva  |
+| `public/textures/painted_plaster_wall/`   | [Painted Plaster Wall](https://polyhaven.com/a/painted_plaster_wall)       | Amal Kumar       |
+| `furniture/sofa_03.glb`                   | [Sofa 03](https://polyhaven.com/a/sofa_03)                                 | Fran Calvente    |
+| `furniture/coffee_table_round_01.glb`     | [Coffee Table Round 01](https://polyhaven.com/a/coffee_table_round_01)     | Ulan Cabanilla   |
+| `furniture/side_table_01.glb`             | [Side Table 01](https://polyhaven.com/a/side_table_01)                     | James Ray Cock   |
+| `furniture/potted_plant_04.glb`           | [Potted Plant 04](https://polyhaven.com/a/potted_plant_04)                 | James Ray Cock   |
+| `furniture/ClassicNightstand_01.glb`      | [Classic Nightstand 01](https://polyhaven.com/a/ClassicNightstand_01)      | Kirill Sannikov  |
+| `furniture/metal_office_desk.glb`         | [Metal Office Desk](https://polyhaven.com/a/metal_office_desk)             | Ulan Cabanilla   |
+| `furniture/Shelf_01.glb`                  | [Shelf 01](https://polyhaven.com/a/Shelf_01)                               | Gabriel Radić    |
+
+床、長凳與螢幕沒有合適的公開模型，由 `src/stage/rooms.ts` 以程式產生。
