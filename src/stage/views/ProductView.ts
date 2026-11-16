@@ -525,14 +525,21 @@ export class ProductView implements StageView {
     );
   }
 
+  /**
+   * 是否下載實拍 HDRI。低畫質檔位（軟體算繪、低記憶體裝置）不下載：轉環境貼圖會卡住主執行緒好幾秒；
+   * 年度頁設計發想的縮圖（data-transparent）也不下載：小畫面看不出差別，一頁三張會多下載約 4 MB
+   */
+  private get usesHdri(): boolean {
+    return this.ctx.tier !== 'low' && !this.transparent;
+  }
+
   private async prepareRoom(room: Room): Promise<void> {
     const renderer = this.ctx.renderer;
     const preset = this.state.light;
-    // 換上去之後要用的環境光；低畫質檔位不載 HDRI
-    const env =
-      this.ctx.tier === 'low'
-        ? getEnvironment(renderer, preset)
-        : await loadHDRI(hdriFor(preset, true)).catch(() => getEnvironment(renderer, preset));
+    // 換上去之後要用的環境光
+    const env = !this.usesHdri
+      ? getEnvironment(renderer, preset)
+      : await loadHDRI(hdriFor(preset, true)).catch(() => getEnvironment(renderer, preset));
     await room.ready;
     const textures = new Set<Texture>();
     room.group.traverse((o) => {
@@ -588,15 +595,14 @@ export class ProductView implements StageView {
     this.scene.environmentIntensity = look.envIntensity * (inRoom ? 0.8 : 1);
     const hdri = hdriFor(preset, inRoom);
     // HDRI 已經載好就直接套用：先換成燈箱再換 HDRI，環境貼圖尺寸不同，會多編一次 shader
-    const ready = this.ctx.tier === 'low' ? undefined : peekHDRI(hdri);
+    const ready = this.usesHdri ? peekHDRI(hdri) : undefined;
     if (ready) {
       this.scene.environment = ready;
       this.scene.environmentIntensity = HDRI_INTENSITY[hdri];
       this.photo.updateEnvironment();
     }
-    // 低畫質檔位（軟體算繪、低記憶體裝置）不下載 HDRI：1.4 MB 的檔案轉環境貼圖會卡住主執行緒好幾秒
     this.hdriTask =
-      this.ctx.tier === 'low' || ready
+      !this.usesHdri || ready
         ? Promise.resolve()
         : loadHDRI(hdri).then(
             (texture) => {
