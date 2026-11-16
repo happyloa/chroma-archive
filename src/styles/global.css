@@ -145,6 +145,96 @@
   display: block;
 }
 
+/* Zima Blue 彩蛋（specs/002-zima-blue）：--zima、--zima-ink 由元件寫在 style 上 */
+.zima-reveal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--zima-ink);
+}
+.zima-reveal::backdrop {
+  background: rgb(14 14 14 / 0.88);
+}
+.zima-pool {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.zima-square {
+  width: 14vmin;
+  height: 14vmin;
+  background: var(--zima);
+  transform: scale(0);
+}
+.zima-water,
+.zima-tile::after {
+  position: absolute;
+  inset: 0;
+  /* 頻率乘上圖寬要是整數（512 寬取 4、12 個週期，768 寬取 8、4 個週期），stitchTiles 才能無縫鋪排 */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0078125 0.0234375' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -0.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='768' height='768'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.010416666666666666 0.005208333333333333' numOctaves='2' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.6 -0.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:
+    512px 512px,
+    768px 768px;
+  mix-blend-mode: soft-light;
+  animation: zima-water 24s linear infinite;
+}
+.zima-water {
+  opacity: 0;
+}
+.zima-tile::after {
+  content: '';
+}
+@keyframes zima-water {
+  to {
+    background-position:
+      512px 256px,
+      -768px 384px;
+  }
+}
+.zima-panel {
+  position: relative;
+  height: 100%;
+  align-content: end;
+  padding-bottom: var(--spacing-gutter);
+  opacity: 0;
+  pointer-events: none;
+}
+.zima-panel > * {
+  pointer-events: auto;
+}
+.zima-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid currentColor;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.zima-button--solid {
+  border-color: var(--zima-ink);
+  background: var(--zima-ink);
+  color: var(--zima);
+}
+@media (prefers-reduced-motion: reduce) {
+  .zima-water,
+  .zima-tile::after {
+    animation: none;
+  }
+}
+
 /* 自訂游標（src/app/cursor.ts） */
 .chroma-cursor {
   position: fixed;

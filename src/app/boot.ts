@@ -39,6 +39,11 @@ async function applyPage(): Promise<void> {
   await stage.mount(main);
 }
 
+// Zima Blue 彩蛋：色彩空間的隱藏球發出這個事件，動畫程式第一次觸發時才載入
+document.addEventListener('chroma:zima', () => {
+  void import('./zima').then((m) => m.openZimaReveal());
+});
+
 document.addEventListener('astro:page-load', () => {
   initReveal();
   void applyPage();

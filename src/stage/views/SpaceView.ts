@@ -39,7 +39,22 @@ export interface SpaceItem {
   href: string;
 }
 
-function layoutPosition(layout: SpaceLayout, item: SpaceItem, i: number, n: number): Vector3 {
+/** 彩蛋的球：只有色值與提示文字 */
+interface ZimaItem {
+  hex: string;
+  l: number;
+  c: number;
+  h: number;
+  label: string;
+}
+const ZIMA = -2;
+
+function layoutPosition(
+  layout: SpaceLayout,
+  item: Pick<SpaceItem, 'l' | 'c' | 'h'>,
+  i: number,
+  n: number,
+): Vector3 {
   const rad = (item.h * Math.PI) / 180;
   if (layout === 'space') {
     const r = item.c * 6; // OKLCH 彩度大約 0 到 0.25
@@ -81,6 +96,8 @@ class SpaceView implements StageView {
   private readonly pointer = new Vector2(10, 10);
   private readonly geometry = new SphereGeometry(0.075, 32, 16);
   private readonly tooltip: HTMLElement | null;
+  private readonly zimaItem: ZimaItem | null;
+  private readonly zima: Mesh<SphereGeometry, MeshStandardMaterial> | null = null;
   private hovered = -1;
   private reducedMotion: boolean;
   layout: SpaceLayout = 'space';
@@ -90,6 +107,7 @@ class SpaceView implements StageView {
     this.reducedMotion = ctx.reducedMotion;
     this.items = JSON.parse(el.dataset.items ?? '[]') as SpaceItem[];
     this.tooltip = el.querySelector<HTMLElement>('[data-space-tooltip]');
+    this.zimaItem = el.dataset.zima ? (JSON.parse(el.dataset.zima) as ZimaItem) : null;
     this.scene.environment = getEnvironment(ctx.renderer, 'studio');
 
     const n = this.items.length;
@@ -103,6 +121,16 @@ class SpaceView implements StageView {
       this.spheres.push(mesh);
       this.scene.add(mesh);
     });
+    // 彩蛋：一顆小一半的 Zima Blue，放在它的 OKLCH 座標上
+    if (this.zimaItem) {
+      this.zima = new Mesh(
+        this.geometry,
+        new MeshStandardMaterial({ color: this.zimaItem.hex, roughness: 0.35, metalness: 0 }),
+      );
+      this.zima.scale.setScalar(0.5);
+      this.zima.position.copy(this.zimaPosition('space'));
+      this.scene.add(this.zima);
+    }
     // 明度刻度：三個圓環
     for (const l of [0.25, 0.55, 0.85]) this.guides.add(ring(1.5, (l - 0.55) * 3.2));
     this.scene.add(this.guides);
@@ -123,6 +151,12 @@ class SpaceView implements StageView {
     document.addEventListener('click', this.onLayoutClick);
   }
 
+  /** 螺旋時放在最外圈之後，其他排列照 OKLCH */
+  private zimaPosition(layout: SpaceLayout): Vector3 {
+    const n = this.items.length;
+    return layoutPosition(layout, this.zimaItem!, n, n);
+  }
+
   setLayout(layout: SpaceLayout): void {
     this.layout = layout;
     const n = this.items.length;
@@ -138,6 +172,10 @@ class SpaceView implements StageView {
         delay: duration ? i * 0.012 : 0,
       });
     });
+    if (this.zima) {
+      const p = this.zimaPosition(layout);
+      gsap.to(this.zima.position, { x: p.x, y: p.y, z: p.z, duration, ease: 'power3.inOut' });
+    }
     gsap.to(this.guides.scale, { x: 1, y: layout === 'space' ? 1 : 0.0001, z: 1, duration });
     this.guides.visible = true;
     for (const line of this.guides.children as LineLoop[]) {
@@ -162,8 +200,10 @@ class SpaceView implements StageView {
 
   private pick(): number {
     this.raycaster.setFromCamera(this.pointer, this.camera);
-    const [hit] = this.raycaster.intersectObjects(this.spheres, false);
-    return hit ? (hit.object.userData.index as number) : -1;
+    const targets = this.zima ? [...this.spheres, this.zima] : this.spheres;
+    const [hit] = this.raycaster.intersectObjects(targets, false);
+    if (!hit) return -1;
+    return hit.object === this.zima ? ZIMA : (hit.object.userData.index as number);
   }
 
   private onMove = (event: PointerEvent): void => {
@@ -175,10 +215,12 @@ class SpaceView implements StageView {
     this.hovered = this.pick();
     this.el.style.cursor = this.hovered >= 0 ? 'pointer' : '';
     const item = this.items[this.hovered];
+    const label =
+      this.hovered === ZIMA ? this.zimaItem!.label : item ? `${item.year} ${item.name}` : '';
     if (this.tooltip) {
-      this.tooltip.hidden = !item;
-      if (item) {
-        this.tooltip.textContent = `${item.year} ${item.name}`;
+      this.tooltip.hidden = !label;
+      if (label) {
+        this.tooltip.textContent = label;
         this.tooltip.style.left = `${event.clientX - rect.left + 14}px`;
         this.tooltip.style.top = `${event.clientY - rect.top + 14}px`;
       }
@@ -192,7 +234,12 @@ class SpaceView implements StageView {
   };
 
   private onClick = (): void => {
-    const item = this.items[this.pick()];
+    const index = this.pick();
+    if (index === ZIMA) {
+      document.dispatchEvent(new CustomEvent('chroma:zima'));
+      return;
+    }
+    const item = this.items[index];
     if (item) void navigate(item.href);
   };
 
@@ -206,6 +253,11 @@ class SpaceView implements StageView {
       const target = i === this.hovered ? 1.6 : 1;
       s.scale.setScalar(s.scale.x + (target - s.scale.x) * Math.min(1, delta * 10));
     });
+    if (this.zima) {
+      const target = this.hovered === ZIMA ? 0.8 : 0.5;
+      const s = this.zima.scale.x;
+      this.zima.scale.setScalar(s + (target - s) * Math.min(1, delta * 10));
+    }
     this.controls.update(delta);
   }
 
@@ -222,6 +274,10 @@ class SpaceView implements StageView {
     this.controls.dispose();
     gsap.killTweensOf(this.spheres.map((s) => s.position));
     for (const s of this.spheres) s.material.dispose();
+    if (this.zima) {
+      gsap.killTweensOf(this.zima.position);
+      this.zima.material.dispose();
+    }
     this.geometry.dispose();
     for (const line of this.guides.children as LineLoop[]) {
       line.geometry.dispose();

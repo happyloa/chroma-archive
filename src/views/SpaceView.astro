@@ -2,6 +2,8 @@
 import Base from '../layouts/Base.astro';
 import PageIntro from '../components/PageIntro.astro';
 import { getYears } from '../lib/data';
+import ZimaReveal from '../components/ZimaReveal.astro';
+import { zima } from '../lib/zima';
 import { getLang, localePath, useT } from '../i18n/ui';
 
 const lang = getLang(Astro.currentLocale);
@@ -17,6 +19,8 @@ const spaceItems = rows.map((r) => ({
   h: r.oklch.h,
   href: localePath(lang, `/years/${r.year}/`),
 }));
+// 彩蛋：一顆不列在表格裡的 Zima Blue 球（specs/002-zima-blue US-Z1）
+const zimaItem = { hex: zima.hex, ...zima.color.oklch, label: t('space.hidden') };
 const layouts = [
   { id: 'space', label: t('space.layoutSpace') },
   { id: 'spiral', label: t('space.layoutSpiral') },
@@ -52,6 +56,7 @@ const layouts = [
         class="relative col-span-4 aspect-square cursor-grab active:cursor-grabbing md:col-span-12 md:aspect-[16/9]"
         data-view="space"
         data-items={JSON.stringify(spaceItems)}
+        data-zima={JSON.stringify(zimaItem)}
       >
         <p
           data-space-tooltip
@@ -164,4 +169,5 @@ const layouts = [
       </table>
     </div>
   </section>
+  <ZimaReveal />
 </Base>

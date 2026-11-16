@@ -1,0 +1,43 @@
+---
+import { zima } from '../lib/zima';
+import { getLang, localePath, useT } from '../i18n/ui';
+
+/**
+ * Zima Blue 致敬動畫的對話框（specs/002-zima-blue US-Z2）。只放在色彩空間頁，
+ * 由隱藏的球觸發，動畫程式在 src/app/zima.ts，第一次觸發時才載入。
+ */
+const lang = getLang(Astro.currentLocale);
+const t = useT(lang);
+const key = lang === 'zh-tw' ? 'zh' : 'en';
+---
+
+<dialog
+  id="zima-reveal"
+  class="zima-reveal"
+  aria-labelledby="zima-reveal-title"
+  style={`--zima: ${zima.hex}; --zima-ink: ${zima.color.ink}`}
+>
+  <div class="zima-pool" data-zima-close aria-hidden="true">
+    <div class="zima-square"></div>
+    <div class="zima-water"></div>
+  </div>
+  <div class="zima-panel page-grid">
+    <div class="col-span-4 space-y-5 md:col-span-7">
+      <h2 id="zima-reveal-title" class="font-display text-headline font-light" lang="en">
+        {zima.name}
+      </h2>
+      <p class:list={['max-w-[34ch] text-lead', key === 'zh' ? 'font-serif-tc' : 'font-display']}>
+        {zima.reveal[key]}
+      </p>
+      <p class="max-w-[60ch] text-xs leading-relaxed">{zima.credit[key]}</p>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <a href={localePath(lang, '/zima/')} class="zima-button zima-button--solid">
+          {t('zima.enter')} <span aria-hidden="true">→</span>
+        </a>
+        <button type="button" class="zima-button" data-zima-close>
+          {t('zima.close')}
+        </button>
+      </div>
+    </div>
+  </div>
+</dialog>
