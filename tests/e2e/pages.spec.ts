@@ -61,3 +61,11 @@ test('未公布的年份顯示 404 頁', async ({ page }) => {
   expect(res?.status()).toBe(404);
   await expect(page.locator('h1')).toContainText('這個顏色不在色票裡');
 });
+
+test('404 頁的語言切換連到英文首頁，不輸出 canonical 與 hreflang', async ({ page }) => {
+  await page.goto('/years/2099/');
+  await expect(page.locator('[data-lang-switch]')).toHaveAttribute('href', '/en/');
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('link[rel="alternate"]')).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+});

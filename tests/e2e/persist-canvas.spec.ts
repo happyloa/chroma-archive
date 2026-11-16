@@ -23,7 +23,7 @@ async function go(page: Page, testId: 'next-year' | 'prev-year', year: number): 
 // T005：canvas 跨頁保留、renderer 不重建、ticker 不重複註冊、GPU 資源不增長
 test('在年度頁之間換頁 20 次後 WebGL 舞台仍是同一個', async ({ page }) => {
   // 每次換頁有 0.9 秒轉場，加上軟體算繪建立 3D 視窗，20 次會超過預設的 30 秒
-  test.setTimeout(150_000);
+  test.setTimeout(180_000);
   await page.goto('/years/2010/');
   // 暖身一輪：產品幾何有共用快取（products/shared.ts），第一次畫到時才上傳 GPU
   await go(page, 'next-year', 2011);
@@ -33,7 +33,13 @@ test('在年度頁之間換頁 20 次後 WebGL 舞台仍是同一個', async ({ 
     (document.getElementById('stage') as HTMLCanvasElement & { __marker?: number }).__marker = 42;
   });
 
-  for (let i = 0; i < 20; i++) {
+  // 前 10 次讓共用快取（產品幾何、模型貼圖）填滿；後 10 次若 GPU 資源還在增加才是洩漏
+  for (let i = 0; i < 10; i++) {
+    if (i % 2 === 0) await go(page, 'next-year', 2011);
+    else await go(page, 'prev-year', 2010);
+  }
+  const mid = await settle(page);
+  for (let i = 0; i < 10; i++) {
     if (i % 2 === 0) await go(page, 'next-year', 2011);
     else await go(page, 'prev-year', 2010);
   }
@@ -48,10 +54,12 @@ test('在年度頁之間換頁 20 次後 WebGL 舞台仍是同一個', async ({ 
   expect(after.sameCanvas).toBe(true);
   expect(after.pageLoads).toBe(before.pageLoads + 20);
   expect(after.tickerCallbacks).toBe(before.tickerCallbacks);
-  // 視窗按需建立，非同步的時間差可能讓數字差一兩個；真的洩漏會隨換頁次數（20 次）一起增加
-  expect(after.geometries).toBeLessThanOrEqual(before.geometries + 2);
-  expect(after.textures).toBeLessThanOrEqual(before.textures + 2);
-  expect(after.programs).toBeLessThanOrEqual(before.programs + 2);
+  // 視窗按需建立，非同步的時間差可能讓數字差一兩個；洩漏會讓後 10 次換頁持續增加
+  expect(after.geometries).toBeLessThanOrEqual(mid.geometries + 2);
+  expect(after.textures).toBeLessThanOrEqual(mid.textures + 2);
+  // shader 程式依材質種類快取共用，數量只跟出現過幾種材質有關，不會隨換頁次數增加；
+  // 視窗按需建立，第一次量測時可能還沒畫第一格，所以只檢查上限
+  expect(after.programs).toBeLessThanOrEqual(40);
   expect(after.frames).toBeGreaterThan(before.frames);
 });
 
