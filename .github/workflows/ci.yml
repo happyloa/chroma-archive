@@ -28,17 +28,6 @@ jobs:
       - run: npm run size
       # 可及性、SEO、LCP、CLS 門檻（lighthouserc.json）
       - run: npm run lhci
-      - name: Lighthouse 摘要（LCP 元素與長任務）
-        if: always()
-        run: node scripts/lhci-summary.mjs
-      - uses: actions/upload-artifact@v5
-        if: always()
-        with:
-          name: lighthouse
-          path: .lighthouseci/
-          # 以 . 開頭的資料夾預設不上傳
-          include-hidden-files: true
-          retention-days: 7
 
   # 和 quality 同時跑：Playwright 的 webServer 會自己 build，不需要等 quality 的產物
   e2e:

@@ -253,7 +253,7 @@ GitHub Actions 只跑品質檢查（不負責部署）：
 1. `npm run lint`、`npm run check`、`npm run test`
 2. `npm run build` 後跑 size-limit
 3. Playwright E2E（Chromium、WebKit）
-4. Lighthouse CI 跑 `/`、`/archive`、`/years/2025`，低於憲章預算就失敗
+4. Lighthouse CI 跑 `/`、`/archive`、`/years/2025`、`/en/space`：可及性、SEO、CLS 低於門檻就失敗，Performance 分數與 LCP 只發警告（憲章第 3 條）
 
 ## 6. 測試策略
 

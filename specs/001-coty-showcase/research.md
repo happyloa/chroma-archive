@@ -202,3 +202,7 @@ Fraunces 原本引入 `full.css`（wght、opsz、SOFT、WONK 四個軸），程�
 - 在 `<head>` 預載 Fraunces 的拉丁字檔（plan.md 風險表原本就寫了「標題字型預載」，先前沒有做）。預載之後本機量到字型在 16 毫秒開始下載，首頁仍是 0.99。
 - CI 原本沒有上傳 Lighthouse 報告：`actions/upload-artifact` 預設略過以 `.` 開頭的資料夾，所以加上 `include-hidden-files`。
 - `scripts/lhci-summary.mjs` 多列出實測（未經模擬）的 FCP、LCP，以及 Fraunces、Inter 的請求時間。下次再超標時，可以直接看出 LCP 是不是在字型換上的時候發生。
+
+推送之後 CI 通過：首頁 Performance 0.87，模擬的 LCP 1,238 毫秒，實測 426 毫秒，Fraunces 在 93 毫秒開始下載。
+
+之後使用者決定精簡 CI（T098）。這幾輪 CI 失敗了 4 次都出在 Lighthouse，其中只有紙張纖維 SVG 那一次是真的效能問題。所以 LCP 改為只警告（憲章第 3 條加註），可及性、SEO、CLS 照樣擋；摘要步驟、報告上傳與摘要腳本都拿掉。之後如果要查 LCP，在本機跑 `npm run lhci`，報告在 `.lighthouseci/`。
