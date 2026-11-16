@@ -75,6 +75,13 @@ export const YearContentSchema = z
         avoid: z.array(MaterialNoteSchema).length(3),
       })
       .optional(),
+    /** 英文版的摘要與關鍵字（US-13）；沒有時英文頁退回中文 */
+    en: z
+      .object({
+        summary: z.string().max(160),
+        keywords: z.array(z.string()).min(4).max(6),
+      })
+      .optional(),
     status: z.enum(['draft', 'reviewed']).default('draft'),
   })
   .superRefine((data, ctx) => {
