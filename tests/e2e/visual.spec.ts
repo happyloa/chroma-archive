@@ -15,6 +15,7 @@ const pages = [
   ['lab-2025', '/years/2025/lab/'],
   ['space', '/space/'],
   ['about', '/about/'],
+  ['zima', '/zima/'],
 ] as const;
 
 for (const [name, path] of pages) {

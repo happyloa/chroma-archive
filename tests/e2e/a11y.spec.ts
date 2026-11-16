@@ -16,6 +16,7 @@ const pages = [
   '/en/',
   '/en/years/2021/',
   '/en/years/2021/lab/',
+  '/zima/',
 ];
 
 for (const path of pages) {
