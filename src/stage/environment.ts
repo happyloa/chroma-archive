@@ -2,6 +2,7 @@ import {
   BackSide,
   BoxGeometry,
   Color,
+  EquirectangularReflectionMapping,
   Mesh,
   MeshBasicMaterial,
   MeshLambertMaterial,
@@ -12,9 +13,11 @@ import {
   type WebGLRenderer,
 } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 
 /**
- * 產品實驗室的三種燈光（US-05-4）。不下載 HDRI，改用程式產生的燈箱場景烘成環境貼圖，
+ * 產品實驗室的三種燈光（US-05-4）。
+ * 主要用 Poly Haven 的實拍 HDRI（T059）；HDRI 下載完成前，先用程式產生的燈箱場景烘成的環境貼圖，
  * 每個 renderer 每種只烘一次。
  */
 export type LightPreset = 'studio' | 'daylight' | 'night';
@@ -104,4 +107,41 @@ export const LIGHT_LOOK: Record<
 export function backgroundFor(preset: LightPreset): number {
   const look = LIGHT_LOOK[preset];
   return document.documentElement.dataset.theme === 'dark' ? look.backgroundDark : look.background;
+}
+
+// —— HDRI ——
+
+export type HdriId = 'studio_small_08' | 'lythwood_room' | 'unfinished_office_night';
+
+/** 純色背景用攝影棚 HDRI；情境場景用室內 HDRI，夜間用夜晚辦公室 */
+export function hdriFor(preset: LightPreset, inRoom: boolean): HdriId {
+  if (preset === 'night') return 'unfinished_office_night';
+  if (!inRoom && preset === 'studio') return 'studio_small_08';
+  return 'lythwood_room';
+}
+
+/** 各 HDRI 的環境光強度（依實拍亮度校正） */
+export const HDRI_INTENSITY: Record<HdriId, number> = {
+  studio_small_08: 0.9,
+  lythwood_room: 0.75,
+  unfinished_office_night: 0.35,
+};
+
+const hdriCache = new Map<HdriId, Promise<Texture>>();
+
+/**
+ * 載入等距柱狀投影的 HDRI。直接當 scene.environment 使用：
+ * 即時算繪時 three.js 會自動轉成 PMREM，路徑追蹤則需要原始的等距柱狀貼圖。
+ */
+export function loadHDRI(id: HdriId): Promise<Texture> {
+  let task = hdriCache.get(id);
+  if (!task) {
+    task = new HDRLoader().loadAsync(`/hdri/${id}.hdr`).then((t) => {
+      t.mapping = EquirectangularReflectionMapping;
+      return t;
+    });
+    hdriCache.set(id, task);
+    task.catch(() => hdriCache.delete(id));
+  }
+  return task;
 }
