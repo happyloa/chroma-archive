@@ -1,0 +1,25 @@
+[
+  {
+    "name": "首頁初始 JS（不含延遲載入的 three.js）",
+    "path": [
+      "dist/_astro/Base.astro_astro_type_script_index_0_lang.*.js",
+      "dist/_astro/ClientRouter.astro_astro_type_script_index_0_lang.*.js",
+      "dist/_astro/page.*.js"
+    ],
+    "limit": "120 KB",
+    "gzip": true
+  },
+  {
+    "name": "three.js 與產品實驗室（延遲載入）",
+    "path": [
+      "dist/_astro/Stage.*.js",
+      "dist/_astro/three.core.*.js",
+      "dist/_astro/ProductView.*.js",
+      "dist/_astro/environment.*.js",
+      "dist/_astro/GLTFLoader.*.js",
+      "dist/_astro/meshopt_decoder.module.*.js"
+    ],
+    "limit": "250 KB",
+    "gzip": true
+  }
+]
