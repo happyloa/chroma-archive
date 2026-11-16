@@ -25,7 +25,7 @@
 - 色彩衍生值用 `src/lib/color/` 計算，不手寫。
 - 不使用 Pantone 官方圖片、商標圖形或官方文案原文。
 - 新增套件前確認 gzip 後大小，對照憲章第 3 條的預算。
-- 3D 模型只用 CC0 或自製，來源寫進 `public/models/LICENSES.md`。
+- 3D 模型只用 CC0、CC BY 4.0（要在 about 頁標註作者）或自製，來源寫進 `public/models/LICENSES.md`。原始檔用 `scripts/optimize-models.mjs` 壓縮，單一模型不超過 1.5 MB。
 
 ## 部署
 

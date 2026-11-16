@@ -4,6 +4,44 @@ import PageIntro from '../components/PageIntro.astro';
 import { getYears } from '../lib/data';
 
 const years = await getYears();
+
+const CC0 = { name: 'CC0', url: 'https://creativecommons.org/publicdomain/zero/1.0/' };
+const CCBY = { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' };
+const MODEL_CREDITS = [
+  {
+    part: '單椅',
+    name: 'Modern Arm Chair 01',
+    url: 'https://polyhaven.com/a/modern_arm_chair_01',
+    author: 'Kuutti Siitonen，Poly Haven',
+    license: CC0,
+  },
+  {
+    part: '陶瓷花瓶',
+    name: 'Ceramic Vase 03',
+    url: 'https://polyhaven.com/a/ceramic_vase_03',
+    author: 'James Ray Cock，Poly Haven',
+    license: CC0,
+  },
+  {
+    part: '運動鞋',
+    name: 'MaterialsVariantsShoe',
+    url: 'https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/MaterialsVariantsShoe',
+    author: 'Shopify',
+    license: CCBY,
+  },
+  {
+    part: '桌燈',
+    name: 'IridescenceLamp',
+    url: 'https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/IridescenceLamp',
+    author: 'Eric Chadwick，Wayfair LLC',
+    license: CCBY,
+  },
+];
+const link = (href: string, text: string) =>
+  `<a class="underline" href="${href}" rel="noopener noreferrer" target="_blank">${text}</a>`;
+// 中文與連結之間不能有換行產生的空白，所以組成一段 HTML（內容全是上面的固定字串）
+const creditHtml = (m: (typeof MODEL_CREDITS)[number]) =>
+  `${m.part}：${link(m.url, m.name)}，${m.author}，${link(m.license.url, m.license.name)}`;
 ---
 
 <Base title="關於" description="關於 Chroma Archive、資料來源與非官方聲明。">
@@ -62,6 +100,22 @@ const years = await getYears();
         以 Astro、three.js、GSAP、Lenis、Tailwind CSS 製作，色彩計算使用 culori。字型為
         Fraunces、Inter、思源宋體與思源黑體，皆採 SIL Open Font License。網站部署在 Cloudflare。
       </p>
+    </section>
+
+    <section
+      class="col-span-4 space-y-4 md:col-span-7 md:col-start-5"
+      aria-labelledby="about-models"
+    >
+      <h2 id="about-models" class="font-serif-tc text-title">
+        3D 模型來源
+      </h2>
+      <p>產品實驗室的部分模型來自公開素材，經過重新上色與壓縮：</p>
+      <ul class="space-y-2 text-sm">
+        {MODEL_CREDITS.map((m) => (
+          <li set:html={creditHtml(m)} />
+        ))}
+      </ul>
+      <p class="text-sm text-smoke">耳罩式耳機與智慧音箱由本站以程式產生。</p>
     </section>
   </div>
 </Base>

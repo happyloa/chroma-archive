@@ -260,6 +260,6 @@ Pantone 從 2000 年開始每年公布一個「年度代表色」（Color of the
 
 1. 網域：目前使用 `chroma-archive.piafyoyo06.workers.dev`，自訂網域待定。
 2. 色彩故事與設計發想的撰寫量：27 年 × 每年約 1,500 字，需要決定由誰撰寫、誰審稿。
-3. 3D 模型來源：自製（Blender）或使用 CC0 模型（例如 Poly Haven），需要確認授權並記錄在 `public/models/LICENSES.md`。
+3. 3D 模型來源：已決定採用公開模型（Poly Haven 的 CC0 模型、Khronos 範例庫的 CC BY 4.0 模型），沒有公開模型的產品以程式產生；授權記錄在 `public/models/LICENSES.md` 與 about 頁。
 4. 2027 年度色預計 12 月初公布，第一版是否要趕在公布當天上線，還是先上線歷年資料、2027 隨後補上。
 5. 是否需要音效（環境音、互動音），預設關閉。
