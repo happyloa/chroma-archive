@@ -127,3 +127,32 @@ Safari 用的是另一套繪圖架構，這次無法驗證會不會有同樣的�
 5. 正式環境關閉 `renderer.debug.checkShaderErrors`。
 
 結果：第一次切到客廳，最長停頓從 183 ms（3 格超過 50 ms）降到 133 ms（1 格，發生在準備階段，舊場景還在畫面上），之後的切換在 66 到 151 ms 內開始過渡，沒有掉格。
+
+## 行動版 Lighthouse（spec.md 第 6 節：Performance 85 以上）
+
+spec.md 要求的是行動版，但 CI 一直用 desktop preset 量。2026-11-16 改用 Lighthouse 預設的行動版設定（模擬中階手機，CPU 降速 4 倍、節流網路）在本機量測：
+
+| 網址           | 改善前 | 改善後 | 改善後的 TBT |
+| -------------- | ------ | ------ | ------------ |
+| `/`            | 0.82   | 0.99   | 15 ms        |
+| `/archive/`    | 0.70   | 0.99   | 108 ms       |
+| `/en/space/`   | 0.66   | 0.80   | 871 ms       |
+| `/years/2025/` | 0.71   | 0.74   | 1318 ms      |
+
+四頁的 Accessibility、Best Practices、SEO 都是 1，LCP 約 1.06 秒，CLS 低於 0.003。
+
+改善項目：
+
+- 典藏頁原本的 LCP 是 12 秒：LCP 元素是頁首的說明文字，它在 JS 載入前被隱藏，之後才淡入。首屏的說明文字改成一開始就顯示，不做淡入。
+- 首頁的色帶在手機上 27 格並排，每格太窄，Accessibility 的 target-size 不合格。手機上改成 9 欄 3 行。
+- 第一次載入時等瀏覽器閒置（最多 1.2 秒）才載入 three.js、建立 3D。
+- 3D 視窗建立後、產品模型載入後，都先用 `compileAsync` 平行編譯 shader 再開始繪製。
+- 3D 視窗改成接近畫面（一個視窗高度以內）才建立。年度頁下方的 3 個設計發想不再在進站時建立。
+- Meshopt 模型解碼移到 2 個 worker。
+- 沒有 GPU 加速的裝置（軟體算繪、省流量模式、記憶體 2 GB 以下）在首次繪製前判定（`<html data-lite>`）。主視覺、設計發想、時間軸、色彩空間改用靜態內容，產品實驗室照常是 3D。判定規則和 `src/stage/quality.ts` 的低畫質檔位相同。
+
+色彩空間與年度頁剩下的是「無法歸屬」的長任務（約 0.8 到 0.9 秒）。這台機器的 Lighthouse 有 GPU，所以沒有進入靜態模式，這些長任務發生在 CPU 被節流時第一次繪製主視覺 shader 與色彩空間的環境光。CI 的機器沒有 GPU，會進入靜態模式。
+
+E2E 測試在無頭瀏覽器裡也是軟體算繪，所以 `tests/e2e/fixtures.ts` 預設設定 `__chromaForceFull`，強制完整 3D；另有一項測試用 `fullGraphics: false` 確認靜態模式。
+
+`lighthouserc.json` 改用行動版設定。Performance 仍然只發警告。

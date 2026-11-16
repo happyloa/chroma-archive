@@ -24,7 +24,7 @@
 
 ### 品質
 
-- [x] Lighthouse 四個網址的 Accessibility、Best Practices、SEO 都是 1；Performance 最低是典藏頁的 0.89（見 [research.md](./research.md)）。
+- [x] Lighthouse 行動版設定下四個網址的 Accessibility、Best Practices、SEO 都是 1；Performance 首頁與典藏頁 0.99，色彩空間 0.80、年度頁 0.74 還沒到 0.85（見 [research.md](./research.md)）。
 - [x] 首頁初始 JS 60.14 KB、three.js 與產品實驗室 196.87 KB，都在憲章第 3 條的預算內。單一模型最大 424 KB（運動鞋），上限 1.5 MB。
 - [x] axe 掃描 11 頁，沒有 serious 或 critical 等級的問題。
 - [x] 單元測試 185 項通過；e2e 在 Chromium 與 WebKit 共 83 項通過，另外 15 項只在其中一個瀏覽器跑而略過；截圖比對 7 頁通過。
