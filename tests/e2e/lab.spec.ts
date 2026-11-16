@@ -104,17 +104,14 @@ test('拒絕不支援的檔案類型', async ({ page }) => {
   await expect(page.locator('#lab-custom-option')).toBeHidden();
 });
 
-test('沒有 GPU 加速時停用相片級渲染並說明', async ({ page }) => {
-  // 測試用的無頭瀏覽器是軟體算繪（SwiftShader），畫質檔位為低
+test('舊的分享網址帶 q=photo 仍可開啟，換設定後網址不再帶 q', async ({ page }) => {
+  // 相片級渲染已拿掉（spec.md US-12），之前分享出去的網址要能照常使用
   await page.goto('/years/2025/lab/?p=vase&spin=0&q=photo');
   await expect(page.locator('#lab-viewport')).toHaveAttribute('data-stage-ready', '');
-  test.skip(
-    (await page.locator('#stage').getAttribute('data-tier')) !== 'low',
-    '這台機器有 GPU 加速，不適用',
-  );
-  await expect(page.locator('input[name="q"]')).toBeDisabled();
-  await expect(page.locator('input[name="q"]')).not.toBeChecked();
-  await expect(page.locator('#lab-photo-note')).toContainText('沒有可用的 GPU 加速');
+  await expect(page.locator('input[name="p"]:checked')).toHaveValue('vase');
+  await page.getByText('亮面').click();
+  await expect(page).toHaveURL(/f=gloss/);
+  expect(new URL(page.url()).searchParams.has('q')).toBe(false);
 });
 
 test('匯出 2048 × 2048 PNG', async ({ page, browserName }) => {
