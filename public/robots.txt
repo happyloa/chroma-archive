@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chroma-archive.piafyoyo06.workers.dev/sitemap-index.xml

@@ -21,6 +21,8 @@ interface Props {
   color?: string;
   /** 第一個區塊的背景，決定頁首文字色 */
   headerTone?: 'paper' | 'coty' | 'ink';
+  /** OG 分享圖路徑，預設是站名圖 */
+  ogImage?: string;
 }
 
 const {
@@ -29,6 +31,7 @@ const {
   scene = 'none',
   color: colorProp,
   headerTone = 'paper',
+  ogImage = '/og/default.png',
 } = Astro.props;
 
 const lang = getLang(Astro.currentLocale);
@@ -68,6 +71,12 @@ const fullTitle = title === 'Chroma Archive' ? title : `${title}${separator}Chro
     <meta property="og:locale" content={OG_LOCALE[lang]} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:image" content={new URL(ogImage, Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
     {/* 首次繪製前套用深淺色，避免閃爍；換頁後 <html> 屬性會被換掉，所以在 after-swap 再套一次 */}
