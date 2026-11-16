@@ -1,10 +1,27 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getYears } from '../lib/data';
+
+const years = await getYears();
+const latest = years.at(-1)!;
 ---
 
-<Base title="找不到頁面｜CHROMA ARCHIVE">
-  <h1>404</h1>
-  <p>
-    找不到這個頁面。<a href="/">回首頁</a>
-  </p>
+<Base title="找不到頁面" color={latest.colors[0]!.hex}>
+  <section class="page-grid min-h-[80svh] content-end gap-y-6 pt-32">
+    <p class="eyebrow col-span-4 text-smoke md:col-span-12">404</p>
+    <h1 class="col-span-4 font-display text-display font-light md:col-span-10">
+      這個顏色不在色票裡。
+    </h1>
+    <p class="col-span-4 text-lead text-smoke md:col-span-6">
+      網址可能打錯了，或這一年的年度色還沒公布。
+    </p>
+    <div class="col-span-4 flex gap-6 md:col-span-12">
+      <a href="/" class="eyebrow border-b border-current pb-1">
+        回首頁
+      </a>
+      <a href="/archive/" class="eyebrow border-b border-current pb-1">
+        看歷年年度色
+      </a>
+    </div>
+  </section>
 </Base>

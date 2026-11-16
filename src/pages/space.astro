@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import PageIntro from '../components/PageIntro.astro';
+import { getYears } from '../lib/data';
+
+const years = await getYears();
+const rows = years.flatMap((y) => y.colors.map((c) => ({ year: y.year, ...c })));
+---
+
+<Base
+  title="色彩空間"
+  description="所有 Pantone 年度色在 OKLCH 色彩空間中的位置。"
+  scene="space"
+  color={years.at(-1)!.colors[0]!.hex}
+>
+  <PageIntro
+    eyebrow="OKLCH Color Space"
+    title="色彩空間"
+    lead="OKLCH 用明度（L）、彩度（C）、色相（H）描述顏色，數值的差距接近人眼感受到的差距。下表列出每個年度色的座標。"
+  />
+
+  <section class="page-grid" aria-label="年度色 OKLCH 數值">
+    <div class="col-span-4 overflow-x-auto md:col-span-12">
+      <table class="w-full min-w-[40rem] text-left text-sm tabular-nums">
+        <caption class="sr-only">歷年年度色的 OKLCH 數值</caption>
+        <thead class="eyebrow text-smoke">
+          <tr class="border-b border-ink/15">
+            <th scope="col" class="py-3 pr-4 font-medium">
+              年份
+            </th>
+            <th scope="col" class="py-3 pr-4 font-medium">
+              顏色
+            </th>
+            <th scope="col" class="py-3 pr-4 font-medium">
+              HEX
+            </th>
+            <th scope="col" class="py-3 pr-4 text-right font-medium">
+              L 明度
+            </th>
+            <th scope="col" class="py-3 pr-4 text-right font-medium">
+              C 彩度
+            </th>
+            <th scope="col" class="py-3 text-right font-medium">
+              H 色相
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-ink/10">
+          {rows.map((r) => (
+            <tr>
+              <td class="py-3 pr-4">
+                <a href={`/years/${r.year}/`} class="hover:underline">
+                  {r.year}
+                </a>
+              </td>
+              <th scope="row" class="py-3 pr-4 font-normal">
+                <span class="flex items-center gap-3">
+                  <span
+                    class="size-4 shrink-0 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]"
+                    style={`background:${r.hex}`}
+                    aria-hidden="true"
+                  />
+                  {r.name}
+                  <span class="text-smoke">{r.nameZh}</span>
+                </span>
+              </th>
+              <td class="py-3 pr-4 font-mono">{r.hex}</td>
+              <td class="py-3 pr-4 text-right font-mono">{r.oklch.l.toFixed(3)}</td>
+              <td class="py-3 pr-4 text-right font-mono">{r.oklch.c.toFixed(3)}</td>
+              <td class="py-3 text-right font-mono">{r.oklch.h.toFixed(1)}°</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Base>

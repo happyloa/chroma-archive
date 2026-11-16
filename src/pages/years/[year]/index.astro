@@ -1,0 +1,241 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getEntry, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import ColorValues from '../../../components/ColorValues.astro';
+import Palette from '../../../components/Palette.astro';
+import YearNav from '../../../components/YearNav.astro';
+import Swatch from '../../../components/Swatch.astro';
+import { getYears, type YearEntry } from '../../../lib/data';
+import type { PaletteKind } from '../../../lib/color';
+
+export const getStaticPaths = (async () => {
+  const years = await getYears();
+  return years.map((entry) => ({ params: { year: String(entry.year) }, props: { entry, years } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  entry: YearEntry;
+  years: YearEntry[];
+}
+
+const { entry, years } = Astro.props;
+const { year, colors, content } = entry;
+const [main] = colors;
+const doc = await getEntry('years', String(year));
+const { Content } = doc ? await render(doc) : { Content: null };
+const reviewed = content.status === 'reviewed';
+const names = colors.map((c) => c.name).join(' & ');
+const namesZh = colors.map((c) => c.nameZh).join('、');
+const paletteKinds: PaletteKind[] = ['complementary', 'analogous', 'triadic', 'split', 'mono'];
+const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
+const finishZh: Record<string, string> = {
+  matte: '霧面',
+  satin: '緞面',
+  gloss: '亮面',
+  metallic: '金屬',
+  velvet: '絨布',
+  translucent: '半透明',
+};
+---
+
+<Base
+  title={`${year} ${names}`}
+  description={`Pantone ${year} 年度色 ${names}（${namesZh}）：${content.summary}`}
+  scene="year"
+  color={main!.hex}
+  headerTone={main!.isLight ? 'ink' : 'coty'}
+>
+  <!-- 色塊 Hero -->
+  <section
+    class:list={['pt-28 pb-gutter', main!.isLight ? 'bg-ink text-paper' : 'bg-coty text-coty-ink']}
+    aria-labelledby="year-title"
+  >
+    <div class="page-grid gap-y-8">
+      <p class="eyebrow col-span-2 md:col-span-6">Color of the Year</p>
+      <p class="eyebrow col-span-2 text-right md:col-span-6">
+        Pantone {colors.map((c) => c.code).join(' / ')}
+      </p>
+      <!-- 背景已經是年度色，所以用實體色票卡片呈現顏色本身 -->
+      <div
+        class="col-span-3 md:col-span-4 md:col-start-9 md:row-span-2 md:row-start-2 md:self-center"
+        aria-hidden="true"
+      >
+        <Swatch entry={entry} class="rotate-[-2deg]" />
+      </div>
+      <h1 id="year-title" class="col-span-4 self-end md:col-span-6 md:row-start-2">
+        <span class="block font-display text-mega font-light tabular-nums">{year}</span>
+        <span class="mt-6 block font-display text-headline italic">{names}</span>
+        <span class="mt-2 block font-serif-tc text-title">{namesZh}</span>
+      </h1>
+      <p class="col-span-4 max-w-[30ch] self-end text-lead md:col-span-5 md:row-start-3">
+        {content.summary}
+      </p>
+    </div>
+  </section>
+
+  <YearNav years={years} current={year} />
+
+  <!-- 色值 -->
+  <section class="page-grid mt-section gap-y-10" aria-labelledby="values-title">
+    <h2 id="values-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
+      色值
+    </h2>
+    <div class="col-span-4 grid gap-12 md:col-span-9 md:grid-cols-2">
+      {colors.map((c) => (
+        <div>
+          <p class="mb-4 flex items-center gap-3">
+            <span
+              class="size-5 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.1)]"
+              style={`background:${c.hex}`}
+              aria-hidden="true"
+            />
+            <span class="font-medium">{c.name}</span>
+            <span class="font-mono text-xs text-smoke">{c.code}</span>
+          </p>
+          <ColorValues color={c} />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- 色彩故事 -->
+  <section class="page-grid mt-section gap-y-8" aria-labelledby="story-title">
+    <h2 id="story-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
+      色彩故事
+    </h2>
+    <div class="col-span-4 md:col-span-7 md:col-start-5">
+      <ul class="mb-8 flex flex-wrap gap-2" aria-label="情緒關鍵字">
+        {content.keywords.map((k) => (
+          <li class="rounded-full border border-ink/15 px-3 py-1 text-sm">{k}</li>
+        ))}
+      </ul>
+      {entry.hasStory && Content ? (
+        <div class="space-y-6 font-serif-tc text-lead leading-[1.9]">
+          <Content />
+        </div>
+      ) : (
+        <p class="font-serif-tc text-lead leading-[1.9]">
+          {content.summary}
+          <span class="mt-4 block font-sans text-sm text-smoke">完整的色彩故事還在撰寫中。</span>
+        </p>
+      )}
+    </div>
+  </section>
+
+  <!-- 配色 -->
+  <section class="page-grid mt-section gap-y-10" aria-labelledby="palette-title">
+    <h2 id="palette-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
+      配色
+    </h2>
+    <div class="col-span-4 space-y-16 md:col-span-9">
+      {colors.map((c) => (
+        <div class="space-y-10">
+          {colors.length > 1 && <h3 class="font-display text-title italic">{c.name}</h3>}
+          <div class="grid gap-x-col gap-y-12 md:grid-cols-2">
+            {paletteKinds.map((kind) => (
+              <Palette kind={kind} colors={c.palettes[kind]} slug={slug(c.name)} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- 設計發想 -->
+  <section class="page-grid mt-section gap-y-10" aria-labelledby="ideas-title">
+    <h2 id="ideas-title" class="eyebrow col-span-4 text-smoke md:col-span-3">
+      設計發想
+    </h2>
+    <div class="col-span-4 md:col-span-9">
+      {reviewed ? (
+        <div class="space-y-16">
+          <ul class="grid gap-x-col gap-y-12 md:grid-cols-3">
+            {content.concepts.map((concept) => (
+              <li class="flex flex-col gap-3 border-t border-ink/15 pt-5">
+                <p class="eyebrow text-smoke">{concept.category}</p>
+                <h3 class="font-serif-tc text-title">{concept.title}</h3>
+                <p>{concept.pitch}</p>
+                <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+                  <dt class="text-smoke">使用者</dt>
+                  <dd>{concept.audience}</dd>
+                  <dt class="text-smoke">材質</dt>
+                  <dd>{concept.cmf.material}</dd>
+                  <dt class="text-smoke">表面</dt>
+                  <dd>{finishZh[concept.cmf.finish]}</dd>
+                </dl>
+                <a
+                  href={`/years/${year}/lab/?p=${concept.labPreset.product}&f=${concept.cmf.finish}&c1=${encodeURIComponent(concept.cmf.primary)}${concept.cmf.accent ? `&c2=${encodeURIComponent(concept.cmf.accent)}` : ''}&l=${concept.labPreset.light}`}
+                  class="eyebrow mt-auto self-start border-b border-current pb-1"
+                >
+                  在實驗室試色 <span aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          {content.materials && (
+            <div class="grid gap-x-col gap-y-10 md:grid-cols-2">
+              {(['good', 'avoid'] as const).map((k) => (
+                <div>
+                  <h3 class="mb-4 font-serif-tc text-lg">
+                    {k === 'good' ? '適合的材質' : '避免的材質'}
+                  </h3>
+                  <ul class="divide-y divide-ink/10 border-y border-ink/10">
+                    {content.materials![k].map((m) => (
+                      <li class="py-3">
+                        <span class="font-medium">{m.material}</span>
+                        <span class="block text-sm text-smoke">{m.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <p class="max-w-[36em] text-lead text-smoke">
+          這個顏色的產品概念與材質建議還在整理中。可以先到產品實驗室，把 {names} 套到 3D
+          產品上試試看。
+        </p>
+      )}
+      <a
+        href={`/years/${year}/lab/`}
+        class="mt-12 inline-flex items-center gap-4 bg-ink px-6 py-4 text-paper transition-colors hover:bg-coty hover:text-coty-ink"
+      >
+        <span class="eyebrow">產品實驗室</span>
+        <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 相鄰年份 -->
+  <nav class="page-grid mt-section gap-y-6" aria-label="相鄰年份">
+    {[entry.prev, entry.next].map((n, i) =>
+      n ? (
+        <a
+          href={`/years/${n.year}/`}
+          rel={i === 0 ? 'prev' : 'next'}
+          data-testid={i === 0 ? 'prev-year' : 'next-year'}
+          class:list={[
+            'group col-span-2 flex flex-col gap-3 md:col-span-6',
+            i === 1 && 'items-end text-right',
+          ]}
+        >
+          <span class="eyebrow text-smoke">{i === 0 ? '← 前一年' : '下一年 →'}</span>
+          <span class="font-display text-headline tabular-nums">{n.year}</span>
+          <span
+            class="h-3 w-full transition-[height] duration-500 ease-out-expo group-hover:h-16"
+            style={`background:${n.hex}`}
+            aria-hidden="true"
+          />
+          <span class="text-xs text-smoke">
+            與 {year} 年色差 ΔE {n.deltaE}
+          </span>
+        </a>
+      ) : (
+        <span class="col-span-2 md:col-span-6" />
+      ),
+    )}
+  </nav>
+</Base>

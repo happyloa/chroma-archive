@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import PageIntro from '../components/PageIntro.astro';
+import Swatch from '../components/Swatch.astro';
+import YearNav from '../components/YearNav.astro';
+import { getYears } from '../lib/data';
+
+const years = await getYears();
+const first = years[0]!.year;
+const last = years.at(-1)!.year;
+---
+
+<Base
+  title="典藏"
+  description={`${first} 到 ${last} 年 Pantone 年度代表色一覽。`}
+  scene="archive"
+  color={years.at(-1)!.colors[0]!.hex}
+>
+  <PageIntro
+    eyebrow={`Archive ${first}–${last}`}
+    title="歷年年度色"
+    lead={`從 ${first} 年的 Cerulean 到 ${last} 年的 ${years.at(-1)!.colors[0]!.name}，點任一張色票看它的色值、配色與設計發想。`}
+  />
+
+  <YearNav years={years} />
+
+  <section aria-label="全部年度色" class="page-grid mt-16">
+    <ol
+      class="col-span-4 grid grid-cols-2 gap-x-col gap-y-10 sm:grid-cols-3 md:col-span-12 md:grid-cols-4 xl:grid-cols-6"
+      reversed
+    >
+      {[...years].reverse().map((y) => (
+        <li>
+          <Swatch entry={y} href={`/years/${y.year}/`} />
+        </li>
+      ))}
+    </ol>
+  </section>
+</Base>

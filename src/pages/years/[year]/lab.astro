@@ -1,0 +1,176 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../../layouts/Base.astro';
+import { getYears, type YearEntry } from '../../../lib/data';
+import { FINISHES, LIGHTS, PRODUCTS } from '../../../lib/schema';
+
+export const getStaticPaths = (async () => {
+  const years = await getYears();
+  return years.map((entry) => ({ params: { year: String(entry.year) }, props: { entry, years } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  entry: YearEntry;
+  years: YearEntry[];
+}
+
+const { entry, years } = Astro.props;
+const { year, colors } = entry;
+const main = colors[0]!;
+const names = colors.map((c) => c.name).join(' & ');
+
+const productZh: Record<(typeof PRODUCTS)[number], string> = {
+  chair: '單椅',
+  headphones: '耳罩式耳機',
+  vase: '陶瓷花瓶',
+  speaker: '智慧音箱',
+  lamp: '桌燈',
+  sneaker: '運動鞋',
+};
+const finishZh: Record<(typeof FINISHES)[number], string> = {
+  matte: '霧面',
+  satin: '緞面',
+  gloss: '亮面',
+  metallic: '金屬',
+  velvet: '絨布',
+  translucent: '半透明',
+};
+const lightZh: Record<(typeof LIGHTS)[number], string> = {
+  studio: '攝影棚',
+  daylight: '自然光',
+  night: '夜間',
+};
+
+// 輔色預設：雙色年份用第二色，否則用互補色
+const accentDefault = colors[1]?.hex ?? main.palettes.complementary[1]!;
+const accentChoices = [
+  ...new Set([accentDefault, ...main.palettes.analogous, ...main.palettes.triadic.slice(1)]),
+].filter((h) => h !== main.hex);
+---
+
+<Base
+  title={`${year} ${names} 產品實驗室`}
+  description={`把 Pantone ${year} 年度色 ${names} 套到 3D 產品上，切換材質與燈光。`}
+  scene="lab"
+  color={main.hex}
+>
+  <section class="page-grid gap-y-6 pt-32 pb-10 md:pt-36">
+    <p class="eyebrow col-span-4 text-smoke md:col-span-12">
+      <a href={`/years/${year}/`} class="hover:underline">
+        {year} {names}
+      </a>{' '}
+      / Product Lab
+    </p>
+    <h1 class="col-span-4 font-display text-headline font-light md:col-span-12">產品實驗室</h1>
+  </section>
+
+  <form
+    id="lab-form"
+    class="page-grid gap-y-10"
+    aria-label="產品實驗室設定"
+    data-year={year}
+    data-primary={main.hex}
+  >
+    <!-- 預覽區：WebGL 場景會畫在這個區塊的位置 -->
+    <div
+      id="lab-viewport"
+      class="relative col-span-4 flex aspect-square items-center justify-center overflow-hidden bg-mist md:col-span-8 md:aspect-[4/3]"
+    >
+      <div
+        class="aspect-square w-1/3 rounded-[38%_42%_30%_34%] shadow-[0_40px_60px_-30px_rgb(0_0_0/0.45)]"
+        style={`background: radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.35), transparent 55%), ${main.hex}`}
+        aria-hidden="true"
+      ></div>
+      <p class="absolute bottom-4 left-4 text-xs text-smoke">3D 預覽</p>
+    </div>
+
+    <div class="col-span-4 space-y-8 md:col-span-4">
+      <fieldset>
+        <legend class="eyebrow mb-3 text-smoke">產品</legend>
+        <div class="grid grid-cols-2 gap-2">
+          {PRODUCTS.map((p, i) => (
+            <label class="cursor-pointer border border-ink/15 px-3 py-2 text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper">
+              <input type="radio" name="p" value={p} checked={i === 0} class="sr-only" />
+              {productZh[p]}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="eyebrow mb-3 text-smoke">表面處理</legend>
+        <div class="grid grid-cols-3 gap-2">
+          {FINISHES.map((f, i) => (
+            <label class="cursor-pointer border border-ink/15 px-3 py-2 text-center text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper">
+              <input type="radio" name="f" value={f} checked={i === 0} class="sr-only" />
+              {finishZh[f]}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="eyebrow mb-3 text-smoke">主色</legend>
+        <div class="flex flex-wrap gap-2">
+          {years.flatMap((y) =>
+            y.colors.map((c, ci) => (
+              <label
+                class="size-7 cursor-pointer rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] has-checked:ring-2 has-checked:ring-ink has-checked:ring-offset-2 has-checked:ring-offset-paper"
+                style={`background:${c.hex}`}
+                title={`${y.year} ${c.name}`}
+              >
+                <input
+                  type="radio"
+                  name="c1"
+                  value={`${y.year}-${ci}`}
+                  checked={y.year === year && ci === 0}
+                  class="sr-only"
+                />
+                <span class="sr-only">
+                  {y.year} {c.name}
+                </span>
+              </label>
+            )),
+          )}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="eyebrow mb-3 text-smoke">輔色</legend>
+        <div class="flex flex-wrap gap-2">
+          {accentChoices.map((hex, i) => (
+            <label
+              class="size-7 cursor-pointer rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)] has-checked:ring-2 has-checked:ring-ink has-checked:ring-offset-2 has-checked:ring-offset-paper"
+              style={`background:${hex}`}
+              title={hex}
+            >
+              <input type="radio" name="c2" value={hex} checked={i === 0} class="sr-only" />
+              <span class="sr-only">{hex}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend class="eyebrow mb-3 text-smoke">燈光</legend>
+        <div class="grid grid-cols-3 gap-2">
+          {LIGHTS.map((l, i) => (
+            <label class="cursor-pointer border border-ink/15 px-3 py-2 text-center text-sm has-checked:border-ink has-checked:bg-ink has-checked:text-paper">
+              <input type="radio" name="l" value={l} checked={i === 0} class="sr-only" />
+              {lightZh[l]}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <button
+        type="button"
+        id="lab-export"
+        class="eyebrow w-full bg-ink px-6 py-4 text-paper disabled:cursor-not-allowed disabled:opacity-40"
+        disabled
+      >
+        匯出圖片
+      </button>
+    </div>
+  </form>
+</Base>

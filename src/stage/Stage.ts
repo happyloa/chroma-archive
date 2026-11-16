@@ -59,7 +59,8 @@ export class Stage {
   /** 換頁後由 boot.ts 呼叫，套用新頁面的參數 */
   setScene(scene: string, color: string): void {
     this.cube.material.color = new Color(color);
-    this.cube.visible = scene !== 'none';
+    // 正式場景在階段 3、4 實作；目前只在 debug 場景顯示驗證用立方體
+    this.cube.visible = scene === 'debug';
   }
 
   private resize = (): void => {
