@@ -43,14 +43,21 @@ export async function parseModelFile(file: File): Promise<Group> {
       if (/draco/i.test(message)) throw new UploadError(ct('draco'));
       throw new UploadError(ct('gltfFailed'));
     }
-  } else if (ext === '.obj') {
-    const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader.js');
-    root = new OBJLoader().parse(await file.text());
   } else {
-    const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader.js');
-    const geometry = new STLLoader().parse(await file.arrayBuffer());
-    geometry.computeVertexNormals();
-    root = new Mesh(geometry, new MeshStandardMaterial());
+    // 檔案內容損壞時 loader 會丟出技術性的錯誤，改成在地化的訊息
+    try {
+      if (ext === '.obj') {
+        const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader.js');
+        root = new OBJLoader().parse(await file.text());
+      } else {
+        const { STLLoader } = await import('three/examples/jsm/loaders/STLLoader.js');
+        const geometry = new STLLoader().parse(await file.arrayBuffer());
+        geometry.computeVertexNormals();
+        root = new Mesh(geometry, new MeshStandardMaterial());
+      }
+    } catch {
+      throw new UploadError(ct('readFailed'));
+    }
   }
 
   const group = new Group();

@@ -382,12 +382,15 @@ export class ProductView implements StageView {
       id === 'custom' ? this.custom! : await loadProduct(id, this.ctx.settings.detail);
     // 載入期間又換了產品，或視窗已經釋放
     if (token !== this.productToken || this.disposed) return;
+    // 換上之前先平行編譯新模型會用到的 shader（第一格才不會同步等編譯），舊模型留在畫面上
+    const probe = await this.precompile(model);
+    if (token !== this.productToken || this.disposed) {
+      probe.dispose();
+      return;
+    }
     this.mountModel(model, id, animate);
-    // 模型先隱藏，平行編譯完材質的 shader 才顯示，避免第一格同步編譯卡住
-    model.root.visible = false;
-    await this.ctx.renderer.compileAsync(this.scene, this.camera).catch(() => undefined);
-    if (token !== this.productToken || this.disposed) return;
-    model.root.visible = true;
+    // 換上的材質已經用到同一組 shader，下一格之後才釋放暫時的材質，shader 不會被回收
+    requestAnimationFrame(() => requestAnimationFrame(() => probe.dispose()));
     this.frame(animate);
     if (this.photo.enabled) void this.rebuildPhoto();
     this.el.dispatchEvent(
@@ -402,8 +405,19 @@ export class ProductView implements StageView {
    * glTF 模型的主色材質貼圖（灰階細節圖、法線、粗糙度）接到視窗自己的主色材質上；
    * 程式產生的模型沒有貼圖，全部清空。金屬度貼圖不接，讓「金屬」表面處理維持有效。
    */
-  private bindPrimaryMaps(source?: MeshStandardMaterial): void {
-    const m = this.primaryMat;
+  /** 用主色材質的複本套上新模型的貼圖，編譯新模型的 shader；回傳複本，呼叫端負責釋放 */
+  private async precompile(model: LoadedProduct): Promise<MeshPhysicalMaterial> {
+    const probe = this.primaryMat.clone();
+    this.bindPrimaryMaps(model.primarySource, probe);
+    for (const m of model.primary) m.material = probe;
+    for (const m of model.accent) m.material = this.accentMat;
+    await this.ctx.renderer
+      .compileAsync(model.root, this.camera, this.scene)
+      .catch(() => undefined);
+    return probe;
+  }
+
+  private bindPrimaryMaps(source?: MeshStandardMaterial, m = this.primaryMat): void {
     m.map = source?.map ?? null;
     m.normalMap = source?.normalMap ?? null;
     if (source?.normalMap) m.normalScale.copy(source.normalScale);
@@ -771,7 +785,7 @@ export class ProductView implements StageView {
     if (old) disposeGeometries(old.root);
   }
 
-  /** 網站切換深淺色時，背景跟著換 */
+  /** 減少動態效果時停止自轉 */
   setReducedMotion(reduced: boolean): void {
     this.reducedMotion = reduced;
     if (reduced) this.state.spin = false;

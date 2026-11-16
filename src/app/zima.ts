@@ -19,6 +19,8 @@ export function openZimaReveal(): void {
   returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   dialog.addEventListener('click', onClick);
   dialog.addEventListener('close', onClose, { once: true });
+  // 對話框由程式開啟（沒有使用者操作）時，瀏覽器原生的 Esc 關閉不一定生效，自己處理
+  document.addEventListener('keydown', onKey);
   dialog.showModal();
   // 對話框在最上層（top layer），原生游標又已隱藏，自訂游標的圓點要移進對話框才看得到
   const cursor = document.querySelector('.chroma-cursor');
@@ -46,6 +48,15 @@ export function openZimaReveal(): void {
     );
 }
 
+function onKey(event: KeyboardEvent): void {
+  if (event.key !== 'Escape') return;
+  const dialog = document.getElementById('zima-reveal');
+  if (dialog instanceof HTMLDialogElement && dialog.open) {
+    event.preventDefault();
+    dialog.close();
+  }
+}
+
 function onClick(event: MouseEvent): void {
   if ((event.target as Element | null)?.closest('[data-zima-close]')) {
     (event.currentTarget as HTMLDialogElement).close();
@@ -54,6 +65,7 @@ function onClick(event: MouseEvent): void {
 
 function onClose(this: HTMLDialogElement): void {
   this.removeEventListener('click', onClick);
+  document.removeEventListener('keydown', onKey);
   const cursor = this.querySelector('.chroma-cursor');
   if (cursor) document.body.append(cursor);
   timeline?.kill();

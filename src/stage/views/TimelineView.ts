@@ -175,7 +175,8 @@ class TimelineView implements StageView {
     const i = this.pick();
     const item = this.items[i];
     if (!item) return;
-    if (!this.reducedMotion) morphIntoHero(this.swatchRect(i), item.hexes, `hero-${item.year}`);
+    if (!this.reducedMotion)
+      morphIntoHero(this.swatchRect(i), item.hexes, `hero-${item.year}`, item.href);
     void navigate(item.href);
   };
 

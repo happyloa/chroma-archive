@@ -25,6 +25,7 @@ let pageLoads = 0;
 
 async function applyPage(): Promise<void> {
   pageLoads += 1;
+  const page = pageLoads;
   initLab();
   // 不支援 WebGL 時不載入 three.js，頁面維持靜態版（憲章第 2 條）
   if (!webglAvailable) return;
@@ -42,6 +43,8 @@ async function applyPage(): Promise<void> {
     );
     StageClass = (await import('../stage/Stage')).Stage;
   }
+  // 等待期間已經換頁：新頁面的 applyPage 會處理，舊的 <main> 不再建立
+  if (page !== pageLoads || !main.isConnected) return;
   stage = StageClass.get(canvas);
   stage.setReducedMotion(prefersReducedMotion());
   await stage.mount(main);
@@ -69,6 +72,12 @@ onMotionChange((reduced) => {
 
 declare global {
   interface Window {
+    /** Base layout 的 inline script 在首次繪製前寫入的旗標 */
+    __chromaWebgl?: boolean;
+    __chromaLite?: boolean;
+    __chromaForceFull?: boolean;
+    __chromaNavigated?: boolean;
+    __chromaHeadInit?: boolean;
     __chroma?: () => {
       stageInstances: number;
       pageLoads: number;

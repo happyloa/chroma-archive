@@ -173,7 +173,12 @@ export class Stage {
     this.observer = null;
     this.lazy?.disconnect();
     this.lazy = null;
-    for (const view of this.views.values()) view.dispose();
+    for (const [el, view] of this.views) {
+      view.dispose();
+      // 元素可能還在頁面上（例如中途切換動態偏好時重建），拿掉就緒標記，靜態替代內容才會回來
+      delete el.dataset.stageReady;
+      el.removeAttribute('aria-busy');
+    }
     this.views.clear();
     this.visible.clear();
     this.renderer.clear();
@@ -184,8 +189,6 @@ export class Stage {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, settings.maxDpr));
     this.renderer.shadowMap.enabled = settings.shadows;
     this.canvas.dataset.tier = this.tier;
-    // 底片顆粒等 CSS 後製效果依畫質檔位開關（global.css）
-    document.documentElement.dataset.tier = this.tier;
   }
 
   private downgrade(): void {

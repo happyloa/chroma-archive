@@ -20,14 +20,14 @@ export const rootTransition: TransitionDirectionalAnimations = {
 let origin = { x: '50%', y: '50%' };
 /** 這次換頁是不是瀏覽器的上一頁、下一頁 */
 let traverse = false;
-/** 下一次換頁要讓主視覺接手的轉場名稱（見 morphIntoHero） */
-let pendingHero: string | null = null;
+/** 下一次換頁要讓主視覺接手的轉場名稱與目的地（見 morphIntoHero） */
+let pendingHero: { name: string; path: string } | null = null;
 
 /**
  * 3D 色卡換頁前呼叫：在畫面上 rect 的位置放一塊顏色方塊，換頁時放大成新頁的主視覺。
  * 方塊在舊頁面裡，換頁後會跟著舊頁面一起被換掉。
  */
-export function morphIntoHero(rect: DOMRect, colors: string[], name: string): void {
+export function morphIntoHero(rect: DOMRect, colors: string[], name: string, href: string): void {
   const block = document.createElement('div');
   const stops = colors
     .map((c, i) => `${c} ${(i / colors.length) * 100}% ${((i + 1) / colors.length) * 100}%`)
@@ -45,7 +45,7 @@ export function morphIntoHero(rect: DOMRect, colors: string[], name: string): vo
   });
   block.setAttribute('aria-hidden', 'true');
   document.body.append(block);
-  pendingHero = name;
+  pendingHero = { name, path: new URL(href, location.href).pathname };
   // 換頁沒有發生（例如被取消）時移除
   setTimeout(() => block.remove(), 4000);
 }
@@ -77,10 +77,11 @@ export function initTransitions(): void {
 
   // 新頁面的主視覺只在這一次換頁接手色卡方塊，轉場結束就拿掉名稱，避免之後換頁時單獨成組
   document.addEventListener('astro:before-swap', (event) => {
-    if (!pendingHero) return;
-    const hero = event.newDocument.querySelector<HTMLElement>('[data-view="hero"]');
-    const name = pendingHero;
+    const pending = pendingHero;
     pendingHero = null;
+    if (!pending || event.to.pathname !== pending.path) return;
+    const hero = event.newDocument.querySelector<HTMLElement>('[data-view="hero"]');
+    const name = pending.name;
     if (!hero) return;
     hero.style.viewTransitionName = name;
     void event.viewTransition.finished.finally(() => {

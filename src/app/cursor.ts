@@ -13,7 +13,29 @@ function enabled(): boolean {
   return window.matchMedia('(pointer: fine)').matches && !prefersReducedMotion();
 }
 
+function track(e: PointerEvent): void {
+  if (!dot) return;
+  gsap.set(dot, { x: e.clientX, y: e.clientY });
+  dot.dataset.moved = '';
+  const target = e.target as Element | null;
+  const colored = target?.closest<HTMLElement>('[data-cursor-color]');
+  const interactive = target?.closest('a, button, label, input, [data-view]');
+  if (colored) {
+    dot.style.setProperty('--cursor-fill', colored.dataset.cursorColor!);
+    dot.dataset.state = 'color';
+  } else if (interactive) {
+    dot.dataset.state = 'hover';
+  } else {
+    delete dot.dataset.state;
+  }
+}
+
 export function initCursor(): void {
+  // 監聽器只註冊一次；動態偏好切換時只建立或移除圓點
+  window.addEventListener('pointermove', track);
+  document.addEventListener('pointerleave', () => dot && (dot.style.opacity = '0'));
+  document.addEventListener('pointerenter', () => dot && (dot.style.opacity = ''));
+
   const setup = () => {
     if (!enabled() || dot) return;
     dot = document.createElement('div');
@@ -21,29 +43,9 @@ export function initCursor(): void {
     dot.setAttribute('aria-hidden', 'true');
     document.body.append(dot);
     document.documentElement.dataset.cursor = 'custom';
-
-    window.addEventListener('pointermove', (e) => {
-      if (!dot) return;
-      gsap.set(dot, { x: e.clientX, y: e.clientY });
-      dot.dataset.moved = '';
-      const target = e.target as Element | null;
-      const colored = target?.closest<HTMLElement>('[data-cursor-color]');
-      const interactive = target?.closest('a, button, label, input, [data-view]');
-      if (colored) {
-        dot.style.setProperty('--cursor-fill', colored.dataset.cursorColor!);
-        dot.dataset.state = 'color';
-      } else if (interactive) {
-        dot.dataset.state = 'hover';
-      } else {
-        delete dot.dataset.state;
-      }
-    });
-    document.addEventListener('pointerleave', () => dot && (dot.style.opacity = '0'));
-    document.addEventListener('pointerenter', () => dot && (dot.style.opacity = ''));
   };
 
   setup();
-  // ClientRouter 換頁會換掉 body 內容，把圓點加回去
   // <html> 的屬性也會被換掉，重新標記
   document.addEventListener('astro:after-swap', () => {
     if (!dot) return;
